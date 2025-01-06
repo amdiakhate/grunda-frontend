@@ -1,5 +1,5 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { useState } from 'react'
+import { createFileRoute, Link } from '@tanstack/react-router'
+import { useEffect, useState } from 'react'
 import {
   Table,
   TableRow,
@@ -10,94 +10,26 @@ import {
 } from '../../components/ui/table'
 import { Button } from '../../components/ui/button'
 import { Input } from '../../components/ui/input'
+import { productsService } from '../../services/products'
+import { Product } from '../../interfaces/product'
+import { CompletionBar, CompletionLevel } from '../../components/products/completionLevel'
 
-// product caracteristics : name, id  , category name,  unit footprint , total footprint
-type Product = {
-  id: string
-  name: string
-  category: string
-  unitFootprint: number // CO2 equivalent in kg
-  totalFootprint: number // CO2 equivalent in kg
-}
-
-const initialProducts: Product[] = [
-  {
-    id: 'f1',
-    name: 'Modern Office Chair',
-    category: 'Seating',
-    unitFootprint: 48.5,
-    totalFootprint: 4850,
-  },
-  {
-    id: 'f2',
-    name: 'Wooden Dining Table',
-    category: 'Tables',
-    unitFootprint: 125.3,
-    totalFootprint: 12530,
-  },
-  {
-    id: 'f3',
-    name: 'Leather Sofa',
-    category: 'Seating',
-    unitFootprint: 210.8,
-    totalFootprint: 21080,
-  },
-  {
-    id: 'f4',
-    name: 'Bookshelf',
-    category: 'Storage',
-    unitFootprint: 85.2,
-    totalFootprint: 8520,
-  },
-  {
-    id: 'f5',
-    name: 'Queen Size Bed Frame',
-    category: 'Bedroom',
-    unitFootprint: 178.4,
-    totalFootprint: 17840,
-  },
-  {
-    id: 'f6',
-    name: 'Coffee Table',
-    category: 'Tables',
-    unitFootprint: 62.7,
-    totalFootprint: 6270,
-  },
-  {
-    id: 'f7',
-    name: 'Wardrobe Cabinet',
-    category: 'Storage',
-    unitFootprint: 245.9,
-    totalFootprint: 24590,
-  },
-  {
-    id: 'f8',
-    name: 'Desk Lamp',
-    category: 'Lighting',
-    unitFootprint: 12.3,
-    totalFootprint: 1230,
-  },
-  {
-    id: 'f9',
-    name: 'Side Table',
-    category: 'Tables',
-    unitFootprint: 35.6,
-    totalFootprint: 3560,
-  },
-  {
-    id: 'f10',
-    name: 'TV Stand',
-    category: 'Storage',
-    unitFootprint: 95.4,
-    totalFootprint: 9540,
-  },
-]
 
 export const Route = createFileRoute('/products/list')({
   component: RouteComponent,
 })
 
 function RouteComponent() {
+
+  const [products, setProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      const products = await productsService.getAll();
+      setProducts(products);
+    };
+    fetchProducts();
+  }, []);
 
   const [currentPage, setCurrentPage] = useState<number>(1)
   const [filters, setFilters] = useState<{
@@ -109,7 +41,7 @@ function RouteComponent() {
   })
   const itemsPerPage = 5
   
-  const filteredProducts = initialProducts.filter(product => {
+  const filteredProducts = products.filter(product => {
     const matchesCategory = !filters.category || product.category === filters.category
     const matchesSearch = !filters.search || 
       product.name.toLowerCase().includes(filters.search.toLowerCase()) ||
@@ -121,12 +53,11 @@ function RouteComponent() {
   const startIndex = (currentPage - 1) * itemsPerPage
   const paginatedProducts = filteredProducts.slice(startIndex, startIndex + itemsPerPage)
   
-  const categories = Array.from(new Set(initialProducts.map(p => p.category)))
+  const categories = Array.from(new Set(products.map(p => p.category)))
 
   return (
     <>
-      <h1>Products List</h1>
-      
+      <h1 className="text-2xl font-bold">Products List</h1>
       <div className="flex gap-4 mb-4">
         <Input 
           placeholder="Search products..."
@@ -146,25 +77,42 @@ function RouteComponent() {
           ))}
         </select>
       </div>
+      <div className="flex justify-end mb-4">
+        <Button asChild>
+          <Link to="/products/steps/upload-file">
+            Add Products
+          </Link>
+        </Button>
+      </div>
 
       <Table className="w-full">
         <TableHeader>
           <TableRow>
-            <TableHead>ID</TableHead>
             <TableHead>Name</TableHead>
             <TableHead>Category</TableHead>
             <TableHead>Unit Footprint</TableHead>
             <TableHead>Total Footprint</TableHead>
+            <TableHead>Completion Level</TableHead>
+            <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {paginatedProducts.map((product) => (
             <TableRow key={product.id}>
-              <TableCell>{product.id}</TableCell>
               <TableCell>{product.name}</TableCell>
               <TableCell>{product.category}</TableCell>
               <TableCell>{product.unitFootprint}</TableCell>
               <TableCell>{product.totalFootprint}</TableCell>
+              <TableCell className="text-center">
+                <CompletionLevel level={product.completionLevel} />
+              </TableCell>
+              <TableCell>
+                <Button asChild>
+                  <Link to={`/products/${product.id}`}>
+                    Details
+                  </Link>
+                </Button>
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
