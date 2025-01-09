@@ -7,6 +7,8 @@ import { EcoinventActivity } from '@/interfaces/ecoinvent';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Material } from '../../interfaces/product';
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { SortableHeader, type SortConfig } from '@/components/ui/sortable-header';
+import { useSort } from '@/hooks/use-sort';
 
 interface ActivitySearchModalProps {
     isOpen: boolean;
@@ -21,6 +23,10 @@ export function ActivitySearchModal({ isOpen, onClose, onSelect, material }: Act
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
+    const [sortConfig, setSortConfig] = useState<SortConfig>({
+        key: '',
+        direction: null
+    });
 
     // Reset activities when modal closes
     useEffect(() => {
@@ -38,9 +44,8 @@ export function ActivitySearchModal({ isOpen, onClose, onSelect, material }: Act
         activity.location.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    // Pagination
-    const totalPages = Math.ceil(filteredActivities.length / itemsPerPage);
-    const paginatedActivities = filteredActivities.slice(
+    const sortedActivities = useSort(filteredActivities, sortConfig);
+    const paginatedActivities = sortedActivities.slice(
         (currentPage - 1) * itemsPerPage,
         currentPage * itemsPerPage
     );
@@ -57,6 +62,23 @@ export function ActivitySearchModal({ isOpen, onClose, onSelect, material }: Act
             setIsLoading(false);
         }
     };
+
+    const handleSort = (key: string) => {
+        setSortConfig(current => {
+            if (current.key === key) {
+                if (current.direction === 'asc') {
+                    return { key, direction: 'desc' };
+                }
+                if (current.direction === 'desc') {
+                    return { key: '', direction: null };
+                }
+            }
+            return { key, direction: 'asc' };
+        });
+    };
+
+    // Calculer totalPages
+    const totalPages = Math.ceil(filteredActivities.length / itemsPerPage);
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
@@ -89,17 +111,45 @@ export function ActivitySearchModal({ isOpen, onClose, onSelect, material }: Act
                             <Table>
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead className="w-[300px]">Name</TableHead>
-                                        <TableHead>Location</TableHead>
-                                        <TableHead className="w-[200px]">Reference Product</TableHead>
-                                        <TableHead>Unit</TableHead>
+                                        <SortableHeader 
+                                            column="name" 
+                                            label="Name" 
+                                            sortConfig={sortConfig} 
+                                            onSort={handleSort}
+                                        />
+                                        <SortableHeader 
+                                            column="location" 
+                                            label="Location" 
+                                            sortConfig={sortConfig} 
+                                            onSort={handleSort}
+                                        />
+                                        <SortableHeader 
+                                            column="referenceProduct" 
+                                            label="Reference Product" 
+                                            sortConfig={sortConfig} 
+                                            onSort={handleSort}
+                                        />
+                                        <SortableHeader 
+                                            column="unit" 
+                                            label="Unit" 
+                                            sortConfig={sortConfig} 
+                                            onSort={handleSort}
+                                        />
                                         <TableHead className="w-[100px]">Select</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {paginatedActivities.map((activity, index) => (
+                                    {paginatedActivities.map((activity: EcoinventActivity, index: number) => (
                                         <TableRow key={index}>
-                                            <TableCell className="font-medium">{activity.name}</TableCell>
+                                            <TableCell className="font-medium">
+                                                {activity.uuid === material.activityUuid ? (
+                                                    <div className="flex items-center gap-2">
+                                                       <span>✓</span>
+
+                                                        {activity.name}
+                                                    </div>
+                                                ) : activity.name}
+                                            </TableCell>
                                             <TableCell>{activity.location}</TableCell>
                                             <TableCell>{activity.referenceProduct}</TableCell>
                                             <TableCell>{activity.unit}</TableCell>

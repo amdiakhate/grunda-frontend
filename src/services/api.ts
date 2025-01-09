@@ -40,5 +40,16 @@ export const api = {
       body: isFormData ? data : JSON.stringify(data),
     });
     return handleResponse<T>(response);
+  }, 
+
+
+  async put<T>(endpoint: string, data: unknown): Promise<T> {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      body: JSON.stringify(data),
+    });
+    return handleResponse<T>(response);
   }
+
 }; 

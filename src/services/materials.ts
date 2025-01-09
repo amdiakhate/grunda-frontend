@@ -11,5 +11,18 @@ export const materialsService = {
            console.error('Error searching ecoinvent activities:', error);
            throw error;
         }
+     },
+
+     async setActivity(material: Material, activity: EcoinventActivity): Promise<void> {
+        try {
+            await api.put(`/materials/${material.id}`, { 
+               activityUuid: activity.uuid,
+               activityName: activity.name,
+               referenceProduct: activity.referenceProduct,
+            });
+        } catch (error) {
+            console.error('Error setting activity:', error);
+            throw error;
+        }
      }
 }

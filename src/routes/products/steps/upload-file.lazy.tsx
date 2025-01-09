@@ -4,7 +4,6 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useStore } from '../../../useStore';
 import { productsService } from '../../../services/products';
 
 export const Route = createLazyFileRoute('/products/steps/upload-file')({
@@ -40,7 +39,7 @@ function RouteComponent() {
 
       try {
 
-        const response = await productsService.uploadFile(file);
+         await productsService.uploadFile(file);
         navigate({
           to: '/products/list',
         });

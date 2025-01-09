@@ -12,46 +12,120 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ActivitySearchModal } from './activitySearchModal';
 import { EcoinventActivity } from '@/interfaces/ecoinvent';
+import { materialsService } from '../../services/materials';
+import {   useToast } from '../../hooks/use-toast';
+import { Toaster } from '../ui/toaster';
+import { productsService } from '@/services/products';
+import { useSort } from '@/hooks/use-sort';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 
 export function DataTable({ data }: { data: Product }) {
     const [selectedMaterial, setSelectedMaterial] = useState<Material | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [productData, setProductData] = useState<Product>(data);
+    const { toast } = useToast();
+    const [sortConfig, setSortConfig] = useState<{key: string; direction: 'asc' | 'desc' | null}>({
+        key: '',
+        direction: null
+    });
+
+    const sortedMaterials = useSort(productData.materials, sortConfig);
+
+    const handleSort = (key: string) => {
+        setSortConfig(current => {
+            if (current.key === key) {
+                if (current.direction === 'asc') {
+                    return { key, direction: 'desc' };
+                }
+                if (current.direction === 'desc') {
+                    return { key: '', direction: null };
+                }
+            }
+            return { key, direction: 'asc' };
+        });
+    };
+
+    const SortableHeader = ({ column, label }: { column: string; label: string }) => {
+        return (
+            <TableHead 
+                onClick={() => handleSort(column)}
+                className="cursor-pointer hover:bg-muted/50"
+            >
+                <div className="flex items-center gap-2">
+                    {label}
+                    {sortConfig.key === column && (
+                        <span className="text-muted-foreground">
+                            {sortConfig.direction === 'asc' ? (
+                                <ChevronUp className="h-4 w-4" />
+                            ) : (
+                                <ChevronDown className="h-4 w-4" />
+                            )}
+                        </span>
+                    )}
+                </div>
+            </TableHead>
+        );
+    };
+
+    const reloadProduct = async () => {
+        try {
+            const updatedProduct = await productsService.getById(data.id);
+            setProductData(updatedProduct);
+        } catch (error) {
+            toast({
+                title: 'Error reloading product',
+                description: 'Failed to refresh product data',
+                variant: 'destructive',
+            });
+        }
+    };
 
     const handleActivitySelect = async (activity: EcoinventActivity) => {
-        // Ici, vous pouvez implémenter la logique pour mettre à jour le matériau
-        console.log('Selected activity:', activity);
+        if (selectedMaterial) {
+            try {
+                await materialsService.setActivity(selectedMaterial, activity);
+                await reloadProduct();
+                toast({
+                    title: 'Activity set',
+                    description: 'Activity set successfully',
+                });
+            } catch (error) {
+                toast({
+                    title: 'Error setting activity',
+                    description: 'Error setting activity',
+                    variant: 'destructive',
+                });
+                console.error('Error setting activity:', error);
+            }
+        }
         setIsModalOpen(false);
     };
 
     return (
         <>
+            <Toaster />
             <Table>
                 <TableHeader>
                     <TableRow>
-                        {/* product material details */}
-                        <TableHead>Name</TableHead>
-                        <TableHead>Quantity</TableHead>
-                        <TableHead>Unit</TableHead>
-                        <TableHead>Origin</TableHead>
-                        <TableHead>Activity UUID</TableHead>
-                        <TableHead>Activity Name</TableHead>
-                        <TableHead>Category</TableHead>
-                        <TableHead>Reference Product</TableHead>
+                        <SortableHeader column="name" label="Name" />
+                        <SortableHeader column="quantity" label="Quantity" />
+                        <SortableHeader column="unit" label="Unit" />
+                        <SortableHeader column="origin" label="Origin" />
+                        <SortableHeader column="activityName" label="Activity Name" />
+                        <SortableHeader column="referenceProduct" label="Reference Product" />
                         <TableHead>Completion</TableHead>
+                        <TableHead>Actions</TableHead>
                     </TableRow>
                 </TableHeader>
 
                 <TableBody>
-                    {data.materials.map((material, index) => (
+                    {sortedMaterials.map((material, index) => (
                         <TableRow key={index}>
                             <TableCell className="font-bold">{material.name}</TableCell>
                             <TableCell>{material.quantity}</TableCell>
                             <TableCell>{material.unit}</TableCell>
                             <TableCell>{material.origin}</TableCell>
-                            {/* <TableCell>{material.description}</TableCell> */}
-                            <TableCell>{material.activityUuid}</TableCell>
                             <TableCell>{material.activityName}</TableCell>
-                            <TableCell>{material.category}</TableCell>
                             <TableCell>{material.referenceProduct}</TableCell>
                             <TableCell className="text-center">
                                 {material.completion === true ? <CompletionLevel level={100} /> : <CompletionLevel level={0} />}
