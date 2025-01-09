@@ -16,8 +16,8 @@ import { materialsService } from '../../services/materials';
 import {   useToast } from '../../hooks/use-toast';
 import { Toaster } from '../ui/toaster';
 import { productsService } from '@/services/products';
-import { useSort } from '@/hooks/use-sort';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { SortableHeader } from '../ui/sortable-header';
+import { sortItems } from '@/utils/sorting';
 
 export function DataTable({ data }: { data: Product }) {
     const [selectedMaterial, setSelectedMaterial] = useState<Material | null>(null);
@@ -29,7 +29,7 @@ export function DataTable({ data }: { data: Product }) {
         direction: null
     });
 
-    const sortedMaterials = useSort(productData.materials, sortConfig);
+    const sortedMaterials = sortItems(productData.materials, sortConfig);
 
     const handleSort = (key: string) => {
         setSortConfig(current => {
@@ -45,27 +45,6 @@ export function DataTable({ data }: { data: Product }) {
         });
     };
 
-    const SortableHeader = ({ column, label }: { column: string; label: string }) => {
-        return (
-            <TableHead 
-                onClick={() => handleSort(column)}
-                className="cursor-pointer hover:bg-muted/50"
-            >
-                <div className="flex items-center gap-2">
-                    {label}
-                    {sortConfig.key === column && (
-                        <span className="text-muted-foreground">
-                            {sortConfig.direction === 'asc' ? (
-                                <ChevronUp className="h-4 w-4" />
-                            ) : (
-                                <ChevronDown className="h-4 w-4" />
-                            )}
-                        </span>
-                    )}
-                </div>
-            </TableHead>
-        );
-    };
 
     const reloadProduct = async () => {
         try {
@@ -77,6 +56,7 @@ export function DataTable({ data }: { data: Product }) {
                 description: 'Failed to refresh product data',
                 variant: 'destructive',
             });
+            console.error('Error reloading product:', error);
         }
     };
 
@@ -107,12 +87,12 @@ export function DataTable({ data }: { data: Product }) {
             <Table>
                 <TableHeader>
                     <TableRow>
-                        <SortableHeader column="name" label="Name" />
-                        <SortableHeader column="quantity" label="Quantity" />
-                        <SortableHeader column="unit" label="Unit" />
-                        <SortableHeader column="origin" label="Origin" />
-                        <SortableHeader column="activityName" label="Activity Name" />
-                        <SortableHeader column="referenceProduct" label="Reference Product" />
+                        <SortableHeader column="name" label="Name" sortConfig={sortConfig} onSort={handleSort} />
+                        <SortableHeader column="quantity" label="Quantity" sortConfig={sortConfig} onSort={handleSort} />
+                        <SortableHeader column="unit" label="Unit" sortConfig={sortConfig} onSort={handleSort} />
+                        <SortableHeader column="origin" label="Origin" sortConfig={sortConfig} onSort={handleSort} />
+                        <SortableHeader column="activityName" label="Activity Name" sortConfig={sortConfig} onSort={handleSort} />
+                        <SortableHeader column="referenceProduct" label="Reference Product" sortConfig={sortConfig} onSort={handleSort} />
                         <TableHead>Completion</TableHead>
                         <TableHead>Actions</TableHead>
                     </TableRow>

@@ -8,8 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Material } from '../../interfaces/product';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { SortableHeader, type SortConfig } from '@/components/ui/sortable-header';
-import { useSort } from '@/hooks/use-sort';
-
+import { sortItems } from '@/utils/sorting';
 interface ActivitySearchModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -44,7 +43,7 @@ export function ActivitySearchModal({ isOpen, onClose, onSelect, material }: Act
         activity.location.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const sortedActivities = useSort(filteredActivities, sortConfig);
+    const sortedActivities = sortItems(filteredActivities, sortConfig);
     const paginatedActivities = sortedActivities.slice(
         (currentPage - 1) * itemsPerPage,
         currentPage * itemsPerPage

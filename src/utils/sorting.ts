@@ -5,7 +5,7 @@ interface SortConfig {
     direction: SortDirection;
 }
 
-export function useSort<T extends Record<string, any>>(items: T[], config: SortConfig | null) {
+export function sortItems<T extends Record<string, any>>(items: T[], config: SortConfig | null) {
     if (!config || !config.key || !config.direction) {
         return items;
     }
@@ -16,14 +16,14 @@ export function useSort<T extends Record<string, any>>(items: T[], config: SortC
 
         if (aValue === bValue) return 0;
 
-        // Gérer les nombres
+        // Handle numeric values
         if (!isNaN(Number(aValue)) && !isNaN(Number(bValue))) {
             return config.direction === 'asc' 
                 ? Number(aValue) - Number(bValue)
                 : Number(bValue) - Number(aValue);
         }
 
-        // Gérer les chaînes
+        // Handle string values
         return config.direction === 'asc'
             ? aValue.localeCompare(bValue)
             : bValue.localeCompare(aValue);
