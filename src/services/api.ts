@@ -24,14 +24,20 @@ export const api = {
     return handleResponse<T>(response);
   },
 
-  async post<T>(endpoint: string, data: unknown): Promise<T> {
+  async post<T>(endpoint: string, data: unknown, headers: Record<string, string> = {}): Promise<T> {
+    const isFormData = data instanceof FormData;
+    
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: 'POST',
-      headers: {
+      headers: isFormData ? {
+        'Access-Control-Allow-Origin': '*',
+        ...headers
+      } : {
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
+        'Access-Control-Allow-Origin': '*',
+        ...headers
       },
-      body: JSON.stringify(data),
+      body: isFormData ? data : JSON.stringify(data),
     });
     return handleResponse<T>(response);
   }

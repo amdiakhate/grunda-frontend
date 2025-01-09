@@ -16,6 +16,7 @@ import { Route as rootRoute } from './routes/__root'
 import { Route as DashboardImport } from './routes/dashboard'
 import { Route as ProductsListImport } from './routes/products/list'
 import { Route as ProductsIdImport } from './routes/products/$id'
+import { Route as ProductsImportsListImport } from './routes/products/imports/list'
 
 // Create Virtual Routes
 
@@ -77,6 +78,12 @@ const ProductsStepsPreviewLazyRoute = ProductsStepsPreviewLazyImport.update({
   import('./routes/products/steps/preview.lazy').then((d) => d.Route),
 )
 
+const ProductsImportsListRoute = ProductsImportsListImport.update({
+  id: '/products/imports/list',
+  path: '/products/imports/list',
+  getParentRoute: () => rootRoute,
+} as any)
+
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
@@ -116,6 +123,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProductsListImport
       parentRoute: typeof rootRoute
     }
+    '/products/imports/list': {
+      id: '/products/imports/list'
+      path: '/products/imports/list'
+      fullPath: '/products/imports/list'
+      preLoaderRoute: typeof ProductsImportsListImport
+      parentRoute: typeof rootRoute
+    }
     '/products/steps/preview': {
       id: '/products/steps/preview'
       path: '/products/steps/preview'
@@ -141,6 +155,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsLazyRoute
   '/products/$id': typeof ProductsIdRoute
   '/products/list': typeof ProductsListRoute
+  '/products/imports/list': typeof ProductsImportsListRoute
   '/products/steps/preview': typeof ProductsStepsPreviewLazyRoute
   '/products/steps/upload-file': typeof ProductsStepsUploadFileLazyRoute
 }
@@ -151,6 +166,7 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsLazyRoute
   '/products/$id': typeof ProductsIdRoute
   '/products/list': typeof ProductsListRoute
+  '/products/imports/list': typeof ProductsImportsListRoute
   '/products/steps/preview': typeof ProductsStepsPreviewLazyRoute
   '/products/steps/upload-file': typeof ProductsStepsUploadFileLazyRoute
 }
@@ -162,6 +178,7 @@ export interface FileRoutesById {
   '/settings': typeof SettingsLazyRoute
   '/products/$id': typeof ProductsIdRoute
   '/products/list': typeof ProductsListRoute
+  '/products/imports/list': typeof ProductsImportsListRoute
   '/products/steps/preview': typeof ProductsStepsPreviewLazyRoute
   '/products/steps/upload-file': typeof ProductsStepsUploadFileLazyRoute
 }
@@ -174,6 +191,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/products/$id'
     | '/products/list'
+    | '/products/imports/list'
     | '/products/steps/preview'
     | '/products/steps/upload-file'
   fileRoutesByTo: FileRoutesByTo
@@ -183,6 +201,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/products/$id'
     | '/products/list'
+    | '/products/imports/list'
     | '/products/steps/preview'
     | '/products/steps/upload-file'
   id:
@@ -192,6 +211,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/products/$id'
     | '/products/list'
+    | '/products/imports/list'
     | '/products/steps/preview'
     | '/products/steps/upload-file'
   fileRoutesById: FileRoutesById
@@ -203,6 +223,7 @@ export interface RootRouteChildren {
   SettingsLazyRoute: typeof SettingsLazyRoute
   ProductsIdRoute: typeof ProductsIdRoute
   ProductsListRoute: typeof ProductsListRoute
+  ProductsImportsListRoute: typeof ProductsImportsListRoute
   ProductsStepsPreviewLazyRoute: typeof ProductsStepsPreviewLazyRoute
   ProductsStepsUploadFileLazyRoute: typeof ProductsStepsUploadFileLazyRoute
 }
@@ -213,6 +234,7 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsLazyRoute: SettingsLazyRoute,
   ProductsIdRoute: ProductsIdRoute,
   ProductsListRoute: ProductsListRoute,
+  ProductsImportsListRoute: ProductsImportsListRoute,
   ProductsStepsPreviewLazyRoute: ProductsStepsPreviewLazyRoute,
   ProductsStepsUploadFileLazyRoute: ProductsStepsUploadFileLazyRoute,
 }
@@ -232,6 +254,7 @@ export const routeTree = rootRoute
         "/settings",
         "/products/$id",
         "/products/list",
+        "/products/imports/list",
         "/products/steps/preview",
         "/products/steps/upload-file"
       ]
@@ -250,6 +273,9 @@ export const routeTree = rootRoute
     },
     "/products/list": {
       "filePath": "products/list.tsx"
+    },
+    "/products/imports/list": {
+      "filePath": "products/imports/list.tsx"
     },
     "/products/steps/preview": {
       "filePath": "products/steps/preview.lazy.tsx"

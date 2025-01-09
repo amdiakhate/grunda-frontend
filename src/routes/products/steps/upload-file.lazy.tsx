@@ -4,10 +4,8 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import Papa from 'papaparse';
-import CSVRow from '../../../interfaces/csvrow';
-import { requiredFields } from '../../../interfaces/required-fields';
 import { useStore } from '../../../useStore';
+import { productsService } from '../../../services/products';
 
 export const Route = createLazyFileRoute('/products/steps/upload-file')({
   component: RouteComponent,
@@ -19,8 +17,6 @@ function RouteComponent() {
   const navigate = useNavigate();
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
-
-  const setStore = useStore();
 
 
 
@@ -38,9 +34,23 @@ function RouteComponent() {
       return;
     }
 
-    setUploading(true);
-    // if (file.type === 'text/csv') {
-    // }
+    if (file.type === 'text/csv') {  
+      // upload the file to the server
+      setUploading(true);
+
+      try {
+
+        const response = await productsService.uploadFile(file);
+        navigate({
+          to: '/products/list',
+        });
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setUploading(false);
+      }
+  
+    }
   };
 
 
@@ -61,6 +71,7 @@ function RouteComponent() {
           {file && <span className="block text-sm text-gray-600">File ready to upload: {file.name}</span>}
         </div>
       </CardContent>
+      
       <CardFooter>
         <Button size="lg" onClick={handleUpload} disabled={uploading}>
           {uploading ? 'Uploading...' : 'Upload'}

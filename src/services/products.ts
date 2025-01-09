@@ -12,7 +12,33 @@ export const productsService = {
     return result;
   },
 
-//   async create(products: CSVRow[]): Promise<void> {
-//     return api.post<void>('/products', { products });
-//   }
+  async uploadFile(file: File): Promise<any> {
+    if (!file) {
+      throw new Error('No file provided');
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const result = await api.post('/products/upload-csv', formData);
+      return result;
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      throw error;
+    }
+  },
+
+
+  async getImports(): Promise<any> {
+    try {
+      const result = await api.get('/products/imports');
+      return result;
+    } catch (error) {
+      console.error('Error getting imports:', error);
+      throw error;
+    }   
+  },
+
+
 }; 

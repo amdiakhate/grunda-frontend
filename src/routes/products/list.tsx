@@ -12,7 +12,7 @@ import { Button } from '../../components/ui/button'
 import { Input } from '../../components/ui/input'
 import { productsService } from '../../services/products'
 import { Product } from '../../interfaces/product'
-import { CompletionBar, CompletionLevel } from '../../components/products/completionLevel'
+import {  CompletionLevel } from '../../components/products/completionLevel'
 
 
 export const Route = createFileRoute('/products/list')({
