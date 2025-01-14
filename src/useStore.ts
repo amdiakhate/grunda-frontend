@@ -1,20 +1,28 @@
 import { create } from 'zustand';
-import CSVRow from './interfaces/csvrow';
+import { persist } from 'zustand/middleware';
 
 interface StoreState {
-    data: CSVRow[];
     isLoading: boolean;
     error: string | null;
-    setData: (data: CSVRow[]) => void;
+    displayedImpact: { method: string; unit: string } | null;
     setLoading: (loading: boolean) => void;
     setError: (error: string | null) => void;
+    setDisplayedImpact: (impact: { method: string; unit: string } | null) => void;
 }
 
-export const useStore = create<StoreState>((set) => ({
-    data: [],
-    isLoading: false,
-    error: null,
-    setData: (data) => set({ data }),
-    setLoading: (loading) => set({ isLoading: loading }),
-    setError: (error) => set({ error })
-}));
+export const useStore = create<StoreState>()(
+    persist(
+        (set) => ({
+            displayedImpact: { method: '', unit: '' },
+            isLoading: false,
+            error: null,
+            setDisplayedImpact: (impact) => set({ displayedImpact: impact }),
+            setLoading: (loading) => set({ isLoading: loading }),
+            setError: (error) => set({ error })
+        }),
+        {
+            name: 'impact-storage',
+            partialize: (state) => ({ displayedImpact: state.displayedImpact })
+        }
+    )
+);

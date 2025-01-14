@@ -6,9 +6,9 @@ import {
     TableBody,
     TableCell,
   } from '../../components/ui/table'
-import { Material, Product } from '../../interfaces/product';
+import { ImpactResult, Material, Product } from '../../interfaces/product';
 import { CompletionLevel } from './completionLevel';
-import { useState } from 'react';
+import {   useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ActivitySearchModal } from './activitySearchModal';
 import { EcoinventActivity } from '@/interfaces/ecoinvent';
@@ -18,18 +18,21 @@ import { Toaster } from '../ui/toaster';
 import { productsService } from '@/services/products';
 import { SortableHeader } from '../ui/sortable-header';
 import { sortItems } from '@/utils/sorting';
+import { useStore } from '../../useStore';
 
 export function DataTable({ data }: { data: Product }) {
     const [selectedMaterial, setSelectedMaterial] = useState<Material | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [productData, setProductData] = useState<Product>(data);
     const { toast } = useToast();
+    const { displayedImpact } = useStore();
     const [sortConfig, setSortConfig] = useState<{key: string; direction: 'asc' | 'desc' | null}>({
         key: '',
         direction: null
     });
 
     const sortedMaterials = sortItems(productData.materials, sortConfig);
+
 
     const handleSort = (key: string) => {
         setSortConfig(current => {
@@ -50,6 +53,7 @@ export function DataTable({ data }: { data: Product }) {
         try {
             const updatedProduct = await productsService.getById(data.id);
             setProductData(updatedProduct);
+
         } catch (error) {
             toast({
                 title: 'Error reloading product',
@@ -83,13 +87,16 @@ export function DataTable({ data }: { data: Product }) {
 
     return (
         <>
+   
             <Toaster />
-            <Table>
+            <Table className="w-full">
                 <TableHeader>
                     <TableRow>
                         <SortableHeader column="name" label="Name" sortConfig={sortConfig} onSort={handleSort} />
                         <SortableHeader column="quantity" label="Quantity" sortConfig={sortConfig} onSort={handleSort} />
                         <SortableHeader column="unit" label="Unit" sortConfig={sortConfig} onSort={handleSort} />
+                        <TableHead>Footprint ({displayedImpact?.unit || ''})</TableHead>
+                        <TableHead>Share</TableHead>
                         <SortableHeader column="origin" label="Origin" sortConfig={sortConfig} onSort={handleSort} />
                         <SortableHeader column="activityName" label="Activity Name" sortConfig={sortConfig} onSort={handleSort} />
                         <SortableHeader column="referenceProduct" label="Reference Product" sortConfig={sortConfig} onSort={handleSort} />
@@ -104,6 +111,12 @@ export function DataTable({ data }: { data: Product }) {
                             <TableCell className="font-bold">{material.name}</TableCell>
                             <TableCell>{material.quantity}</TableCell>
                             <TableCell>{material.unit}</TableCell>
+                            <TableCell>
+                                {displayedImpact ? 
+                                    material.impactResults.find((impact) => impact.method === displayedImpact.method)?.value
+                                    : ''}
+                            </TableCell>
+                            <TableCell>{material.impactResults.find((impact) => impact.method === displayedImpact?.method)?.share}</TableCell>
                             <TableCell>{material.origin}</TableCell>
                             <TableCell>{material.activityName}</TableCell>
                             <TableCell>{material.referenceProduct}</TableCell>
@@ -127,6 +140,7 @@ export function DataTable({ data }: { data: Product }) {
                 </TableBody>
             </Table>
 
+         
             {selectedMaterial && (
                 <ActivitySearchModal
                     isOpen={isModalOpen}

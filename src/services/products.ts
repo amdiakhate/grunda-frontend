@@ -41,4 +41,15 @@ export const productsService = {
   },
 
 
+  async reloadProductImpacts(id: string): Promise<any> {
+    try {
+      const result = await api.get(`/products/${id}/impact-results`);
+      return result;
+    } catch (error) {
+      console.error('Error reloading product impacts:', error);
+      throw error;
+    }
+  }
+
+
 }; 
