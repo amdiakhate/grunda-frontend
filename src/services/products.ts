@@ -49,7 +49,16 @@ export const productsService = {
       console.error('Error reloading product impacts:', error);
       throw error;
     }
-  }
+  },
 
+  async getCalculationStatus(id: string): Promise<{
+    completed: boolean;
+    progress: number;
+    hasErrors: boolean;
+    stalled: boolean;
+  }> {
+    const response = await api.get(`/products/${id}/calculation-status`);
+    return response.data;
+  }
 
 }; 

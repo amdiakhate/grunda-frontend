@@ -7,6 +7,8 @@ export interface Product {
     completionLevel: number;
     materials: Material[];
     summary: ProductSummary;
+    calculation_status: string;
+
 }
 
 export interface ProductSummary {

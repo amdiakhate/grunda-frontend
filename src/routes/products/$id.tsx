@@ -9,7 +9,7 @@ import { Summary } from '../../components/products/summary'
 import { MaterialsTreemap } from '../../components/products/materialsTreemap'
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card'
 import { ProductActions } from "@/components/products/productActions";
-import { ImpactProgress } from '../../components/products/impactProgress'
+import { toast } from '../../hooks/use-toast'
 
 export const Route = createFileRoute('/products/$id')({
   component: RouteComponent,
@@ -19,11 +19,12 @@ function RouteComponent() {
   const productId = useParams({ from: '/products/$id' }).id;
   const [product, setProduct] = useState<Product | null>(null);
   const [defaultImpactResults, setDefaultImpactResults] = useState<ImpactResult[] | null>(null);
-  const [isCalculating, setIsCalculating] = useState(false);
-
+  const [calculationLoading, setCalculationLoading] = useState(false);
+  
   const fetchProduct = useCallback(async () => {
     const product = await productsService.getById(productId);
     setProduct(product);
+    setCalculationLoading(product.calculation_status != 'completed');
     const materialWithImpactResults = product.materials.find(
       (material: Material) => material.impactResults.length > 0
     );
@@ -36,10 +37,16 @@ function RouteComponent() {
     fetchProduct();
   }, [productId, fetchProduct]);
 
-  const handleReloadComplete = () => {
-    setIsCalculating(false);
+
+  const startCalculation = async () => {
+    toast({
+        title: "Impact calculation started",
+        description: "This might take several minutes",
+    });
+    await productsService.reloadProductImpacts(productId);
     fetchProduct();
-  };
+}
+
 
   if(!product) {
     return <div>Loading...</div>
@@ -54,9 +61,8 @@ function RouteComponent() {
         </div>
         <div className="flex items-center gap-4">
           <ProductActions 
-            productId={productId}
-            onReloadComplete={handleReloadComplete}
-            onCalculatingChange={setIsCalculating}
+            calculationLoading={calculationLoading}
+            onStartCalculation={startCalculation}
             onDuplicate={() => {/* ... */}}
             onHistory={() => {/* ... */}}
             onDelete={() => {/* ... */}}
@@ -95,10 +101,6 @@ function RouteComponent() {
         </CardContent>
       </Card>
 
-      <ImpactProgress 
-        materials={product.materials} 
-        isVisible={isCalculating} 
-      />
     </>
   )
 }
