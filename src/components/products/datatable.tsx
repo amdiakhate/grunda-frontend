@@ -67,7 +67,7 @@ export function DataTable({ data }: { data: Product }) {
     const handleActivitySelect = async (activity: EcoinventActivity) => {
         if (selectedMaterial) {
             try {
-                await materialsService.setActivity(selectedMaterial, activity);
+                await materialsService.setActivity(productData, selectedMaterial, activity);
                 await reloadProduct();
                 toast({
                     title: 'Activity set',
@@ -97,7 +97,8 @@ export function DataTable({ data }: { data: Product }) {
                         <SortableHeader column="unit" label="Unit" sortConfig={sortConfig} onSort={handleSort} />
                         <TableHead>Footprint ({displayedImpact?.unit || ''})</TableHead>
                         <TableHead>Share</TableHead>
-                        <SortableHeader column="origin" label="Origin" sortConfig={sortConfig} onSort={handleSort} />
+                        <SortableHeader column="material_origin" label="Material Origin" sortConfig={sortConfig} onSort={handleSort} />
+                        <SortableHeader column="production_origin" label="Production Origin" sortConfig={sortConfig} onSort={handleSort} />
                         <SortableHeader column="activityName" label="Activity Name" sortConfig={sortConfig} onSort={handleSort} />
                         <SortableHeader column="referenceProduct" label="Reference Product" sortConfig={sortConfig} onSort={handleSort} />
                         <TableHead>Completion</TableHead>
@@ -117,7 +118,8 @@ export function DataTable({ data }: { data: Product }) {
                                     : ''}
                             </TableCell>
                             <TableCell>{material.impactResults.find((impact) => impact.method === displayedImpact?.method)?.share}</TableCell>
-                            <TableCell>{material.origin}</TableCell>
+                            <TableCell>{material.material_origin}</TableCell>
+                            <TableCell>{material.production_origin}</TableCell>
                             <TableCell>{material.activityName}</TableCell>
                             <TableCell>{material.referenceProduct}</TableCell>
                             <TableCell className="text-center">
@@ -146,6 +148,7 @@ export function DataTable({ data }: { data: Product }) {
                     isOpen={isModalOpen}
                     onClose={() => setIsModalOpen(false)}
                     onSelect={handleActivitySelect}
+                    product={productData}
                     material={selectedMaterial}
                 />
             )}

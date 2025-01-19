@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { materialsService } from '@/services/materials';
 import { EcoinventActivity } from '@/interfaces/ecoinvent';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Material } from '../../interfaces/product';
+import { Material, Product } from '../../interfaces/product';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { SortableHeader, type SortConfig } from '@/components/ui/sortable-header';
 import { sortItems } from '@/utils/sorting';
@@ -13,10 +13,11 @@ interface ActivitySearchModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSelect: (activity: EcoinventActivity) => void;
+    product: Product;
     material: Material;
 }
 
-export function ActivitySearchModal({ isOpen, onClose, onSelect, material }: ActivitySearchModalProps) {
+export function ActivitySearchModal({ isOpen, onClose, onSelect, product, material }: ActivitySearchModalProps) {
     const [activities, setActivities] = useState<EcoinventActivity[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
@@ -52,7 +53,7 @@ export function ActivitySearchModal({ isOpen, onClose, onSelect, material }: Act
     const handleSearch = async () => {
         setIsLoading(true);
         try {
-            const results = await materialsService.searchEcoinventActivities(material);
+            const results = await materialsService.searchEcoinventActivities(product, material);
             setActivities(results);
             setCurrentPage(1); // Reset to first page when new results arrive
         } catch (error) {

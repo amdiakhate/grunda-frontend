@@ -1,11 +1,11 @@
 import { EcoinventActivity } from "../interfaces/ecoinvent";
-import { Material } from "../interfaces/product";
+import { Material, Product } from "../interfaces/product";
 import { api } from "./api";
 
 export const materialsService = {
-    async searchEcoinventActivities(material: Material): Promise<EcoinventActivity[]> {
+    async searchEcoinventActivities(product: Product,  material: Material): Promise<EcoinventActivity[]> {
         try {  
-           const response = await api.get<{numberOfActivities: number, activities: EcoinventActivity[]}>(`/materials/${material.id}/activities`);
+           const response = await api.get<{numberOfActivities: number, activities: EcoinventActivity[]}>(`/products/${product.id}/materials/${material.id}/activities`);
            return response.activities;
         } catch (error) {
            console.error('Error searching ecoinvent activities:', error);
@@ -13,9 +13,9 @@ export const materialsService = {
         }
      },
 
-     async setActivity(material: Material, activity: EcoinventActivity): Promise<void> {
+     async setActivity(product: Product, material: Material, activity: EcoinventActivity): Promise<void> {
         try {
-            await api.put(`/materials/${material.id}`, { 
+            await api.put(`/products/${product.id}/materials/${material.id}`, { 
                activityUuid: activity.uuid,
                activityName: activity.name,
                referenceProduct: activity.referenceProduct,

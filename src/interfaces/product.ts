@@ -8,6 +8,7 @@ export interface Product {
     materials: Material[];
     summary: ProductSummary;
     calculation_status: string;
+    import_source: string;
 
 }
 
@@ -29,7 +30,8 @@ export interface Material {
     referenceProduct: string;
     quantity: number;
     unit: string;
-    origin: string;
+    material_origin: string;
+    production_origin: string;
     completion: boolean;
     impactResults: ImpactResult[];
     status: string;

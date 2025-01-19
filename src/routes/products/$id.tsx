@@ -24,7 +24,7 @@ function RouteComponent() {
   const fetchProduct = useCallback(async () => {
     const product = await productsService.getById(productId);
     setProduct(product);
-    setCalculationLoading(product.calculation_status != 'completed');
+    setCalculationLoading(product.calculation_status == 'pending');
     const materialWithImpactResults = product.materials.find(
       (material: Material) => material.impactResults.length > 0
     );
@@ -39,12 +39,23 @@ function RouteComponent() {
 
 
   const startCalculation = async () => {
-    toast({
+    try {
+      await productsService.calculateProductImpact(productId);
+      toast({
         title: "Impact calculation started",
         description: "This might take several minutes",
-    });
-    await productsService.reloadProductImpacts(productId);
-    fetchProduct();
+      });
+      fetchProduct();
+
+    } catch (error) {
+      console.error('Error calculating product impact:', error);
+      toast({
+        title: "Error",
+        description: "An error occurred while calculating the product impact",
+        variant: "destructive",
+      });
+    }
+
 }
 
 
