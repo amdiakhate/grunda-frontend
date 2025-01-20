@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:3000'; // adjust based on your backend URL
+const API_BASE_URL = import.meta.env.VITE_API_URL; // adjust based on your backend URL
 
 export class APIError extends Error {
   constructor(public status: number, message: string) {
