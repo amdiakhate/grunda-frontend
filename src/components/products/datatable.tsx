@@ -6,7 +6,7 @@ import {
     TableBody,
     TableCell,
   } from '../../components/ui/table'
-import { ImpactResult, Material, Product } from '../../interfaces/product';
+import { Material, Product } from '../../interfaces/product';
 import { CompletionLevel } from './completionLevel';
 import {   useState } from 'react';
 import { Button } from '@/components/ui/button';

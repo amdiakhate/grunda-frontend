@@ -11,11 +11,12 @@ import { LucideIcon, MoreVertical } from "lucide-react";
 
 // Interface for individual action items
 interface Action {
-    icon: LucideIcon;
+    icon?: LucideIcon;
     label: string;
     onClick?: () => void;
-    variant?: string;
+    variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
     loading?: boolean;
+    disabled?: boolean;
 }
 
 // Interface for grouping actions

@@ -14,8 +14,12 @@ COPY . .
 ARG VITE_API_URL
 ARG VITE_APP_ENV
 
-# Build the app
-RUN npm run build
+# Set environment variables
+ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_APP_ENV=$VITE_APP_ENV
+
+# Build the app with error handling
+RUN npm run build || (echo "Build failed" && exit 1)
 
 # Production stage
 FROM nginx:alpine
