@@ -34,5 +34,5 @@ COPY --from=builder /app/dist ./dist
 
 EXPOSE 5173
 
-# Start the app with SPA support
-CMD ["http-server", "dist", "--port", "5173", "-P", "http://localhost:5173?", "--cors"] 
+# Start the app with SPA support and listen on all interfaces (0.0.0.0)
+CMD ["http-server", "dist", "--port", "5173", "-a", "0.0.0.0", "-P", "http://0.0.0.0:5173?", "--cors"] 
