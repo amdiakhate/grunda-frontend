@@ -26,13 +26,13 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Install serve to run a production server
-RUN npm install -g serve
+# Install http-server
+RUN npm install -g http-server
 
 # Copy only the built files
 COPY --from=builder /app/dist ./dist
 
 EXPOSE 5173
 
-# Start the app in production mode
-CMD ["serve", "-s", "dist", "-l", "5173"] 
+# Start the app with SPA support
+CMD ["http-server", "dist", "--port", "5173", "-P", "http://localhost:5173?", "--cors"] 
