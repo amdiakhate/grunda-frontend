@@ -21,20 +21,18 @@ ENV VITE_APP_ENV=$VITE_APP_ENV
 # Build the app
 RUN npm run build
 
-# Development stage
+# Production stage
 FROM node:18-alpine
 
 WORKDIR /app
 
-# Copy built assets and package files
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/package.json ./
-COPY --from=builder /app/vite.config.ts ./
+# Install a simple static file server
+RUN npm install -g serve@14.2.1
 
-# Install only production dependencies
-RUN npm install vite
+# Copy only the built files
+COPY --from=builder /app/dist ./dist
 
 EXPOSE 5173
 
-# Start Vite in preview mode, listening on all interfaces
-CMD ["npm", "exec", "vite", "preview", "--host", "0.0.0.0", "--port", "5173"] 
+# Start serve with SPA mode enabled
+CMD ["serve", "-s", "dist", "-l", "5173", "--cors"] 
