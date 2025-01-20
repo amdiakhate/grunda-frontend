@@ -32,7 +32,11 @@ RUN npm install -g serve@14.2.1
 # Copy only the built files
 COPY --from=builder /app/dist ./dist
 
+# Add healthcheck
+HEALTHCHECK --interval=30s --timeout=3s \
+    CMD wget --quiet --tries=1 --spider http://localhost:5173/ || exit 1
+
 EXPOSE 5173
 
-# Start serve with SPA mode enabled
-CMD ["serve", "-s", "dist", "-l", "5173", "--cors"] 
+# Start serve with all necessary options
+CMD ["serve", "-s", "dist", "--listen", "0.0.0.0:5173", "--cors", "--no-clipboard", "--single"] 
