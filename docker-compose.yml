@@ -11,7 +11,7 @@ services:
         container_name: patens-frontend-${VITE_APP_ENV}
         restart: unless-stopped
         ports:
-            - '80:80'
+            - '5173:80'
         # networks:
         #     - patens-network
         volumes:
