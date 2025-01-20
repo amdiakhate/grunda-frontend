@@ -34,9 +34,9 @@ COPY --from=builder /app/dist ./dist
 
 # Add healthcheck
 HEALTHCHECK --interval=30s --timeout=3s \
-    CMD wget --quiet --tries=1 --spider http://localhost:5173/ || exit 1
+    CMD wget --quiet --tries=1 --spider http://0.0.0.0:5173/ || exit 1
 
 EXPOSE 5173
 
 # Start serve with all necessary options
-CMD ["serve", "-s", "dist", "--listen", "0.0.0.0:5173", "--cors", "--no-clipboard", "--single"] 
+CMD ["serve", "-s", "dist", "-l", "5173", "--cors", "--no-clipboard"] 
