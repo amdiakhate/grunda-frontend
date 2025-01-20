@@ -21,20 +21,18 @@ ENV VITE_APP_ENV=$VITE_APP_ENV
 # Build the app
 RUN npm run build
 
-# Development stage
+# Production stage
 FROM node:18-alpine
 
 WORKDIR /app
 
-# Copy built assets and necessary files
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/vite.config.ts ./
+# Install serve to run a production server
+RUN npm install -g serve
 
-# Install vite for serving
-RUN npm install -g vite
+# Copy only the built files
+COPY --from=builder /app/dist ./dist
 
 EXPOSE 5173
 
-# Start the app
-CMD ["vite", "preview", "--host", "--port", "5173"] 
+# Start the app in production mode
+CMD ["serve", "-s", "dist", "-l", "5173"] 
