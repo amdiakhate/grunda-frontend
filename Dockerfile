@@ -24,9 +24,6 @@ RUN npm run build || (echo "Build failed" && exit 1)
 # Production stage
 FROM nginx:alpine
 
-# Copy built assets
-COPY --from=builder /app/dist /usr/share/nginx/html
-COPY nginx/nginx.conf /etc/nginx/conf.d/default.conf
 
 # Add healthcheck
 HEALTHCHECK --interval=30s --timeout=3s \
