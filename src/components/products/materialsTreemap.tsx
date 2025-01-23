@@ -1,5 +1,5 @@
 import { Material } from "@/interfaces/product";
-import { useStore } from "@/useStore";
+import { useStore } from "@/stores/useStore";
 import {
     Tooltip,
     TooltipContent,

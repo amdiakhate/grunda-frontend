@@ -1,4 +1,5 @@
 import { api } from './api';
+import { UploadResponse, MaterialSuggestion } from '../interfaces/csvUpload';
 
 export const productsService = {
   async getAll(): Promise<any> {
@@ -28,7 +29,22 @@ export const productsService = {
       throw error;
     }
   },
+  uploadCsv: async (file: File): Promise<UploadResponse> => {
+    if (!file) {
+      throw new Error('No file provided');
+    }
 
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const result = await api.post('/products/upload-csv', formData);
+      return result as UploadResponse;
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      throw error;
+    }
+  },
 
   async getImports(): Promise<any> {
     try {
@@ -51,14 +67,16 @@ export const productsService = {
     }
   },
 
-  // async getCalculationStatus(id: string): Promise<{
-  //   completed: boolean;
-  //   progress: number;
-  //   hasErrors: boolean;
-  //   stalled: boolean;
-  // }> {
-  //   const response = await api.get(`/products/${id}/calculation-status`);
-  //   return response.data;
-  // }
+  
 
+  confirmMaterialMappings: async (params: {
+    mappings: Record<string, MaterialSuggestion>;
+  }): Promise<void> => {
+    try {
+      await api.post('/products/materials/confirm-mapping', params);
+    } catch (error) {
+      console.error('Error confirming mappings:', error);
+      throw error;
+    }
+  },
 }; 

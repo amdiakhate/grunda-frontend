@@ -18,7 +18,7 @@ import { Toaster } from '../ui/toaster';
 import { productsService } from '@/services/products';
 import { SortableHeader } from '../ui/sortable-header';
 import { sortItems } from '@/utils/sorting';
-import { useStore } from '../../useStore';
+import { useStore } from '../../stores/useStore';
 
 export function DataTable({ data }: { data: Product }) {
     const [selectedMaterial, setSelectedMaterial] = useState<Material | null>(null);

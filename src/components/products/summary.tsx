@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { ProductSummary } from "@/interfaces/product";
 import { ArrowDownIcon, ArrowUpIcon, ScaleIcon, Atom, PackageIcon } from "lucide-react";
-import { useStore } from "../../useStore";
+import { useStore } from "../../stores/useStore";
 import { useEffect, useState } from "react";
 
 interface SummaryProps {

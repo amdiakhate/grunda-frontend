@@ -7,7 +7,7 @@ import {
     SelectValue,
   } from "@/components/ui/select"
 import { ImpactResult } from "../../interfaces/product"
-import { useStore } from "../../useStore";
+import { useStore } from "../../stores/useStore";
 
 interface ImpactFilterProps {
     impactResults: ImpactResult[];

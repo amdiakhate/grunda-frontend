@@ -16,18 +16,14 @@ import { Route as rootRoute } from './routes/__root'
 import { Route as DashboardImport } from './routes/dashboard'
 import { Route as ProductsListImport } from './routes/products/list'
 import { Route as ProductsIdImport } from './routes/products/$id'
+import { Route as ProductsStepsUploadFileImport } from './routes/products/steps/upload-file'
+import { Route as ProductsStepsPreviewImport } from './routes/products/steps/preview'
 import { Route as ProductsImportsListImport } from './routes/products/imports/list'
 
 // Create Virtual Routes
 
 const SettingsLazyImport = createFileRoute('/settings')()
 const AboutLazyImport = createFileRoute('/about')()
-const ProductsStepsUploadFileLazyImport = createFileRoute(
-  '/products/steps/upload-file',
-)()
-const ProductsStepsPreviewLazyImport = createFileRoute(
-  '/products/steps/preview',
-)()
 
 // Create/Update Routes
 
@@ -61,22 +57,17 @@ const ProductsIdRoute = ProductsIdImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const ProductsStepsUploadFileLazyRoute =
-  ProductsStepsUploadFileLazyImport.update({
-    id: '/products/steps/upload-file',
-    path: '/products/steps/upload-file',
-    getParentRoute: () => rootRoute,
-  } as any).lazy(() =>
-    import('./routes/products/steps/upload-file.lazy').then((d) => d.Route),
-  )
+const ProductsStepsUploadFileRoute = ProductsStepsUploadFileImport.update({
+  id: '/products/steps/upload-file',
+  path: '/products/steps/upload-file',
+  getParentRoute: () => rootRoute,
+} as any)
 
-const ProductsStepsPreviewLazyRoute = ProductsStepsPreviewLazyImport.update({
+const ProductsStepsPreviewRoute = ProductsStepsPreviewImport.update({
   id: '/products/steps/preview',
   path: '/products/steps/preview',
   getParentRoute: () => rootRoute,
-} as any).lazy(() =>
-  import('./routes/products/steps/preview.lazy').then((d) => d.Route),
-)
+} as any)
 
 const ProductsImportsListRoute = ProductsImportsListImport.update({
   id: '/products/imports/list',
@@ -134,14 +125,14 @@ declare module '@tanstack/react-router' {
       id: '/products/steps/preview'
       path: '/products/steps/preview'
       fullPath: '/products/steps/preview'
-      preLoaderRoute: typeof ProductsStepsPreviewLazyImport
+      preLoaderRoute: typeof ProductsStepsPreviewImport
       parentRoute: typeof rootRoute
     }
     '/products/steps/upload-file': {
       id: '/products/steps/upload-file'
       path: '/products/steps/upload-file'
       fullPath: '/products/steps/upload-file'
-      preLoaderRoute: typeof ProductsStepsUploadFileLazyImport
+      preLoaderRoute: typeof ProductsStepsUploadFileImport
       parentRoute: typeof rootRoute
     }
   }
@@ -156,8 +147,8 @@ export interface FileRoutesByFullPath {
   '/products/$id': typeof ProductsIdRoute
   '/products/list': typeof ProductsListRoute
   '/products/imports/list': typeof ProductsImportsListRoute
-  '/products/steps/preview': typeof ProductsStepsPreviewLazyRoute
-  '/products/steps/upload-file': typeof ProductsStepsUploadFileLazyRoute
+  '/products/steps/preview': typeof ProductsStepsPreviewRoute
+  '/products/steps/upload-file': typeof ProductsStepsUploadFileRoute
 }
 
 export interface FileRoutesByTo {
@@ -167,8 +158,8 @@ export interface FileRoutesByTo {
   '/products/$id': typeof ProductsIdRoute
   '/products/list': typeof ProductsListRoute
   '/products/imports/list': typeof ProductsImportsListRoute
-  '/products/steps/preview': typeof ProductsStepsPreviewLazyRoute
-  '/products/steps/upload-file': typeof ProductsStepsUploadFileLazyRoute
+  '/products/steps/preview': typeof ProductsStepsPreviewRoute
+  '/products/steps/upload-file': typeof ProductsStepsUploadFileRoute
 }
 
 export interface FileRoutesById {
@@ -179,8 +170,8 @@ export interface FileRoutesById {
   '/products/$id': typeof ProductsIdRoute
   '/products/list': typeof ProductsListRoute
   '/products/imports/list': typeof ProductsImportsListRoute
-  '/products/steps/preview': typeof ProductsStepsPreviewLazyRoute
-  '/products/steps/upload-file': typeof ProductsStepsUploadFileLazyRoute
+  '/products/steps/preview': typeof ProductsStepsPreviewRoute
+  '/products/steps/upload-file': typeof ProductsStepsUploadFileRoute
 }
 
 export interface FileRouteTypes {
@@ -224,8 +215,8 @@ export interface RootRouteChildren {
   ProductsIdRoute: typeof ProductsIdRoute
   ProductsListRoute: typeof ProductsListRoute
   ProductsImportsListRoute: typeof ProductsImportsListRoute
-  ProductsStepsPreviewLazyRoute: typeof ProductsStepsPreviewLazyRoute
-  ProductsStepsUploadFileLazyRoute: typeof ProductsStepsUploadFileLazyRoute
+  ProductsStepsPreviewRoute: typeof ProductsStepsPreviewRoute
+  ProductsStepsUploadFileRoute: typeof ProductsStepsUploadFileRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -235,8 +226,8 @@ const rootRouteChildren: RootRouteChildren = {
   ProductsIdRoute: ProductsIdRoute,
   ProductsListRoute: ProductsListRoute,
   ProductsImportsListRoute: ProductsImportsListRoute,
-  ProductsStepsPreviewLazyRoute: ProductsStepsPreviewLazyRoute,
-  ProductsStepsUploadFileLazyRoute: ProductsStepsUploadFileLazyRoute,
+  ProductsStepsPreviewRoute: ProductsStepsPreviewRoute,
+  ProductsStepsUploadFileRoute: ProductsStepsUploadFileRoute,
 }
 
 export const routeTree = rootRoute
@@ -278,10 +269,10 @@ export const routeTree = rootRoute
       "filePath": "products/imports/list.tsx"
     },
     "/products/steps/preview": {
-      "filePath": "products/steps/preview.lazy.tsx"
+      "filePath": "products/steps/preview.tsx"
     },
     "/products/steps/upload-file": {
-      "filePath": "products/steps/upload-file.lazy.tsx"
+      "filePath": "products/steps/upload-file.tsx"
     }
   }
 }
