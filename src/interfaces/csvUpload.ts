@@ -2,10 +2,12 @@ export interface MaterialSuggestion {
     name: string;
     confidence: number;
     activityName: string;
+    activityUuuid?: string;
     referenceProduct: string;
     isBestMatch: boolean;
     confidenceLevel: 'low' | 'medium' | 'high';
     confidencePercentage: number;
+    newMapping?: boolean;
 }
 
 export interface MaterialRequiringReview {

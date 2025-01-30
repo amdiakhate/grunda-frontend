@@ -1,8 +1,9 @@
 export interface EcoinventActivity {
+    id: string;
     name: string;
-    location: string;
-    comment: string;
     referenceProduct: string;
-    uuid: string;
-    unit: string;
+    location: string;
+    confidence: number;
+    source?: string;
+    unit?: string;
 } 

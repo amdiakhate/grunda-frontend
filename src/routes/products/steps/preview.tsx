@@ -42,11 +42,12 @@ function PreviewRoute() {
 
     const handleConfirm = async () => {
         try {
+            console.log(selectedMappings, 'selectedMappings');
             await productsService.confirmMaterialMappings({
                 mappings: selectedMappings
             });
             reset();
-            await navigate({ to: '/products/list' });
+            // await navigate({ to: '/products/list' });
         } catch (error) {
             console.error('Failed to confirm mappings:', error);
             toast({

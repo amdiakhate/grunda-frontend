@@ -1,5 +1,6 @@
 import { api } from './api';
 import { UploadResponse, MaterialSuggestion, MaterialRequiringReview } from '../interfaces/csvUpload';
+import { EcoinventActivity } from '../interfaces/ecoinvent';
 
 export const productsService = {
   async getAll(): Promise<any> {
@@ -83,6 +84,18 @@ export const productsService = {
       return result;
     } catch (error) {
       console.error('Error refreshing suggestions:', error);
+      throw error;
+    }
+  },
+
+  getAlternativeSuggestions: async (materialName: string): Promise<EcoinventActivity[]> => {
+    try {
+      const result = await api.post('/products/materials/suggest-alternatives', {
+        materialName
+      });
+      return result.alternatives;
+    } catch (error) {
+      console.error('Error getting alternative suggestions:', error);
       throw error;
     }
   },
