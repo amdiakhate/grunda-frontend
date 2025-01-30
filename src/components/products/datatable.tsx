@@ -95,6 +95,7 @@ export function DataTable({ data }: { data: Product }) {
                         <SortableHeader column="name" label="Name" sortConfig={sortConfig} onSort={handleSort} />
                         <SortableHeader column="quantity" label="Quantity" sortConfig={sortConfig} onSort={handleSort} />
                         <SortableHeader column="unit" label="Unit" sortConfig={sortConfig} onSort={handleSort} />
+                        <SortableHeader column="activityUnit" label="Activity Unit" sortConfig={sortConfig} onSort={handleSort} />
                         <TableHead>Footprint ({displayedImpact?.unit || ''})</TableHead>
                         <TableHead>Share</TableHead>
                         <SortableHeader column="material_origin" label="Material Origin" sortConfig={sortConfig} onSort={handleSort} />
@@ -112,6 +113,7 @@ export function DataTable({ data }: { data: Product }) {
                             <TableCell className="font-bold">{material.name}</TableCell>
                             <TableCell>{material.quantity}</TableCell>
                             <TableCell>{material.unit}</TableCell>
+                            <TableCell>{material.activityUnit}</TableCell>
                             <TableCell>
                                 {displayedImpact ? 
                                     material.impactResults.find((impact) => impact.method === displayedImpact.method)?.value

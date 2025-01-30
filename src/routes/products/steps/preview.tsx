@@ -6,6 +6,8 @@ import { useUploadStore } from '../../../stores/uploadStore';
 import { productsService } from '../../../services/products';
 import { useToast } from '../../../hooks/use-toast';
 import { Toaster } from '../../../components/ui/toaster';
+import { useEffect } from 'react';
+import { MaterialRequiringReview } from '../../../interfaces/csvUpload';
 
 export const Route = createFileRoute('/products/steps/preview')({
     component: PreviewRoute,
@@ -13,23 +15,38 @@ export const Route = createFileRoute('/products/steps/preview')({
 
 function PreviewRoute() {
     const navigate = useNavigate();
-    const { uploadResponse, selectedMappings, setSelectedMappings, reset } = useUploadStore();
+    const { uploadResponse, selectedMappings, setSelectedMappings, reset, updateMaterial } = useUploadStore();
     const { toast } = useToast();
 
-    if (!uploadResponse) {
-        navigate({ to: '/products/steps/upload-file' });
+    // Handle navigation when uploadResponse is null or when all materials are mapped
+    useEffect(() => {
+        if (!uploadResponse) {
+            navigate({ to: '/products/steps/upload-file' });
+            return;
+        }
+
+        if (uploadResponse.materialsRequiringReview.length === 0) {
+            toast({
+                title: 'Upload successful',
+                description: 'All materials were automatically mapped',
+            });
+            reset();
+            navigate({ to: '/products/list' });
+        }
+    }, [uploadResponse, navigate, reset, toast]);
+
+    // If we're navigating away, don't render anything
+    if (!uploadResponse || uploadResponse.materialsRequiringReview.length === 0) {
         return null;
     }
 
     const handleConfirm = async () => {
         try {
-            const payload = {
-                mappings: selectedMappings,
-            }
-            console.log(payload);
-            await productsService.confirmMaterialMappings(payload);
+            await productsService.confirmMaterialMappings({
+                mappings: selectedMappings
+            });
             reset();
-            navigate({ to: '/products/list' });
+            await navigate({ to: '/products/list' });
         } catch (error) {
             console.error('Failed to confirm mappings:', error);
             toast({
@@ -40,8 +57,12 @@ function PreviewRoute() {
         }
     };
 
-    const canConfirm = uploadResponse.materialsRequiringReview.length === 0 || 
-                      Object.keys(selectedMappings).length > 0;
+    const handleMaterialUpdate = (updatedMaterial: MaterialRequiringReview) => {
+        updateMaterial(updatedMaterial);
+    };
+
+    // Remove the requirement that all materials must be mapped
+    const canConfirm = Object.keys(selectedMappings).length > 0;
 
     return (
         <div className="space-y-8">
@@ -59,14 +80,15 @@ function PreviewRoute() {
                 materials={uploadResponse.materialsRequiringReview}
                 selectedMappings={selectedMappings}
                 onMappingChange={setSelectedMappings}
+                onMaterialUpdate={handleMaterialUpdate}
             />
 
             <div className="flex justify-end space-x-4">
                 <Button
                     variant="outline"
-                    onClick={() => {
+                    onClick={async () => {
                         reset();
-                        navigate({ to: '/products/steps/upload-file' });
+                        await navigate({ to: '/products/steps/upload-file' });
                     }}
                 >
                     Cancel

@@ -26,6 +26,7 @@ export interface Material {
     description: string;
     activityUuid: string;
     activityName: string;
+    activityUnit: string;
     category: string;
     referenceProduct: string;
     quantity: number;

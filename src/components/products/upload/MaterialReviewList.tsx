@@ -3,21 +3,27 @@ import { MaterialRequiringReview, MaterialSuggestion } from '../../../interfaces
 import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
 import { Input } from '../../ui/input';
 import { Button } from '../../ui/button';
-import { Search, Check, X, Undo2 } from 'lucide-react';
+import { Search, Check, X, Undo2, RefreshCw } from 'lucide-react';
 import { Badge } from '../../ui/badge';
+import { productsService } from '../../../services/products';
+import { useToast } from '../../../hooks/use-toast';
 
 interface MaterialReviewListProps {
     materials: MaterialRequiringReview[];
     selectedMappings: Record<string, MaterialSuggestion>;
     onMappingChange: (mappings: Record<string, MaterialSuggestion>) => void;
+    onMaterialUpdate: (updatedMaterial: MaterialRequiringReview) => void;
 }
 
 export function MaterialReviewList({
     materials,
     selectedMappings,
     onMappingChange,
+    onMaterialUpdate,
 }: MaterialReviewListProps) {
     const [searchTerm, setSearchTerm] = useState('');
+    const [refreshingMaterialId, setRefreshingMaterialId] = useState<string | null>(null);
+    const { toast } = useToast();
 
     const filteredMaterials = materials.filter(material =>
         material.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -34,6 +40,27 @@ export function MaterialReviewList({
         const newMappings = { ...selectedMappings };
         delete newMappings[materialId];
         onMappingChange(newMappings);
+    };
+
+    const handleRefreshSuggestions = async (materialId: string) => {
+        try {
+            setRefreshingMaterialId(materialId);
+            const updatedMaterial = await productsService.refreshSuggestions(materialId);
+            onMaterialUpdate(updatedMaterial);
+            toast({
+                title: 'Suggestions refreshed',
+                description: 'New suggestions have been loaded for this material.',
+            });
+        } catch (error) {
+            console.error('Error refreshing suggestions:', error);
+            toast({
+                title: 'Error refreshing suggestions',
+                description: error instanceof Error ? error.message : 'An error occurred while refreshing suggestions',
+                variant: 'destructive',
+            });
+        } finally {
+            setRefreshingMaterialId(null);
+        }
     };
 
     const getConfidenceBadge = (confidenceLevel: string) => {
@@ -79,22 +106,33 @@ export function MaterialReviewList({
                                     {material.occurrences} occurrence{material.occurrences > 1 ? 's' : ''}
                                 </p>
                             </div>
-                            {selectedMappings[material.id] && (
-                                <div className="flex items-center gap-2">
-                                    <Badge variant="outline" className="flex items-center gap-1">
-                                        <Check className="h-3 w-3" />
-                                        Mapped to: {selectedMappings[material.id].name}
-                                    </Badge>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => handleUnmap(material.id)}
-                                        className="text-gray-500 hover:text-red-500"
-                                    >
-                                        <Undo2 className="h-4 w-4" />
-                                    </Button>
-                                </div>
-                            )}
+                            <div className="flex items-center gap-2">
+                                {selectedMappings[material.id] && (
+                                    <>
+                                        <Badge variant="outline" className="flex items-center gap-1">
+                                            <Check className="h-3 w-3" />
+                                            Mapped to: {selectedMappings[material.id].name}
+                                        </Badge>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => handleUnmap(material.id)}
+                                            className="text-gray-500 hover:text-red-500"
+                                        >
+                                            <Undo2 className="h-4 w-4" />
+                                        </Button>
+                                    </>
+                                )}
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleRefreshSuggestions(material.id)}
+                                    disabled={refreshingMaterialId === material.id}
+                                    className="text-gray-500 hover:text-blue-500"
+                                >
+                                    <RefreshCw className={`h-4 w-4 ${refreshingMaterialId === material.id ? 'animate-spin' : ''}`} />
+                                </Button>
+                            </div>
                         </div>
 
                         <div className="space-y-2">

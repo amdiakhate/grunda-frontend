@@ -1,4 +1,4 @@
-# Patens - Projet d'Analyse d'Impact Environnemental
+# Grunda - Projet d'Analyse d'Impact Environnemental
 
 ## Vue d'ensemble
 Patens est une application SaaS permettant aux entreprises d'analyser l'impact environnemental de leurs produits en utilisant la base de données Ecoinvent.
@@ -39,22 +39,31 @@ Patens est une application SaaS permettant aux entreprises d'analyser l'impact e
 ### Fonctionnalités Principales
 
 1. Gestion des Produits
-   - Import via CSV
-   - Visualisation détaillée
+   - Import via CSV avec loader pendant l'upload
+   - Visualisation détaillée avec états de chargement
    - Calcul d'impact asynchrone
    - Historique des modifications
+   - Liste paginée avec recherche et filtres
 
-2. Recherche d'Activités Ecoinvent
+2. Gestion des Mappings
+   - Mapping automatique des matériaux reconnus
+   - Interface de revue pour les matériaux non mappés
+   - Possibilité de rafraîchir les suggestions par matériau
+   - Confirmation partielle possible (sans mapper tous les matériaux)
+   - Redirection automatique si tous les matériaux sont mappés
+
+3. Recherche d'Activités Ecoinvent
    - Modal de recherche avec pagination
    - Filtrage et tri
    - Sélection d'activités pour les matériaux
+   - Rafraîchissement des suggestions
 
-3. Visualisation des Impacts
+4. Visualisation des Impacts
    - Treemap des matériaux
    - Graphiques de répartition
    - Comparaison avec moyennes
 
-4. Calcul d'Impact
+5. Calcul d'Impact
    - Processus asynchrone
    - Statut persistant
    - Notifications de progression
@@ -66,12 +75,19 @@ Patens est une application SaaS permettant aux entreprises d'analyser l'impact e
    - Groupement des petites valeurs
    - Animations et tooltips
 
-2. ActivitySearchModal
+2. MaterialReviewList
+   - Liste des matériaux à mapper
+   - Recherche de matériaux
+   - Gestion des suggestions avec rafraîchissement
+   - Indicateurs de confiance
+   - États de chargement pour les actions
+
+3. ActivitySearchModal
    - Recherche paginée
    - Tri multi-colonnes
    - Sélection d'activités
 
-3. ProductActions
+4. ProductActions
    - Actions principales (duplicate, history, delete)
    - Calcul d'impact
    - Export et partage
@@ -80,6 +96,15 @@ Patens est une application SaaS permettant aux entreprises d'analyser l'impact e
 - Gestion des impacts affichés
 - État des calculs en cours
 - Préférences utilisateur
+- État du processus de mapping
+- Gestion des suggestions de matériaux
+
+### Retours Utilisateur
+- Loaders pendant les chargements
+- Messages toast pour les actions importantes
+- Indicateurs de progression
+- États désactivés pendant les actions
+- Animations de chargement
 
 ### Environnements
 - PPD: frontend-ppd.grunda.io
@@ -101,10 +126,14 @@ Patens est une application SaaS permettant aux entreprises d'analyser l'impact e
 3. Persistance des états de calcul
 4. Responsive design
 5. Gestion des erreurs et feedback utilisateur
+6. États de chargement pour toutes les actions importantes
+7. Validation des mappings partiels
+8. Rafraîchissement des suggestions
 
 ### Dépendances Principales
 - @tanstack/router
 - zustand
 - shadcn/ui
 - recharts
-- lucide-react 
+- lucide-react
+- react-dropzone 
