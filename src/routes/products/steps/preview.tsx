@@ -8,6 +8,9 @@ import { useToast } from '../../../hooks/use-toast';
 import { Toaster } from '../../../components/ui/toaster';
 import { useEffect } from 'react';
 import { MaterialRequiringReview } from '../../../interfaces/csvUpload';
+import { Progress } from '../../../components/ui/progress';
+import { AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '../../../components/ui/alert';
 
 export const Route = createFileRoute('/products/steps/preview')({
     component: PreviewRoute,
@@ -42,12 +45,15 @@ function PreviewRoute() {
 
     const handleConfirm = async () => {
         try {
-            console.log(selectedMappings, 'selectedMappings');
             await productsService.confirmMaterialMappings({
                 mappings: selectedMappings
             });
+            toast({
+                title: 'Mappings confirmed',
+                description: 'Your materials have been successfully mapped',
+            });
             reset();
-            // await navigate({ to: '/products/list' });
+            await navigate({ to: '/products/list' });
         } catch (error) {
             console.error('Failed to confirm mappings:', error);
             toast({
@@ -62,6 +68,16 @@ function PreviewRoute() {
         updateMaterial(updatedMaterial);
     };
 
+    // Calculate mapping progress
+    const totalMaterials = uploadResponse.materialsRequiringReview.length;
+    const mappedMaterials = Object.keys(selectedMappings).length;
+    const mappingProgress = (mappedMaterials / totalMaterials) * 100;
+
+    // Check for unmapped materials with no suggestions
+    const materialsWithoutSuggestions = uploadResponse.materialsRequiringReview.filter(
+        material => !selectedMappings[material.id] && material.suggestions.length === 0
+    );
+
     // Remove the requirement that all materials must be mapped
     const canConfirm = Object.keys(selectedMappings).length > 0;
 
@@ -69,11 +85,29 @@ function PreviewRoute() {
         <div className="space-y-8">
             <Toaster />
             <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold">Review Upload</h1>
+                <div>
+                    <h1 className="text-2xl font-bold">Review Upload</h1>
+                    <p className="text-sm text-gray-500 mt-1">
+                        {mappedMaterials} of {totalMaterials} materials mapped ({Math.round(mappingProgress)}%)
+                    </p>
+                </div>
                 <Button variant="ghost" asChild>
                     <Link to="/products/steps/upload-file">← Back to Upload</Link>
                 </Button>
             </div>
+
+            <Progress value={mappingProgress} className="h-2" />
+
+            {materialsWithoutSuggestions.length > 0 && (
+                <Alert>
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Materials without suggestions</AlertTitle>
+                    <AlertDescription>
+                        {materialsWithoutSuggestions.length} material{materialsWithoutSuggestions.length > 1 ? 's' : ''} have no suggestions.
+                        Use the search icon to find alternative mappings.
+                    </AlertDescription>
+                </Alert>
+            )}
 
             <UploadSummary summary={uploadResponse.summary} />
 
@@ -84,22 +118,32 @@ function PreviewRoute() {
                 onMaterialUpdate={handleMaterialUpdate}
             />
 
-            <div className="flex justify-end space-x-4">
-                <Button
-                    variant="outline"
-                    onClick={async () => {
-                        reset();
-                        await navigate({ to: '/products/steps/upload-file' });
-                    }}
-                >
-                    Cancel
-                </Button>
-                <Button
-                    onClick={handleConfirm}
-                    disabled={!canConfirm}
-                >
-                    {canConfirm ? 'Confirm and Import' : 'Select at least one material mapping'}
-                </Button>
+            <div className="flex justify-between items-center">
+                <div className="text-sm text-gray-500">
+                    {totalMaterials - mappedMaterials} material{totalMaterials - mappedMaterials !== 1 ? 's' : ''} still need{totalMaterials - mappedMaterials === 1 ? 's' : ''} mapping
+                </div>
+                <div className="flex space-x-4">
+                    <Button
+                        variant="outline"
+                        onClick={async () => {
+                            reset();
+                            await navigate({ to: '/products/steps/upload-file' });
+                        }}
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        onClick={handleConfirm}
+                        disabled={!canConfirm}
+                    >
+                        {canConfirm 
+                            ? mappedMaterials === totalMaterials 
+                                ? 'Confirm All Mappings' 
+                                : `Confirm ${mappedMaterials} Mapping${mappedMaterials > 1 ? 's' : ''}`
+                            : 'Select at least one material mapping'
+                        }
+                    </Button>
+                </div>
             </div>
         </div>
     );
