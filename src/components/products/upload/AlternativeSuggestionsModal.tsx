@@ -13,6 +13,7 @@ interface AlternativeSuggestionsModalProps {
     materialName: string;
     alternatives: EcoinventActivity[] | null;
     isLoading: boolean;
+    isSettingActivity: boolean;
 }
 
 export function AlternativeSuggestionsModal({
@@ -22,6 +23,7 @@ export function AlternativeSuggestionsModal({
     materialName,
     alternatives,
     isLoading,
+    isSettingActivity,
 }: AlternativeSuggestionsModalProps) {
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
@@ -35,6 +37,12 @@ export function AlternativeSuggestionsModal({
                         <div className="flex flex-col items-center justify-center h-full space-y-4">
                             <Loader2 className="h-8 w-8 animate-spin text-primary" />
                             <p className="text-lg text-gray-600">Loading suggestions...</p>
+                        </div>
+                    ) : isSettingActivity ? (
+                        <div className="flex flex-col items-center justify-center h-full space-y-4">
+                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                            <p className="text-lg text-gray-600">Updating material mapping...</p>
+                            <p className="text-sm text-gray-500">Please wait while we process your request</p>
                         </div>
                     ) : alternatives && alternatives.length > 0 ? (
                         <ScrollArea className="h-full">
@@ -64,6 +72,7 @@ export function AlternativeSuggestionsModal({
                                                     variant="outline"
                                                     size="sm"
                                                     onClick={() => onSelect(activity)}
+                                                    disabled={isSettingActivity}
                                                 >
                                                     Select
                                                 </Button>

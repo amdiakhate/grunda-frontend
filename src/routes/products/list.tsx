@@ -12,8 +12,10 @@ import { Button } from '../../components/ui/button'
 import { Input } from '../../components/ui/input'
 import { productsService } from '../../services/products'
 import { Product } from '../../interfaces/product'
-import { CompletionLevel } from '../../components/products/completionLevel'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Calendar, Box, ArrowUpRight } from 'lucide-react'
+import { Badge } from '../../components/ui/badge'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../../components/ui/tooltip'
+import { formatDistanceToNow } from 'date-fns'
 
 export const Route = createFileRoute('/products/list')({
   component: RouteComponent,
@@ -62,6 +64,34 @@ function RouteComponent() {
   
   const categories = Array.from(new Set(products.map(p => p.category)))
 
+  const formatValue = (value: number | undefined) => {
+    if (value === undefined) return '-';
+    return value.toFixed(2);
+  };
+
+  const formatDate = (dateString: string | undefined) => {
+    if (!dateString) return 'N/A';
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'Invalid date';
+      return formatDistanceToNow(date, { addSuffix: true });
+    } catch {
+      return 'Invalid date';
+    }
+  };
+
+  const getCompletionBadge = (level: number) => {
+    if (level === 100) {
+      return <Badge variant="success">Complete</Badge>;
+    } else if (level >= 75) {
+      return <Badge variant="warning">Almost Complete</Badge>;
+    } else if (level >= 50) {
+      return <Badge variant="secondary">In Progress</Badge>;
+    } else {
+      return <Badge variant="destructive">Incomplete</Badge>;
+    }
+  };
+
   return (
     <>
       <h1 className="text-2xl font-bold">Products List</h1>
@@ -86,7 +116,8 @@ function RouteComponent() {
       </div>
       <div className="flex justify-end mb-4">
         <Button asChild>
-          <Link to="/products/steps/upload-file">
+          <Link to="/products/steps/upload-file" className="flex items-center gap-2">
+            <Box className="h-4 w-4" />
             Add Products
           </Link>
         </Button>
@@ -102,28 +133,74 @@ function RouteComponent() {
           <Table className="w-full">
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Unit Footprint</TableHead>
-                <TableHead>Total Footprint</TableHead>
-                <TableHead>Completion Level</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead className="w-[250px]">Product Information</TableHead>
+                <TableHead className="w-[150px]">Category</TableHead>
+                <TableHead className="w-[200px]">Environmental Impact</TableHead>
+                <TableHead className="w-[150px]">Materials Status</TableHead>
+                <TableHead className="w-[150px]">Last Updated</TableHead>
+                <TableHead className="w-[100px]">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {paginatedProducts.map((product) => (
                 <TableRow key={product.id}>
-                  <TableCell>{product.name}</TableCell>
-                  <TableCell>{product.category}</TableCell>
-                  <TableCell>{product.unitFootprint}</TableCell>
-                  <TableCell>{product.totalFootprint}</TableCell>
-                  <TableCell className="text-center">
-                    <CompletionLevel level={product.completionLevel} />
+                  <TableCell>
+                    <div className="flex flex-col">
+                      <span className="font-medium">{product.name}</span>
+                      <span className="text-xs text-muted-foreground">ID: {product.id}</span>
+                    </div>
                   </TableCell>
                   <TableCell>
-                    <Button asChild>
-                      <Link to={`/products/${product.id}`}>
+                    <Badge variant="outline" className="font-normal">
+                      {product.category}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger className="text-left">
+                          <div className="flex flex-col">
+                            <span>Unit: {formatValue(product.unitFootprint)}</span>
+                            <span className="text-xs text-muted-foreground">
+                              Total: {formatValue(product.totalFootprint)}
+                            </span>
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <div className="space-y-1">
+                            <div>
+                              <span className="font-medium">Unit Footprint:</span> {formatValue(product.unitFootprint)}
+                            </div>
+                            <div>
+                              <span className="font-medium">Total Footprint:</span> {formatValue(product.totalFootprint)}
+                            </div>
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-col gap-1">
+                      {getCompletionBadge(product.completionLevel)}
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-primary rounded-full h-2"
+                          style={{ width: `${product.completionLevel}%` }}
+                        />
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Calendar className="h-4 w-4" />
+                      {formatDate(product.updatedAt)}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Button asChild variant="outline" size="sm">
+                      <Link to={`/products/${product.id}`} className="flex items-center gap-2">
                         Details
+                        <ArrowUpRight className="h-4 w-4" />
                       </Link>
                     </Button>
                   </TableCell>
@@ -132,22 +209,29 @@ function RouteComponent() {
             </TableBody>
           </Table>
 
-          <div className="flex justify-center gap-2 mt-4">
-            <Button
-              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-            >
-              Previous
-            </Button>
-            <span className="py-2">
-              Page {currentPage} of {totalPages}
-            </span>
-            <Button
-              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
-            >
-              Next
-            </Button>
+          <div className="flex justify-between items-center mt-4">
+            <div className="text-sm text-muted-foreground">
+              Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredProducts.length)} of {filteredProducts.length} products
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+              >
+                Previous
+              </Button>
+              <span className="py-2">
+                Page {currentPage} of {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+              >
+                Next
+              </Button>
+            </div>
           </div>
         </>
       )}

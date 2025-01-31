@@ -9,7 +9,7 @@ export interface Product {
     summary: ProductSummary;
     calculation_status: string;
     import_source: string;
-
+    updatedAt: string;
 }
 
 export interface ProductSummary {
@@ -27,6 +27,7 @@ export interface Material {
     activityUuid: string;
     activityName: string;
     activityUnit: string;
+    activityOrigin: string;
     category: string;
     referenceProduct: string;
     quantity: number;

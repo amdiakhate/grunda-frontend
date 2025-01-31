@@ -16,7 +16,7 @@ export const materialsService = {
      async setActivity(product: Product, material: Material, activity: EcoinventActivity): Promise<void> {
         try {
             await api.put(`/products/${product.id}/materials/${material.id}`, { 
-               activityUuid: activity.uuid,
+               activityUuid: activity.id,
                activityName: activity.name,
                referenceProduct: activity.referenceProduct,
             });
