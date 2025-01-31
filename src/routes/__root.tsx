@@ -1,18 +1,23 @@
-import { createRootRoute,   } from "@tanstack/react-router";
+import { createRootRoute, redirect } from "@tanstack/react-router";
 import { SidebarTrigger } from "../components/ui/sidebar";
 import { SidebarProvider } from "../components/ui/sidebar";
 import { TanStackRouterDevtools } from "@tanstack/router-devtools";
 import { Outlet } from "@tanstack/react-router";
 import { AppSidebar } from "../components/common/AppSidebar";
 
-
-
 export const Route = createRootRoute({
     component: Layout,
+    beforeLoad: () => {
+        // Redirect root path to dashboard
+        if (window.location.pathname === '/') {
+            throw redirect({
+                to: '/dashboard'
+            })
+        }
+    }
 })
 
-function Layout ( ) {
-
+function Layout() {
     return (
         <SidebarProvider>
             <AppSidebar />
@@ -25,6 +30,5 @@ function Layout ( ) {
             </main>
             <TanStackRouterDevtools />
         </SidebarProvider>
-        
     )
 }
