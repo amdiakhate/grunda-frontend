@@ -12,8 +12,16 @@ import { Card, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
 import { ScrollArea } from '../ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
-import { Info, Star } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
+import { Info, Star, SlidersHorizontal, ChevronRight } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Badge } from "../ui/badge";
 
 interface ImpactMethod {
   method: string;
@@ -187,7 +195,7 @@ export function ImpactFilter({ impactResults }: { impactResults: ImpactResult[] 
               </Button>
             </div>
           </TooltipTrigger>
-          <TooltipContent side="right" className="max-w-[300px]">
+          <TooltipContent side="left" className="max-w-[300px]">
             <div className="space-y-2">
               <p className="font-medium">{method.name}</p>
               <p className="text-sm">{method.description}</p>
@@ -199,38 +207,76 @@ export function ImpactFilter({ impactResults }: { impactResults: ImpactResult[] 
     );
   };
 
+  const currentMethod = impactMethods.find(m => m.method === displayedImpact?.method);
+
   return (
-    <Tabs defaultValue="key" className="w-full">
-      <TabsList className="mb-4">
-        <TabsTrigger value="key" className="flex items-center gap-2">
-          <Star className="h-4 w-4" />
-          Key Metrics
-        </TabsTrigger>
-        <TabsTrigger value="all">All Metrics</TabsTrigger>
-      </TabsList>
-
-      <TabsContent value="key" className="mt-0">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-          {impactMethods
-            .filter(method => keyMetrics.includes(method.method))
-            .map(renderMetricButton)}
-        </div>
-      </TabsContent>
-
-      <TabsContent value="all" className="mt-0">
-        <ScrollArea className="h-[400px] pr-4">
-          <div className="space-y-6">
-            {Object.entries(groupedMethods).map(([category, methods]) => (
-              <div key={category} className="space-y-2">
-                <h3 className="font-medium text-sm text-muted-foreground">{category}</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  {methods.map(renderMetricButton)}
-                </div>
-              </div>
-            ))}
+    <div className="flex items-center gap-2">
+      <div className="flex-1">
+        {currentMethod ? (
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="px-2 py-1">
+              <span className="font-medium">{currentMethod.name}</span>
+              <span className="text-xs text-muted-foreground ml-1">
+                ({currentMethod.unit})
+              </span>
+            </Badge>
+            {keyMetrics.includes(currentMethod.method) && (
+              <Star className="h-3 w-3 fill-primary" />
+            )}
           </div>
-        </ScrollArea>
-      </TabsContent>
-    </Tabs>
+        ) : (
+          <span className="text-sm text-muted-foreground">Select an impact metric</span>
+        )}
+      </div>
+
+      <Sheet>
+        <SheetTrigger asChild>
+          <Button variant="outline" size="sm" className="gap-2">
+            <SlidersHorizontal className="h-4 w-4" />
+            Change Metric
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </SheetTrigger>
+        <SheetContent side="right" className="w-full sm:w-[540px]">
+          <SheetHeader>
+            <SheetTitle>Impact Metrics</SheetTitle>
+          </SheetHeader>
+          <div className="mt-4">
+            <Tabs defaultValue="key" className="w-full">
+              <TabsList className="mb-4">
+                <TabsTrigger value="key" className="flex items-center gap-2">
+                  <Star className="h-4 w-4" />
+                  Key Metrics
+                </TabsTrigger>
+                <TabsTrigger value="all">All Metrics</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="key" className="mt-0">
+                <div className="grid grid-cols-1 gap-2">
+                  {impactMethods
+                    .filter(method => keyMetrics.includes(method.method))
+                    .map(renderMetricButton)}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="all" className="mt-0">
+                <ScrollArea className="h-[calc(100vh-200px)] pr-4">
+                  <div className="space-y-6">
+                    {Object.entries(groupedMethods).map(([category, methods]) => (
+                      <div key={category} className="space-y-2">
+                        <h3 className="font-medium text-sm text-muted-foreground">{category}</h3>
+                        <div className="grid grid-cols-1 gap-2">
+                          {methods.map(renderMetricButton)}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </TabsContent>
+            </Tabs>
+          </div>
+        </SheetContent>
+      </Sheet>
+    </div>
   );
 }
