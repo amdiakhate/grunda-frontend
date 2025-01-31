@@ -9,7 +9,7 @@ import { Toaster } from '../../../components/ui/toaster';
 import { useEffect } from 'react';
 import { MaterialRequiringReview } from '../../../interfaces/csvUpload';
 import { Progress } from '../../../components/ui/progress';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '../../../components/ui/alert';
 
 export const Route = createFileRoute('/products/steps/preview')({
@@ -98,6 +98,26 @@ function PreviewRoute() {
 
             <Progress value={mappingProgress} className="h-2" />
 
+            {uploadResponse.summary.materialsMatched > 0 && (
+                <Alert className="bg-green-50 border-green-200">
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <AlertTitle className="text-green-700">Automatic Mapping Success</AlertTitle>
+                    <AlertDescription className="text-green-600">
+                        {uploadResponse.summary.materialsMatched} material{uploadResponse.summary.materialsMatched > 1 ? 's were' : ' was'} automatically matched ({Math.round((uploadResponse.summary.materialsMatched / uploadResponse.summary.totalMaterials) * 100)}% of total)
+                    </AlertDescription>
+                </Alert>
+            )}
+
+            {uploadResponse.summary.materialsUnmatched > 0 && (
+                <Alert className="bg-blue-50 border-blue-200">
+                    <AlertCircle className="h-4 w-4 text-blue-500" />
+                    <AlertTitle className="text-blue-700">Manual Mapping Required</AlertTitle>
+                    <AlertDescription className="text-blue-600">
+                        {uploadResponse.summary.materialsUnmatched} material{uploadResponse.summary.materialsUnmatched > 1 ? 's need' : ' needs'} to be mapped manually ({Math.round((uploadResponse.summary.materialsUnmatched / uploadResponse.summary.totalMaterials) * 100)}% of total)
+                    </AlertDescription>
+                </Alert>
+            )}
+
             {materialsWithoutSuggestions.length > 0 && (
                 <Alert>
                     <AlertCircle className="h-4 w-4" />
@@ -105,6 +125,7 @@ function PreviewRoute() {
                     <AlertDescription>
                         {materialsWithoutSuggestions.length} material{materialsWithoutSuggestions.length > 1 ? 's' : ''} have no suggestions.
                         Use the search icon to find alternative mappings.
+                        If you are unable to find a mapping in the Ecoinvent database, please contact support.
                     </AlertDescription>
                 </Alert>
             )}

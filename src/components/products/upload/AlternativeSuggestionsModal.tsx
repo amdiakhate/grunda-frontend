@@ -76,7 +76,7 @@ export function AlternativeSuggestionsModal({
                     ) : (
                         <div className="flex flex-col items-center justify-center h-full space-y-2">
                             <p className="text-lg text-gray-600">No alternative suggestions found</p>
-                            <p className="text-sm text-gray-500">Try refreshing or using different search terms</p>
+                            <p className="text-sm text-gray-500">Try contacting support</p>
                         </div>
                     )}
                 </div>

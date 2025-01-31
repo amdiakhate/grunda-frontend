@@ -22,12 +22,14 @@ interface MaterialReviewListProps {
     materials: MaterialRequiringReview[];
     selectedMappings: Record<string, MaterialSuggestion>;
     onMappingChange: (mappings: Record<string, MaterialSuggestion>) => void;
+    onMaterialUpdate?: (updatedMaterial: MaterialRequiringReview) => void;
 }
 
 export function MaterialReviewList({
     materials,
     selectedMappings,
     onMappingChange,
+    onMaterialUpdate
 }: MaterialReviewListProps) {
     const [searchTerm, setSearchTerm] = useState('');
     const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
