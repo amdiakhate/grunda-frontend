@@ -97,11 +97,19 @@ export function DataTable({ data, onUpdate }: DataTableProps) {
     };
 
     const searchAlternatives = async (material: Material) => {
-        setIsModalOpen(true);
         setIsLoadingAlternatives(true);
         try {
             const alternatives = await productsService.getAlternativeSuggestions(material.name);
+            if (!alternatives || alternatives.length === 0) {
+                toast({
+                    title: 'No alternatives found',
+                    description: 'No alternative materials were found in the database. Try adjusting the material name or contact support.',
+                    variant: 'default',
+                });
+                return;
+            }
             setAlternatives(alternatives);
+            setIsModalOpen(true);
         } catch (error) {
             console.error('Error getting alternative suggestions:', error);
             toast({
