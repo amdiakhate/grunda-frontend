@@ -10,12 +10,16 @@ import { MaterialsTreemap } from '../../components/products/materialsTreemap'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/card'
 import { ProductActions } from "@/components/products/productActions";
 import { toast } from '../../hooks/use-toast'
-import { Loader2, LineChart, Filter, PieChart, ListFilter, ArrowLeft } from 'lucide-react'
+import { Loader2, LineChart, Filter, PieChart, ListFilter, ArrowLeft, CheckCircle2, AlertTriangle, Clock, AlertCircle, Calculator, ArrowDown } from 'lucide-react'
 import { Badge } from '../../components/ui/badge'
 
 export const Route = createFileRoute('/products/$id')({
   component: RouteComponent,
 })
+
+function formatPercentage(value: number): string {
+  return Math.round(value).toString();
+}
 
 function RouteComponent() {
   const productId = useParams({ from: '/products/$id' }).id;
@@ -91,20 +95,55 @@ function RouteComponent() {
   return (
     <div className={`space-y-6 transition-opacity duration-300 ${isUpdating ? 'opacity-50' : 'opacity-100'}`}>
       {/* Header Section */}
-      <div className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10 border-b pb-4">
-        <div className="flex justify-between items-center pt-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <h1 className="text-3xl font-bold tracking-tight">{product.name}</h1>
-              <Badge variant="outline" className="text-sm">
+      <div className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10 border-b pb-6">
+        <div className="flex justify-between items-start pt-6 px-2">
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <h1 className="text-4xl font-bold tracking-tight">{product.name}</h1>
+              <Badge variant="outline" className="text-sm px-3 py-1">
                 {product.category}
               </Badge>
+              {product.completionLevel === 100 ? (
+                <Badge variant="success" className="flex items-center gap-2 px-3 py-1">
+                  <CheckCircle2 className="h-4 w-4" />
+                  Complete
+                </Badge>
+              ) : product.completionLevel >= 75 ? (
+                <Badge variant="warning" className="flex items-center gap-2 px-3 py-1">
+                  <AlertTriangle className="h-4 w-4" />
+                  Almost Complete ({formatPercentage(product.completionLevel)}%)
+                </Badge>
+              ) : product.completionLevel >= 50 ? (
+                <Badge variant="secondary" className="flex items-center gap-2 px-3 py-1">
+                  <Clock className="h-4 w-4" />
+                  In Progress ({formatPercentage(product.completionLevel)}%)
+                </Badge>
+              ) : (
+                <Badge variant="destructive" className="flex items-center gap-2 px-3 py-1">
+                  <AlertCircle className="h-4 w-4" />
+                  Incomplete ({formatPercentage(product.completionLevel)}%)
+                </Badge>
+              )}
             </div>
-            <p className="text-sm text-muted-foreground">
-              Last updated {new Date(product.updatedAt).toLocaleDateString()}
-            </p>
+            <div className="flex items-center gap-6">
+              <p className="text-sm text-muted-foreground">
+                Last updated {new Date(product.updatedAt).toLocaleDateString()}
+              </p>
+              <div className="h-4 w-[1px] bg-border" />
+              <div className="flex items-center gap-3">
+                <div className="h-2.5 w-full bg-secondary rounded-full overflow-hidden" style={{ width: '120px' }}>
+                  <div
+                    className="h-full bg-primary transition-all duration-500"
+                    style={{ width: `${product.completionLevel}%` }}
+                  />
+                </div>
+                <span className="text-sm text-muted-foreground">
+                  {formatPercentage(product.completionLevel)}% complete
+                </span>
+              </div>
+            </div>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-6">
             <ProductActions 
               calculationLoading={calculationLoading}
               onStartCalculation={startCalculation}
@@ -114,9 +153,9 @@ function RouteComponent() {
               onExport={() => {/* ... */}}
               onShare={() => {/* ... */}}
             />
-            <Button asChild variant="outline">
+            <Button asChild variant="outline" size="lg">
               <Link to="/products/list" className="flex items-center gap-2">
-                <ArrowLeft className="h-4 w-4" />
+                <ArrowLeft className="h-5 w-5" />
                 Back to Products
               </Link>
             </Button>
@@ -153,7 +192,78 @@ function RouteComponent() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ImpactFilter impactResults={defaultImpactResults || []} />
+            {defaultImpactResults && defaultImpactResults.length > 0 ? (
+              <ImpactFilter impactResults={defaultImpactResults} />
+            ) : (
+              <div className="flex flex-col items-center justify-center py-8 space-y-4 text-center">
+                <div className="p-4 rounded-full bg-muted">
+                  <Calculator className="h-8 w-8 text-muted-foreground" />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="font-medium">No Impact Analysis Available</h3>
+                  <p className="text-sm text-muted-foreground max-w-[400px]">
+                    {product.completionLevel === 100 ? (
+                      <>
+                        All materials are mapped. You can now run an impact analysis to view environmental metrics.
+                        <div className="mt-4">
+                          <Button
+                            onClick={startCalculation}
+                            disabled={calculationLoading}
+                            className="gap-2"
+                          >
+                            {calculationLoading ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Calculator className="h-4 w-4" />
+                            )}
+                            {calculationLoading ? "Analysis in Progress..." : "Start Analysis"}
+                          </Button>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex items-center gap-2 mb-2">
+                          <AlertTriangle className="h-4 w-4 text-warning" />
+                          <span className="font-medium text-warning">Incomplete Mapping</span>
+                        </div>
+                        Only {formatPercentage(product.completionLevel)}% of materials are mapped. You can:
+                        <div className="mt-4 space-y-3">
+                          <Button
+                            onClick={startCalculation}
+                            disabled={calculationLoading}
+                            variant="outline"
+                            className="w-full gap-2"
+                          >
+                            {calculationLoading ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Calculator className="h-4 w-4" />
+                            )}
+                            {calculationLoading ? "Analysis in Progress..." : "Run Partial Analysis"}
+                          </Button>
+                          <p className="text-xs text-muted-foreground italic">
+                            Note: Results will be incomplete and may not reflect the full environmental impact
+                          </p>
+                          <div className="border-t pt-3">
+                            <Button
+                              variant="secondary"
+                              onClick={() => {
+                                const element = document.querySelector('#material-details');
+                                element?.scrollIntoView({ behavior: 'smooth' });
+                              }}
+                              className="w-full gap-2"
+                            >
+                              <ArrowDown className="h-4 w-4" />
+                              Complete Material Mapping First
+                            </Button>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </p>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -169,12 +279,24 @@ function RouteComponent() {
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-4">
-            <MaterialsTreemap materials={product.materials} />
+            {defaultImpactResults && defaultImpactResults.length > 0 ? (
+              <MaterialsTreemap materials={product.materials} />
+            ) : (
+              <div className="flex flex-col items-center justify-center py-8 space-y-2 text-center">
+                <div className="p-4 rounded-full bg-muted">
+                  <PieChart className="h-8 w-8 text-muted-foreground" />
+                </div>
+                <h3 className="font-medium">Impact Distribution Not Available</h3>
+                <p className="text-sm text-muted-foreground">
+                  Run an impact analysis to view the distribution of environmental impacts across materials.
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
     
         {/* Technical Details Section */}
-        <Card>
+        <Card id="material-details">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <ListFilter className="h-5 w-5" />

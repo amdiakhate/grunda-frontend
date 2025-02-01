@@ -1,14 +1,5 @@
-import { useEffect } from 'react';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-  } from "@/components/ui/select"
 import { ImpactResult } from "../../interfaces/product"
 import { useStore } from "../../stores/useStore";
-import { Card, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
 import { ScrollArea } from '../ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
