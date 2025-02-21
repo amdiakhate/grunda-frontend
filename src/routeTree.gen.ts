@@ -16,9 +16,10 @@ import { Route as rootRoute } from './routes/__root'
 import { Route as DashboardImport } from './routes/dashboard'
 import { Route as ProductsListImport } from './routes/products/list'
 import { Route as ProductsIdImport } from './routes/products/$id'
+import { Route as AdminMaterialsIndexImport } from './routes/admin/materials/index'
 import { Route as ProductsStepsUploadFileImport } from './routes/products/steps/upload-file'
-import { Route as ProductsStepsPreviewImport } from './routes/products/steps/preview'
 import { Route as ProductsImportsListImport } from './routes/products/imports/list'
+import { Route as AdminMaterialsIdImport } from './routes/admin/materials/$id'
 
 // Create Virtual Routes
 
@@ -57,21 +58,27 @@ const ProductsIdRoute = ProductsIdImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
+const AdminMaterialsIndexRoute = AdminMaterialsIndexImport.update({
+  id: '/admin/materials/',
+  path: '/admin/materials/',
+  getParentRoute: () => rootRoute,
+} as any)
+
 const ProductsStepsUploadFileRoute = ProductsStepsUploadFileImport.update({
   id: '/products/steps/upload-file',
   path: '/products/steps/upload-file',
   getParentRoute: () => rootRoute,
 } as any)
 
-const ProductsStepsPreviewRoute = ProductsStepsPreviewImport.update({
-  id: '/products/steps/preview',
-  path: '/products/steps/preview',
-  getParentRoute: () => rootRoute,
-} as any)
-
 const ProductsImportsListRoute = ProductsImportsListImport.update({
   id: '/products/imports/list',
   path: '/products/imports/list',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const AdminMaterialsIdRoute = AdminMaterialsIdImport.update({
+  id: '/admin/materials/$id',
+  path: '/admin/materials/$id',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -114,6 +121,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProductsListImport
       parentRoute: typeof rootRoute
     }
+    '/admin/materials/$id': {
+      id: '/admin/materials/$id'
+      path: '/admin/materials/$id'
+      fullPath: '/admin/materials/$id'
+      preLoaderRoute: typeof AdminMaterialsIdImport
+      parentRoute: typeof rootRoute
+    }
     '/products/imports/list': {
       id: '/products/imports/list'
       path: '/products/imports/list'
@@ -121,18 +135,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProductsImportsListImport
       parentRoute: typeof rootRoute
     }
-    '/products/steps/preview': {
-      id: '/products/steps/preview'
-      path: '/products/steps/preview'
-      fullPath: '/products/steps/preview'
-      preLoaderRoute: typeof ProductsStepsPreviewImport
-      parentRoute: typeof rootRoute
-    }
     '/products/steps/upload-file': {
       id: '/products/steps/upload-file'
       path: '/products/steps/upload-file'
       fullPath: '/products/steps/upload-file'
       preLoaderRoute: typeof ProductsStepsUploadFileImport
+      parentRoute: typeof rootRoute
+    }
+    '/admin/materials/': {
+      id: '/admin/materials/'
+      path: '/admin/materials'
+      fullPath: '/admin/materials'
+      preLoaderRoute: typeof AdminMaterialsIndexImport
       parentRoute: typeof rootRoute
     }
   }
@@ -146,9 +160,10 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsLazyRoute
   '/products/$id': typeof ProductsIdRoute
   '/products/list': typeof ProductsListRoute
+  '/admin/materials/$id': typeof AdminMaterialsIdRoute
   '/products/imports/list': typeof ProductsImportsListRoute
-  '/products/steps/preview': typeof ProductsStepsPreviewRoute
   '/products/steps/upload-file': typeof ProductsStepsUploadFileRoute
+  '/admin/materials': typeof AdminMaterialsIndexRoute
 }
 
 export interface FileRoutesByTo {
@@ -157,9 +172,10 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsLazyRoute
   '/products/$id': typeof ProductsIdRoute
   '/products/list': typeof ProductsListRoute
+  '/admin/materials/$id': typeof AdminMaterialsIdRoute
   '/products/imports/list': typeof ProductsImportsListRoute
-  '/products/steps/preview': typeof ProductsStepsPreviewRoute
   '/products/steps/upload-file': typeof ProductsStepsUploadFileRoute
+  '/admin/materials': typeof AdminMaterialsIndexRoute
 }
 
 export interface FileRoutesById {
@@ -169,9 +185,10 @@ export interface FileRoutesById {
   '/settings': typeof SettingsLazyRoute
   '/products/$id': typeof ProductsIdRoute
   '/products/list': typeof ProductsListRoute
+  '/admin/materials/$id': typeof AdminMaterialsIdRoute
   '/products/imports/list': typeof ProductsImportsListRoute
-  '/products/steps/preview': typeof ProductsStepsPreviewRoute
   '/products/steps/upload-file': typeof ProductsStepsUploadFileRoute
+  '/admin/materials/': typeof AdminMaterialsIndexRoute
 }
 
 export interface FileRouteTypes {
@@ -182,9 +199,10 @@ export interface FileRouteTypes {
     | '/settings'
     | '/products/$id'
     | '/products/list'
+    | '/admin/materials/$id'
     | '/products/imports/list'
-    | '/products/steps/preview'
     | '/products/steps/upload-file'
+    | '/admin/materials'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/dashboard'
@@ -192,9 +210,10 @@ export interface FileRouteTypes {
     | '/settings'
     | '/products/$id'
     | '/products/list'
+    | '/admin/materials/$id'
     | '/products/imports/list'
-    | '/products/steps/preview'
     | '/products/steps/upload-file'
+    | '/admin/materials'
   id:
     | '__root__'
     | '/dashboard'
@@ -202,9 +221,10 @@ export interface FileRouteTypes {
     | '/settings'
     | '/products/$id'
     | '/products/list'
+    | '/admin/materials/$id'
     | '/products/imports/list'
-    | '/products/steps/preview'
     | '/products/steps/upload-file'
+    | '/admin/materials/'
   fileRoutesById: FileRoutesById
 }
 
@@ -214,9 +234,10 @@ export interface RootRouteChildren {
   SettingsLazyRoute: typeof SettingsLazyRoute
   ProductsIdRoute: typeof ProductsIdRoute
   ProductsListRoute: typeof ProductsListRoute
+  AdminMaterialsIdRoute: typeof AdminMaterialsIdRoute
   ProductsImportsListRoute: typeof ProductsImportsListRoute
-  ProductsStepsPreviewRoute: typeof ProductsStepsPreviewRoute
   ProductsStepsUploadFileRoute: typeof ProductsStepsUploadFileRoute
+  AdminMaterialsIndexRoute: typeof AdminMaterialsIndexRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -225,9 +246,10 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsLazyRoute: SettingsLazyRoute,
   ProductsIdRoute: ProductsIdRoute,
   ProductsListRoute: ProductsListRoute,
+  AdminMaterialsIdRoute: AdminMaterialsIdRoute,
   ProductsImportsListRoute: ProductsImportsListRoute,
-  ProductsStepsPreviewRoute: ProductsStepsPreviewRoute,
   ProductsStepsUploadFileRoute: ProductsStepsUploadFileRoute,
+  AdminMaterialsIndexRoute: AdminMaterialsIndexRoute,
 }
 
 export const routeTree = rootRoute
@@ -245,9 +267,10 @@ export const routeTree = rootRoute
         "/settings",
         "/products/$id",
         "/products/list",
+        "/admin/materials/$id",
         "/products/imports/list",
-        "/products/steps/preview",
-        "/products/steps/upload-file"
+        "/products/steps/upload-file",
+        "/admin/materials/"
       ]
     },
     "/dashboard": {
@@ -265,14 +288,17 @@ export const routeTree = rootRoute
     "/products/list": {
       "filePath": "products/list.tsx"
     },
+    "/admin/materials/$id": {
+      "filePath": "admin/materials/$id.tsx"
+    },
     "/products/imports/list": {
       "filePath": "products/imports/list.tsx"
     },
-    "/products/steps/preview": {
-      "filePath": "products/steps/preview.tsx"
-    },
     "/products/steps/upload-file": {
       "filePath": "products/steps/upload-file.tsx"
+    },
+    "/admin/materials/": {
+      "filePath": "admin/materials/index.tsx"
     }
   }
 }

@@ -4,6 +4,7 @@ import { SidebarProvider } from "../components/ui/sidebar";
 import { TanStackRouterDevtools } from "@tanstack/router-devtools";
 import { Outlet } from "@tanstack/react-router";
 import { AppSidebar } from "../components/common/AppSidebar";
+import { adminNavItems } from "../components/common/AdminNav";
 
 export const Route = createRootRoute({
     component: Layout,
@@ -18,13 +19,16 @@ export const Route = createRootRoute({
 })
 
 function Layout() {
+    // Check if we're in the admin section
+    const isAdmin = window.location.pathname.startsWith('/admin');
+
     return (
         <SidebarProvider>
-            <AppSidebar />
+            <AppSidebar items={isAdmin ? adminNavItems : undefined} />
             <SidebarTrigger />
 
-            <main className="flex flex-col items-center w-full">
-                <div className="container p-10 w-full max-w-7xl">
+            <main className={`flex flex-col items-center w-full ${isAdmin ? 'bg-gray-50' : ''}`}>
+                <div className={`container ${isAdmin ? 'py-8 px-4' : 'p-10'} w-full max-w-7xl`}>
                     <Outlet />
                 </div>
             </main>

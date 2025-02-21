@@ -3,6 +3,7 @@
 // import viteLogo from '/vite.svg'
 import { createRouter, RouterProvider } from '@tanstack/react-router'
 import {routeTree} from './routeTree.gen';
+import { Toaster } from './components/ui/toast';
 
 const router = createRouter({routeTree: routeTree})
 
@@ -12,6 +13,7 @@ function App() {
     return (
         <>
         <RouterProvider router={router} />
+        <Toaster />
         </>
     )
 }

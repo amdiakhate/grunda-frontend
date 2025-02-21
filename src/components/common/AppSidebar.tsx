@@ -8,47 +8,55 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
   } from "@/components/ui/sidebar"
-import { HomeIcon, InfoIcon, PackageIcon, SettingsIcon } from "lucide-react"
-  
+import { HomeIcon, InfoIcon, PackageIcon, SettingsIcon, LucideIcon } from "lucide-react"
+import { Link } from "@tanstack/react-router"
 
-  const items = [
-    {
-      title: "Dashboard",
-      icon: <HomeIcon />,
-      url: "/dashboard",
-    },
-    {
-      title: "Products",
-      icon: <PackageIcon />,
-      url: "/products/list",
-    },
-    {
-      title: "About",
-      icon: <InfoIcon />,
-      url: "/about",
-    },
-    {
-      title: "Settings",
-      icon: <SettingsIcon />,
-      url: "/settings",
-    },
-  ]
+const defaultItems = [
+  {
+    name: "Dashboard",
+    icon: HomeIcon,
+    href: "/dashboard",
+  },
+  {
+    name: "Products",
+    icon: PackageIcon,
+    href: "/products/list",
+  },
+  {
+    name: "About",
+    icon: InfoIcon,
+    href: "/about",
+  },
+  {
+    name: "Settings",
+    icon: SettingsIcon,
+    href: "/settings",
+  },
+]
 
-  export function AppSidebar() {
-    return (
-      <Sidebar>
+interface AppSidebarProps {
+  items?: Array<{
+    name: string;
+    icon: LucideIcon;
+    href: string;
+  }>;
+}
+
+export function AppSidebar({ items = defaultItems }: AppSidebarProps) {
+  return (
+    <Sidebar>
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Application</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (
-                <SidebarMenuItem key={item.title}>
+                <SidebarMenuItem key={item.name}>
                   <SidebarMenuButton asChild>
-                    <a href={item.url}>
-                      {item.icon}
-                      <span>{item.title}</span>
-                    </a>
+                    <Link to={item.href}>
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.name}</span>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -57,6 +65,6 @@ import { HomeIcon, InfoIcon, PackageIcon, SettingsIcon } from "lucide-react"
         </SidebarGroup>
       </SidebarContent>
     </Sidebar>    
-    )
-  }
+  )
+}
     
