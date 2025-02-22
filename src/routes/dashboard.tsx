@@ -5,10 +5,19 @@ import { useEffect, useState } from 'react'
 import { productsService } from '../services/products'
 import { Product } from '../interfaces/product'
 import { MaterialsTreemap } from '../components/products/materialsTreemap'
+import { ProtectedRoute } from '@/components/common/ProtectedRoute'
 
 export const Route = createFileRoute('/dashboard')({
-  component: Dashboard,
+  component: DashboardPage,
 })
+
+function DashboardPage() {
+  return (
+    <ProtectedRoute>
+      <Dashboard />
+    </ProtectedRoute>
+  )
+}
 
 function Dashboard() {
   const [products, setProducts] = useState<Product[]>([])

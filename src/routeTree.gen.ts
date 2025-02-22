@@ -13,9 +13,11 @@ import { createFileRoute } from '@tanstack/react-router'
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as LoginImport } from './routes/login'
 import { Route as DashboardImport } from './routes/dashboard'
 import { Route as ProductsListImport } from './routes/products/list'
 import { Route as ProductsIdImport } from './routes/products/$id'
+import { Route as AdminUsersIndexImport } from './routes/admin/users/index'
 import { Route as AdminMaterialsIndexImport } from './routes/admin/materials/index'
 import { Route as ProductsStepsUploadFileImport } from './routes/products/steps/upload-file'
 import { Route as ProductsImportsListImport } from './routes/products/imports/list'
@@ -40,6 +42,12 @@ const AboutLazyRoute = AboutLazyImport.update({
   getParentRoute: () => rootRoute,
 } as any).lazy(() => import('./routes/about.lazy').then((d) => d.Route))
 
+const LoginRoute = LoginImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRoute,
+} as any)
+
 const DashboardRoute = DashboardImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -55,6 +63,12 @@ const ProductsListRoute = ProductsListImport.update({
 const ProductsIdRoute = ProductsIdImport.update({
   id: '/products/$id',
   path: '/products/$id',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const AdminUsersIndexRoute = AdminUsersIndexImport.update({
+  id: '/admin/users/',
+  path: '/admin/users/',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -91,6 +105,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardImport
+      parentRoute: typeof rootRoute
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginImport
       parentRoute: typeof rootRoute
     }
     '/about': {
@@ -149,6 +170,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminMaterialsIndexImport
       parentRoute: typeof rootRoute
     }
+    '/admin/users/': {
+      id: '/admin/users/'
+      path: '/admin/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AdminUsersIndexImport
+      parentRoute: typeof rootRoute
+    }
   }
 }
 
@@ -156,6 +184,7 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
+  '/login': typeof LoginRoute
   '/about': typeof AboutLazyRoute
   '/settings': typeof SettingsLazyRoute
   '/products/$id': typeof ProductsIdRoute
@@ -164,10 +193,12 @@ export interface FileRoutesByFullPath {
   '/products/imports/list': typeof ProductsImportsListRoute
   '/products/steps/upload-file': typeof ProductsStepsUploadFileRoute
   '/admin/materials': typeof AdminMaterialsIndexRoute
+  '/admin/users': typeof AdminUsersIndexRoute
 }
 
 export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
+  '/login': typeof LoginRoute
   '/about': typeof AboutLazyRoute
   '/settings': typeof SettingsLazyRoute
   '/products/$id': typeof ProductsIdRoute
@@ -176,11 +207,13 @@ export interface FileRoutesByTo {
   '/products/imports/list': typeof ProductsImportsListRoute
   '/products/steps/upload-file': typeof ProductsStepsUploadFileRoute
   '/admin/materials': typeof AdminMaterialsIndexRoute
+  '/admin/users': typeof AdminUsersIndexRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/dashboard': typeof DashboardRoute
+  '/login': typeof LoginRoute
   '/about': typeof AboutLazyRoute
   '/settings': typeof SettingsLazyRoute
   '/products/$id': typeof ProductsIdRoute
@@ -189,12 +222,14 @@ export interface FileRoutesById {
   '/products/imports/list': typeof ProductsImportsListRoute
   '/products/steps/upload-file': typeof ProductsStepsUploadFileRoute
   '/admin/materials/': typeof AdminMaterialsIndexRoute
+  '/admin/users/': typeof AdminUsersIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/dashboard'
+    | '/login'
     | '/about'
     | '/settings'
     | '/products/$id'
@@ -203,9 +238,11 @@ export interface FileRouteTypes {
     | '/products/imports/list'
     | '/products/steps/upload-file'
     | '/admin/materials'
+    | '/admin/users'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/dashboard'
+    | '/login'
     | '/about'
     | '/settings'
     | '/products/$id'
@@ -214,9 +251,11 @@ export interface FileRouteTypes {
     | '/products/imports/list'
     | '/products/steps/upload-file'
     | '/admin/materials'
+    | '/admin/users'
   id:
     | '__root__'
     | '/dashboard'
+    | '/login'
     | '/about'
     | '/settings'
     | '/products/$id'
@@ -225,11 +264,13 @@ export interface FileRouteTypes {
     | '/products/imports/list'
     | '/products/steps/upload-file'
     | '/admin/materials/'
+    | '/admin/users/'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
+  LoginRoute: typeof LoginRoute
   AboutLazyRoute: typeof AboutLazyRoute
   SettingsLazyRoute: typeof SettingsLazyRoute
   ProductsIdRoute: typeof ProductsIdRoute
@@ -238,10 +279,12 @@ export interface RootRouteChildren {
   ProductsImportsListRoute: typeof ProductsImportsListRoute
   ProductsStepsUploadFileRoute: typeof ProductsStepsUploadFileRoute
   AdminMaterialsIndexRoute: typeof AdminMaterialsIndexRoute
+  AdminUsersIndexRoute: typeof AdminUsersIndexRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
+  LoginRoute: LoginRoute,
   AboutLazyRoute: AboutLazyRoute,
   SettingsLazyRoute: SettingsLazyRoute,
   ProductsIdRoute: ProductsIdRoute,
@@ -250,6 +293,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProductsImportsListRoute: ProductsImportsListRoute,
   ProductsStepsUploadFileRoute: ProductsStepsUploadFileRoute,
   AdminMaterialsIndexRoute: AdminMaterialsIndexRoute,
+  AdminUsersIndexRoute: AdminUsersIndexRoute,
 }
 
 export const routeTree = rootRoute
@@ -263,6 +307,7 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/dashboard",
+        "/login",
         "/about",
         "/settings",
         "/products/$id",
@@ -270,11 +315,15 @@ export const routeTree = rootRoute
         "/admin/materials/$id",
         "/products/imports/list",
         "/products/steps/upload-file",
-        "/admin/materials/"
+        "/admin/materials/",
+        "/admin/users/"
       ]
     },
     "/dashboard": {
       "filePath": "dashboard.tsx"
+    },
+    "/login": {
+      "filePath": "login.tsx"
     },
     "/about": {
       "filePath": "about.lazy.tsx"
@@ -299,6 +348,9 @@ export const routeTree = rootRoute
     },
     "/admin/materials/": {
       "filePath": "admin/materials/index.tsx"
+    },
+    "/admin/users/": {
+      "filePath": "admin/users/index.tsx"
     }
   }
 }

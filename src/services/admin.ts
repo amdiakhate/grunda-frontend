@@ -7,7 +7,6 @@ import type {
 import type {
   MaterialMappingSearchParams,
   PaginatedMaterialMappings,
-  MaterialMapping,
 } from '../interfaces/materialMapping';
 
 export const adminService = {

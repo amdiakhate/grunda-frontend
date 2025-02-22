@@ -4,17 +4,30 @@
 import { createRouter, RouterProvider } from '@tanstack/react-router'
 import {routeTree} from './routeTree.gen';
 import { Toaster } from './components/ui/toast';
+import { AuthProvider } from './contexts/AuthContext';
+import { useAuthContext } from './contexts/AuthContext';
 
-const router = createRouter({routeTree: routeTree})
+function AppRouter() {
+  const auth = useAuthContext();
+
+  const router = createRouter({
+    routeTree,
+    context: {
+      auth,
+    },
+  });
+
+  return <RouterProvider router={router} />;
+}
 
 function App() {
     // const [count, setCount] = useState(0)
 
     return (
-        <>
-        <RouterProvider router={router} />
-        <Toaster />
-        </>
+        <AuthProvider>
+            <AppRouter />
+            <Toaster />
+        </AuthProvider>
     )
 }
 
