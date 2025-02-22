@@ -18,9 +18,11 @@ import { Route as DashboardImport } from './routes/dashboard'
 import { Route as ProductsListImport } from './routes/products/list'
 import { Route as ProductsIdImport } from './routes/products/$id'
 import { Route as AdminUsersIndexImport } from './routes/admin/users/index'
+import { Route as AdminProductsIndexImport } from './routes/admin/products/index'
 import { Route as AdminMaterialsIndexImport } from './routes/admin/materials/index'
 import { Route as ProductsStepsUploadFileImport } from './routes/products/steps/upload-file'
 import { Route as ProductsImportsListImport } from './routes/products/imports/list'
+import { Route as AdminProductsIdImport } from './routes/admin/products/$id'
 import { Route as AdminMaterialsIdImport } from './routes/admin/materials/$id'
 
 // Create Virtual Routes
@@ -72,6 +74,12 @@ const AdminUsersIndexRoute = AdminUsersIndexImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
+const AdminProductsIndexRoute = AdminProductsIndexImport.update({
+  id: '/admin/products/',
+  path: '/admin/products/',
+  getParentRoute: () => rootRoute,
+} as any)
+
 const AdminMaterialsIndexRoute = AdminMaterialsIndexImport.update({
   id: '/admin/materials/',
   path: '/admin/materials/',
@@ -87,6 +95,12 @@ const ProductsStepsUploadFileRoute = ProductsStepsUploadFileImport.update({
 const ProductsImportsListRoute = ProductsImportsListImport.update({
   id: '/products/imports/list',
   path: '/products/imports/list',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const AdminProductsIdRoute = AdminProductsIdImport.update({
+  id: '/admin/products/$id',
+  path: '/admin/products/$id',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -149,6 +163,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminMaterialsIdImport
       parentRoute: typeof rootRoute
     }
+    '/admin/products/$id': {
+      id: '/admin/products/$id'
+      path: '/admin/products/$id'
+      fullPath: '/admin/products/$id'
+      preLoaderRoute: typeof AdminProductsIdImport
+      parentRoute: typeof rootRoute
+    }
     '/products/imports/list': {
       id: '/products/imports/list'
       path: '/products/imports/list'
@@ -168,6 +189,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/materials'
       fullPath: '/admin/materials'
       preLoaderRoute: typeof AdminMaterialsIndexImport
+      parentRoute: typeof rootRoute
+    }
+    '/admin/products/': {
+      id: '/admin/products/'
+      path: '/admin/products'
+      fullPath: '/admin/products'
+      preLoaderRoute: typeof AdminProductsIndexImport
       parentRoute: typeof rootRoute
     }
     '/admin/users/': {
@@ -190,9 +218,11 @@ export interface FileRoutesByFullPath {
   '/products/$id': typeof ProductsIdRoute
   '/products/list': typeof ProductsListRoute
   '/admin/materials/$id': typeof AdminMaterialsIdRoute
+  '/admin/products/$id': typeof AdminProductsIdRoute
   '/products/imports/list': typeof ProductsImportsListRoute
   '/products/steps/upload-file': typeof ProductsStepsUploadFileRoute
   '/admin/materials': typeof AdminMaterialsIndexRoute
+  '/admin/products': typeof AdminProductsIndexRoute
   '/admin/users': typeof AdminUsersIndexRoute
 }
 
@@ -204,9 +234,11 @@ export interface FileRoutesByTo {
   '/products/$id': typeof ProductsIdRoute
   '/products/list': typeof ProductsListRoute
   '/admin/materials/$id': typeof AdminMaterialsIdRoute
+  '/admin/products/$id': typeof AdminProductsIdRoute
   '/products/imports/list': typeof ProductsImportsListRoute
   '/products/steps/upload-file': typeof ProductsStepsUploadFileRoute
   '/admin/materials': typeof AdminMaterialsIndexRoute
+  '/admin/products': typeof AdminProductsIndexRoute
   '/admin/users': typeof AdminUsersIndexRoute
 }
 
@@ -219,9 +251,11 @@ export interface FileRoutesById {
   '/products/$id': typeof ProductsIdRoute
   '/products/list': typeof ProductsListRoute
   '/admin/materials/$id': typeof AdminMaterialsIdRoute
+  '/admin/products/$id': typeof AdminProductsIdRoute
   '/products/imports/list': typeof ProductsImportsListRoute
   '/products/steps/upload-file': typeof ProductsStepsUploadFileRoute
   '/admin/materials/': typeof AdminMaterialsIndexRoute
+  '/admin/products/': typeof AdminProductsIndexRoute
   '/admin/users/': typeof AdminUsersIndexRoute
 }
 
@@ -235,9 +269,11 @@ export interface FileRouteTypes {
     | '/products/$id'
     | '/products/list'
     | '/admin/materials/$id'
+    | '/admin/products/$id'
     | '/products/imports/list'
     | '/products/steps/upload-file'
     | '/admin/materials'
+    | '/admin/products'
     | '/admin/users'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -248,9 +284,11 @@ export interface FileRouteTypes {
     | '/products/$id'
     | '/products/list'
     | '/admin/materials/$id'
+    | '/admin/products/$id'
     | '/products/imports/list'
     | '/products/steps/upload-file'
     | '/admin/materials'
+    | '/admin/products'
     | '/admin/users'
   id:
     | '__root__'
@@ -261,9 +299,11 @@ export interface FileRouteTypes {
     | '/products/$id'
     | '/products/list'
     | '/admin/materials/$id'
+    | '/admin/products/$id'
     | '/products/imports/list'
     | '/products/steps/upload-file'
     | '/admin/materials/'
+    | '/admin/products/'
     | '/admin/users/'
   fileRoutesById: FileRoutesById
 }
@@ -276,9 +316,11 @@ export interface RootRouteChildren {
   ProductsIdRoute: typeof ProductsIdRoute
   ProductsListRoute: typeof ProductsListRoute
   AdminMaterialsIdRoute: typeof AdminMaterialsIdRoute
+  AdminProductsIdRoute: typeof AdminProductsIdRoute
   ProductsImportsListRoute: typeof ProductsImportsListRoute
   ProductsStepsUploadFileRoute: typeof ProductsStepsUploadFileRoute
   AdminMaterialsIndexRoute: typeof AdminMaterialsIndexRoute
+  AdminProductsIndexRoute: typeof AdminProductsIndexRoute
   AdminUsersIndexRoute: typeof AdminUsersIndexRoute
 }
 
@@ -290,9 +332,11 @@ const rootRouteChildren: RootRouteChildren = {
   ProductsIdRoute: ProductsIdRoute,
   ProductsListRoute: ProductsListRoute,
   AdminMaterialsIdRoute: AdminMaterialsIdRoute,
+  AdminProductsIdRoute: AdminProductsIdRoute,
   ProductsImportsListRoute: ProductsImportsListRoute,
   ProductsStepsUploadFileRoute: ProductsStepsUploadFileRoute,
   AdminMaterialsIndexRoute: AdminMaterialsIndexRoute,
+  AdminProductsIndexRoute: AdminProductsIndexRoute,
   AdminUsersIndexRoute: AdminUsersIndexRoute,
 }
 
@@ -313,9 +357,11 @@ export const routeTree = rootRoute
         "/products/$id",
         "/products/list",
         "/admin/materials/$id",
+        "/admin/products/$id",
         "/products/imports/list",
         "/products/steps/upload-file",
         "/admin/materials/",
+        "/admin/products/",
         "/admin/users/"
       ]
     },
@@ -340,6 +386,9 @@ export const routeTree = rootRoute
     "/admin/materials/$id": {
       "filePath": "admin/materials/$id.tsx"
     },
+    "/admin/products/$id": {
+      "filePath": "admin/products/$id.tsx"
+    },
     "/products/imports/list": {
       "filePath": "products/imports/list.tsx"
     },
@@ -348,6 +397,9 @@ export const routeTree = rootRoute
     },
     "/admin/materials/": {
       "filePath": "admin/materials/index.tsx"
+    },
+    "/admin/products/": {
+      "filePath": "admin/products/index.tsx"
     },
     "/admin/users/": {
       "filePath": "admin/users/index.tsx"

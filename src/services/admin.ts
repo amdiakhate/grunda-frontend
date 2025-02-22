@@ -5,6 +5,13 @@ import type {
   MaterialDetails,
 } from '../interfaces/admin';
 import type {
+  Product,
+  PaginatedProductsResponse,
+  ReviewProductDto,
+  ReviewStats,
+  ProductsListQueryParams,
+} from '../interfaces/product';
+import type {
   MaterialMappingSearchParams,
   PaginatedMaterialMappings,
 } from '../interfaces/materialMapping';
@@ -108,5 +115,65 @@ export const adminService = {
       `/admin/materials/${materialId}/mapping`
     );
     return response;
+  },
+
+  async getProducts(params: ProductsListQueryParams = {}): Promise<PaginatedProductsResponse> {
+    try {
+      const queryParams = new URLSearchParams();
+      
+      if (params.page) queryParams.append('page', params.page.toString());
+      if (params.pageSize) queryParams.append('pageSize', params.pageSize.toString());
+      if (params.status) queryParams.append('status', params.status);
+      if (params.customerId) queryParams.append('customerId', params.customerId);
+
+      const query = queryParams.toString();
+      const url = `/admin/products${query ? `?${query}` : ''}`;
+
+      return api.get<PaginatedProductsResponse>(url);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      throw error;
+    }
+  },
+
+  async getPendingProductsByCustomer(customerId: string): Promise<Product[]> {
+    try {
+      return api.get<Product[]>(`/admin/products/pending/${customerId}`);
+    } catch (error) {
+      console.error('Error fetching pending products:', error);
+      throw error;
+    }
+  },
+
+  async reviewProduct(productId: string, reviewData: ReviewProductDto): Promise<{
+    success: boolean;
+    message: string;
+    productId: string;
+    review_status: string;
+  }> {
+    try {
+      return api.post(`/admin/products/${productId}/review`, reviewData);
+    } catch (error) {
+      console.error('Error reviewing product:', error);
+      throw error;
+    }
+  },
+
+  async getProductStats(): Promise<ReviewStats> {
+    try {
+      return api.get<ReviewStats>('/admin/products/stats');
+    } catch (error) {
+      console.error('Error fetching product stats:', error);
+      throw error;
+    }
+  },
+
+  async getProductById(id: string): Promise<Product> {
+    try {
+      return api.get<Product>(`/admin/products/${id}`);
+    } catch (error) {
+      console.error('Error fetching product details:', error);
+      throw error;
+    }
   },
 }; 

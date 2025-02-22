@@ -1,52 +1,91 @@
-export interface Product {
-    id: string;
-    name: string;
-    category: string;
-    unitFootprint: number;
-    totalFootprint: number;
-    completionLevel: number;
-    materials: Material[];
-    summary: ProductSummary;
-    calculation_status: string;
-    import_source: string;
-    updatedAt: string;
-}
+export type ReviewStatus = 'pending' | 'reviewed' | 'rejected';
+export type CalculationStatus = 'none' | 'pending' | 'completed' | 'failed';
+export type ImportSource = 'MANUAL' | 'CSV' | 'API';
 
-export interface ProductSummary {
-    itemId: string;           // A16709-1-32-1486-10
-    weight: number;           // 12 kg
-    weightDiff: number;       // -4% (under catalog average)
-    impacts: {method : string, value: number, unit: string}[]; // 19 kg CO2e
-    impactDiff: number;      // +1
+export interface Impact {
+  id: string;
+  method: string;
+  value: number;
+  unit: string;
+  version: string;
+  createdAt: string;
 }
 
 export interface Material {
-    id: string;
-    name: string;
-    description: string;
-    activityUuid: string;
-    activityName: string;
-    activityUnit: string;
-    activityOrigin: string;
-    category: string;
-    referenceProduct: string;
-    quantity: number;
-    unit: string;
-    material_origin: string;
-    production_origin: string;
-    completion: boolean;
-    impactResults: ImpactResult[];
-    status: string;
-    progress: number;
-    details: string;
+  id: string;
+  name: string;
+  description?: string;
+  quantity: number;
+  unit: string;
+  activityName?: string;
+  activityUuid?: string;
+  activityUnit?: string;
+  activityOrigin?: string;
+  assembling_location?: string;
+  material_origin?: string;
+  referenceProduct?: string;
+  finalProduct?: boolean;
+  transformationActivityName?: string;
+  transformationActivityUuid?: string;
+  transformationActivityOrigin?: string;
+  productId: string;
+  customerId: string;
+  product_review_status: ReviewStatus;
+  createdAt: string;
+  updatedAt: string;
+  impacts: Impact[];
 }
 
-export interface ImpactResult {
-    id: string;
-    method: string;
-    value: number;
-    unit: string;
-    version: string;
-    createdAt: string;
-    share: number; // percentage of the total impact for this method
+export interface Product {
+  id: string;
+  name: string;
+  reference: string;
+  category: string;
+  description?: string;
+  calculation_status: CalculationStatus;
+  review_status: ReviewStatus;
+  review_comment?: string;
+  customerId: string;
+  import_source: ImportSource;
+  createdAt: string;
+  updatedAt: string;
+  materials: Material[];
+}
+
+export interface ReviewProductDto {
+  action: 'approve' | 'reject';
+  comment?: string;
+  materialUpdates?: Array<{
+    materialId: string;
+    updates: {
+      name?: string;
+      quantity?: number;
+      unit?: string;
+      description?: string;
+      mainActivityUuid?: string;
+      transformationActivityUuid?: string;
+      finalProduct?: boolean;
+    };
+  }>;
+}
+
+export interface PaginatedProductsResponse {
+  items: Product[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface ReviewStats {
+  pending: number;
+  reviewed: number;
+  rejected: number;
+}
+
+export interface ProductsListQueryParams {
+  page?: number;
+  pageSize?: number;
+  status?: ReviewStatus;
+  search?: string;
+  customerId?: string;
 }
