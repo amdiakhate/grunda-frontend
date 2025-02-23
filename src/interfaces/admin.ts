@@ -27,7 +27,9 @@ export interface MaterialDetails {
   finalProduct?: boolean;
   transformationActivityName?: string;
   transformationActivityUuid?: string;
+  transformationActivityUnit?: string;
   transformationActivityOrigin?: string;
+  transformationReferenceProduct?: string;
   quantity: number;
   unit: string;
   productId: string;

@@ -72,18 +72,28 @@ export function MaterialMappingList({
                   selectedId === mapping.id && 'border-primary bg-primary/5'
                 )}
               >
-                <div className="font-medium">{mapping.activityName}</div>
+                <div className="font-medium">{mapping.materialPattern}</div>
+                {mapping.activityName && (
+                  <div className="text-sm text-muted-foreground mt-1">
+                    Activity: {mapping.activityName}
+                  </div>
+                )}
                 {mapping.referenceProduct && (
                   <div className="text-sm text-muted-foreground mt-1">
                     Reference Product: {mapping.referenceProduct}
                   </div>
                 )}
-                <div className="text-sm text-muted-foreground mt-1">
+                {!mapping.finalProduct && mapping.transformationActivityName && (
+                  <div className="text-sm text-muted-foreground mt-1">
+                    Transformation Activity: {mapping.transformationActivityName}
+                  </div>
+                )}
+                {/* <div className="text-sm text-muted-foreground mt-1">
                   Origin: {mapping.activityOrigin || 'Not specified'}
-                </div>
-                <div className="text-sm text-muted-foreground">
+                </div> */}
+                {/* <div className="text-sm text-muted-foreground">
                   Unit: {mapping.activityUnit || 'Not specified'}
-                </div>
+                </div> */}
               </button>
             ))}
           </div>

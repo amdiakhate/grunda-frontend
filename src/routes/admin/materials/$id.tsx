@@ -1,5 +1,6 @@
+import { useState, useEffect } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
-import { useEffect, useState } from 'react';
+import { useToast } from '@/components/ui/use-toast';
 import {
   Card,
   CardContent,
@@ -7,15 +8,17 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { adminService } from '@/services/admin';
-import type { MaterialDetails } from '@/interfaces/material';
-import type { MaterialMapping } from '@/interfaces/materialMapping';
-import { useMaterialMappings } from '@/hooks/useMaterialMappings';
 import { Loader2 } from 'lucide-react';
+import { adminService } from '@/services/admin';
 import { MaterialMappingList } from '@/components/materials/MaterialMappingList';
-import { useToast } from '@/components/ui/use-toast';
+import { MaterialMappingForm } from '@/components/materials/MaterialMappingForm';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { materialMappingsService } from '@/services/materialMappings';
+import type { MaterialMapping, CreateMaterialMappingDto } from '@/interfaces/materialMapping';
+import type { MaterialDetails } from '@/interfaces/admin';
+import { useMaterialMappings } from '@/hooks/useMaterialMappings';
+import { Badge } from '@/components/ui/badge';
 
 export const Route = createFileRoute('/admin/materials/$id')({
   component: MaterialDetailsPage,
@@ -25,46 +28,52 @@ function MaterialDetailsPage() {
   const { id } = Route.useParams();
   const { toast } = useToast();
   const [material, setMaterial] = useState<MaterialDetails | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [processingId, setProcessingId] = useState<string>();
-  const { 
-    mappings, 
-    loading: mappingsLoading, 
-    setSearchQuery,
+  const [isLoading, setIsLoading] = useState(true);
+  const [processingId, setProcessingId] = useState<string | null>(null);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const {
+    mappings,
+    loading: mappingsLoading,
+    searchQuery,
     currentPage,
     totalPages,
+    setSearchQuery,
     setCurrentPage,
-    refetch 
   } = useMaterialMappings();
 
+  useEffect(() => {
+    if (id) {
+      fetchMaterial();
+    }
+  }, [id]);
+
   const fetchMaterial = async () => {
+    if (!id) return;
     try {
-      setLoading(true);
+      setIsLoading(true);
       const data = await adminService.getMaterialById(id);
       setMaterial(data);
     } catch (error) {
-      console.error('Failed to fetch material details:', error);
+      console.error('Failed to fetch material:', error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to load material details. Please try again.",
+        description: "Failed to load material details",
       });
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchMaterial();
-  }, [id, toast]);
-
   const handleMappingSelect = async (mapping: MaterialMapping) => {
+    if (!material) return;
+    
     try {
-      setProcessingId(mapping.id);
+      setProcessingId(material.id);
       
-      // Si c'est une suppression (mapping vide)
+      // Si le mapping est vide, on supprime le mapping existant
       if (!mapping.id) {
-        await adminService.removeMaterialMapping(id);
+        await adminService.removeMaterialMapping(material.id);
         setMaterial(prev => prev ? {
           ...prev,
           activityUuid: undefined,
@@ -84,12 +93,11 @@ function MaterialDetailsPage() {
           description: "Activity mapping removed successfully",
         });
       } else {
-        const result = await adminService.matchMaterial(id, mapping.id);
+        const result = await adminService.matchMaterial(material.id, mapping.id);
         
         if (result.success) {
           setMaterial(prev => prev ? {
             ...prev,
-            ...result.material,
             activityUuid: result.activity.uuid,
             activityName: result.activity.name,
             activityUnit: result.activity.unit,
@@ -104,45 +112,27 @@ function MaterialDetailsPage() {
           
           toast({
             title: "Success",
-            description: result.message,
+            description: "Activity mapping updated successfully",
           });
         }
       }
-
-      // Refresh the mappings list to update counts
-      await refetch();
     } catch (error) {
-      console.error('Failed to match material:', error);
-      const errorMessage = error instanceof Error 
-        ? error.message 
-        : "Failed to match material. Please try again.";
-      
+      console.error('Error updating material mapping:', error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: errorMessage,
+        description: "Failed to update activity mapping",
       });
     } finally {
-      setProcessingId(undefined);
+      setProcessingId(null);
     }
   };
 
-  if (loading) {
+  if (isLoading || !material) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="text-gray-500">Loading material details...</p>
-      </div>
-    );
-  }
-
-  if (!material) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
-        <p className="text-lg font-medium">Material not found</p>
-        <Button variant="outline" onClick={() => window.history.back()}>
-          Go Back
-        </Button>
+        <Loader2 className="h-8 w-8 animate-spin" />
+        <p className="text-sm text-muted-foreground">Loading material details...</p>
       </div>
     );
   }
@@ -151,7 +141,7 @@ function MaterialDetailsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">{material.name}</h1>
-        <p className="text-gray-500">{material.description}</p>
+        <p className="text-muted-foreground">{material.description}</p>
       </div>
 
       <Card>
@@ -162,11 +152,11 @@ function MaterialDetailsPage() {
         <CardContent>
           <dl className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <dt className="text-sm font-medium text-gray-500">Quantity</dt>
+              <dt className="text-sm font-medium text-muted-foreground">Quantity</dt>
               <dd className="mt-1 text-lg">{material.quantity} {material.unit}</dd>
             </div>
             <div>
-              <dt className="text-sm font-medium text-gray-500">Status</dt>
+              <dt className="text-sm font-medium text-muted-foreground">Status</dt>
               <dd className="mt-1">
                 <Badge variant="outline" className="text-base">
                   {material.product_review_status}
@@ -175,19 +165,19 @@ function MaterialDetailsPage() {
             </div>
             {material.assembling_location && (
               <div>
-                <dt className="text-sm font-medium text-gray-500">Assembling Location</dt>
+                <dt className="text-sm font-medium text-muted-foreground">Assembling Location</dt>
                 <dd className="mt-1">{material.assembling_location}</dd>
               </div>
             )}
             {material.material_origin && (
               <div>
-                <dt className="text-sm font-medium text-gray-500">Material Origin</dt>
+                <dt className="text-sm font-medium text-muted-foreground">Material Origin</dt>
                 <dd className="mt-1">{material.material_origin}</dd>
               </div>
             )}
             {material.activityUuid && (
               <div className="col-span-full">
-                <dt className="text-sm font-medium text-gray-500 mb-2">Current Activity</dt>
+                <dt className="text-sm font-medium text-muted-foreground mb-2">Current Activity</dt>
                 <dd className="mt-1 bg-muted/50 rounded-lg p-4 space-y-2">
                   <div className="flex items-center gap-2">
                     <Badge variant="secondary" className="text-xs">Activity ID</Badge>
@@ -274,12 +264,16 @@ function MaterialDetailsPage() {
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={() => handleMappingSelect({ id: '', activityUuid: '', activityName: '', materialPattern: '', materialsCount: 0, finalProduct: false })}
+                  onClick={() => handleMappingSelect({ id: '', materialPattern: '', alternateNames: [], referenceProduct: '', finalProduct: false, activityName: '' })}
                 >
                   Remove Mapping
                 </Button>
               )}
-              <Button variant="outline" size="sm">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setIsCreateDialogOpen(true)}
+              >
                 Create New Mapping
               </Button>
             </div>
@@ -309,24 +303,44 @@ function MaterialDetailsPage() {
             onSelect={handleMappingSelect}
             onSearch={setSearchQuery}
             selectedId={material.activityUuid}
-            processingId={processingId}
             currentPage={currentPage}
             totalPages={totalPages}
             onPageChange={setCurrentPage}
-            currentMapping={material.activityUuid ? mappings.find(m => m.activityUuid === material.activityUuid) || {
-              id: material.activityUuid,
-              activityUuid: material.activityUuid,
-              activityName: material.activityName || '',
-              materialPattern: material.name,
-              materialsCount: 0,
-              finalProduct: false,
-              unit: material.activityUnit,
-              origin: material.activityOrigin,
-              transform: material.transformationActivityName,
-            } : null}
+            searchQuery={searchQuery}
           />
         </CardContent>
       </Card>
+
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create New Material Mapping</DialogTitle>
+          </DialogHeader>
+          <MaterialMappingForm
+            onSubmit={async (data) => {
+              try {
+                const newMapping = await materialMappingsService.create(data as CreateMaterialMappingDto);
+                toast({
+                  title: "Success",
+                  description: "Material mapping created successfully",
+                });
+                setIsCreateDialogOpen(false);
+                // Sélectionner automatiquement le nouveau mapping
+                if (material) {
+                  await handleMappingSelect(newMapping);
+                }
+              } catch (error) {
+                console.error('Failed to create mapping:', error);
+                toast({
+                  variant: "destructive",
+                  title: "Error",
+                  description: "Failed to create material mapping",
+                });
+              }
+            }}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 } 

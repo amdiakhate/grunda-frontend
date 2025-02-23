@@ -53,7 +53,7 @@ export const adminService = {
       if (params.query) queryParams.append('search', params.query);
 
       const query = queryParams.toString();
-      const url = `/admin/materials/mappings${query ? `?${query}` : ''}`;
+      const url = `/admin/material-mappings${query ? `?${query}` : ''}`;
 
       return api.get<PaginatedMaterialMappings>(url);
     } catch (error) {

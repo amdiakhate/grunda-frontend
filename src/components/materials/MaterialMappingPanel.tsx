@@ -9,9 +9,13 @@ import {
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { MaterialMappingList } from './MaterialMappingList';
-import { MaterialMapping } from '@/interfaces/materialMapping';
+import { MaterialMappingForm } from './MaterialMappingForm';
+import { MaterialMapping, CreateMaterialMappingDto, UpdateMaterialMappingDto } from '@/interfaces/materialMapping';
 import { useMaterialMappings } from '@/hooks/useMaterialMappings';
 import { Link } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { materialMappingsService } from '@/services/materialMappings';
+import { useToast } from '@/components/ui/use-toast';
 
 interface MaterialMappingPanelProps {
   materialId: string;
@@ -20,11 +24,12 @@ interface MaterialMappingPanelProps {
 }
 
 export function MaterialMappingPanel({
-  materialId,
   currentMappingId,
   onMappingSelect,
 }: MaterialMappingPanelProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<'search' | 'create'>('search');
+  const { toast } = useToast();
   const {
     mappings,
     loading,
@@ -49,6 +54,25 @@ export function MaterialMappingPanel({
     setCurrentPage(page);
   };
 
+  const handleCreateMapping = async (data: CreateMaterialMappingDto | UpdateMaterialMappingDto) => {
+    try {
+      const newMapping = await materialMappingsService.create(data as CreateMaterialMappingDto);
+      toast({
+        title: "Success",
+        description: "Material mapping created successfully",
+      });
+      await refetch();
+      handleSelect(newMapping);
+    } catch (error) {
+      console.error('Failed to create mapping:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to create material mapping",
+      });
+    }
+  };
+
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
@@ -61,22 +85,31 @@ export function MaterialMappingPanel({
         <SheetHeader>
           <SheetTitle>Material Mappings</SheetTitle>
           <SheetDescription>
-            Select a mapping to link with this material
+            Select an existing mapping or create a new one
           </SheetDescription>
         </SheetHeader>
-        <div className="mt-6">
-          <MaterialMappingList
-            mappings={mappings}
-            loading={loading}
-            onSelect={handleSelect}
-            onSearch={handleSearch}
-            selectedId={currentMappingId}
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={handlePageChange}
-            searchQuery={searchQuery}
-          />
-        </div>
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'search' | 'create')} className="mt-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="search">Search Existing</TabsTrigger>
+            <TabsTrigger value="create">Create New</TabsTrigger>
+          </TabsList>
+          <TabsContent value="search" className="mt-4">
+            <MaterialMappingList
+              mappings={mappings}
+              loading={loading}
+              onSelect={handleSelect}
+              onSearch={handleSearch}
+              selectedId={currentMappingId}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+              searchQuery={searchQuery}
+            />
+          </TabsContent>
+          <TabsContent value="create" className="mt-4">
+            <MaterialMappingForm onSubmit={handleCreateMapping} />
+          </TabsContent>
+        </Tabs>
       </SheetContent>
     </Sheet>
   );
