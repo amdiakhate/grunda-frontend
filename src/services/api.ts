@@ -2,15 +2,29 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'; //
 
 import { authService } from './auth';
 
-function getHeaders(): HeadersInit {
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-  };
+interface RequestConfig {
+  params?: Record<string, string>;
+  headers?: Record<string, string>;
+  skipContentType?: boolean;
+}
+
+function getHeaders(config?: RequestConfig): HeadersInit {
+  const headers: HeadersInit = {};
+
+  // Add content type header unless explicitly skipped (for FormData)
+  if (!config?.skipContentType) {
+    headers['Content-Type'] = 'application/json';
+  }
 
   // Add authorization header if token exists
   const token = authService.getToken();
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  // Add any additional headers
+  if (config?.headers) {
+    Object.assign(headers, config.headers);
   }
 
   return headers;
@@ -30,13 +44,13 @@ async function handleResponse<T>(response: Response): Promise<T> {
 }
 
 export const api = {
-  async get<T>(endpoint: string, config?: { params?: Record<string, string> }): Promise<T> {
+  async get<T>(endpoint: string, config?: RequestConfig): Promise<T> {
     try {
       const response = await fetch(
         `${API_BASE_URL}${endpoint}${config?.params ? `?${new URLSearchParams(config.params)}` : ''}`,
         {
-          headers: getHeaders(),
-          credentials: 'include', // Pour gérer les cookies de session si nécessaire
+          headers: getHeaders(config),
+          credentials: 'include', // For session cookies if needed
         }
       );
       return handleResponse<T>(response);
@@ -46,14 +60,11 @@ export const api = {
     }
   },
 
-  async post<T>(endpoint: string, data: unknown, headers?: Record<string, string>): Promise<T> {
+  async post<T>(endpoint: string, data: unknown, config?: RequestConfig): Promise<T> {
     try {
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: 'POST',
-        headers: {
-          ...getHeaders(),
-          ...headers,
-        },
+        headers: getHeaders(config),
         credentials: 'include',
         body: data instanceof FormData ? data : JSON.stringify(data),
       });
@@ -64,11 +75,11 @@ export const api = {
     }
   },
 
-  async put<T>(endpoint: string, data: unknown): Promise<T> {
+  async put<T>(endpoint: string, data: unknown, config?: RequestConfig): Promise<T> {
     try {
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: 'PUT',
-        headers: getHeaders(),
+        headers: getHeaders(config),
         credentials: 'include',
         body: JSON.stringify(data),
       });
@@ -79,11 +90,11 @@ export const api = {
     }
   },
 
-  async delete<T>(endpoint: string): Promise<T> {
+  async delete<T>(endpoint: string, config?: RequestConfig): Promise<T> {
     try {
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: 'DELETE',
-        headers: getHeaders(),
+        headers: getHeaders(config),
         credentials: 'include',
       });
       return handleResponse<T>(response);

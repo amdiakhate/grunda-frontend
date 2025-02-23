@@ -24,7 +24,10 @@ export const productsService = {
     formData.append('file', file);
 
     try {
-      return api.post<UploadResponse>('/products/upload', formData);
+      // Don't set Content-Type header - let the browser set it with the boundary
+      return api.post<UploadResponse>('/products/upload', formData, {
+        skipContentType: true, // This will prevent api.ts from setting the default Content-Type
+      });
     } catch (error) {
       console.error('Error uploading file:', error);
       throw error;

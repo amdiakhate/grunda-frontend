@@ -25,11 +25,28 @@ export function MaterialMappingPanel({
   onMappingSelect,
 }: MaterialMappingPanelProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const { mappings, loading, search } = useMaterialMappings();
+  const {
+    mappings,
+    loading,
+    searchQuery,
+    currentPage,
+    totalPages,
+    setSearchQuery,
+    setCurrentPage,
+    refetch,
+  } = useMaterialMappings();
 
   const handleSelect = (mapping: MaterialMapping) => {
     onMappingSelect(mapping);
     setIsOpen(false);
+  };
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
   };
 
   return (
@@ -52,8 +69,12 @@ export function MaterialMappingPanel({
             mappings={mappings}
             loading={loading}
             onSelect={handleSelect}
-            onSearch={search}
+            onSearch={handleSearch}
             selectedId={currentMappingId}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+            searchQuery={searchQuery}
           />
         </div>
       </SheetContent>

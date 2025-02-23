@@ -1,15 +1,21 @@
 export interface MaterialMapping {
   id: string;
-  activityUuid: string;
   activityName: string;
+  activityUuid: string;
+  activityUnit?: string;
+  activityOrigin?: string;
+  referenceProduct?: string;
   materialPattern: string;
   alternateNames?: string;
-  materialsCount: number;
   comment?: string;
-  finalProduct: boolean;
+  finalProduct?: boolean;
+  materialsCount?: number;
   transform?: string;
-  unit?: string;
-  origin?: string;
+  transformationActivityUuid?: string;
+  transformationActivityName?: string;
+  transformationActivityUnit?: string;
+  transformationActivityOrigin?: string;
+  transformationReferenceProduct?: string;
 }
 
 export interface MaterialMappingSearchParams {
