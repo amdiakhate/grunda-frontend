@@ -30,6 +30,8 @@ import { useProducts } from '@/hooks/useProducts';
 import { Product, ReviewStatus } from '@/interfaces/product';
 import { ProtectedRoute } from '@/components/common/ProtectedRoute';
 import { Loader2, CheckCircle, XCircle } from 'lucide-react';
+import { Progress } from '@radix-ui/react-progress';
+import { CompletionLevel } from '../../../components/products/completionLevel';
 
 export const Route = createFileRoute('/admin/products/')({
   component: ProductsPage,
@@ -140,6 +142,7 @@ function ProductsList() {
               <TableHead>Name</TableHead>
               <TableHead>Reference</TableHead>
               <TableHead>Category</TableHead>
+              <TableHead>Completion Level</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
@@ -163,6 +166,10 @@ function ProductsList() {
                   <TableCell className="font-medium">{product.name}</TableCell>
                   <TableCell>{product.reference}</TableCell>
                   <TableCell>{product.category}</TableCell>
+                  <TableCell>
+                    <CompletionLevel level={product.completionLevel} />
+                  </TableCell>
+
                   <TableCell>
                     <Badge
                       className={statusColors[product.review_status]}

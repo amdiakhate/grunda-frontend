@@ -29,7 +29,7 @@ import {
   FileText,
   Link2
 } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { useProducts } from '@/hooks/useProducts';
 
 export const Route = createFileRoute('/admin/products/$id')({

@@ -52,6 +52,7 @@ export interface Product {
   createdAt: string;
   updatedAt: string;
   materials: Material[];
+  completionLevel: number;
 }
 
 export interface ReviewProductDto {

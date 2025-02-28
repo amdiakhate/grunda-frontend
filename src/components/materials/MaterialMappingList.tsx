@@ -9,36 +9,59 @@ interface MaterialMappingListProps {
   mappings: MaterialMapping[];
   loading: boolean;
   onSelect: (mapping: MaterialMapping) => void;
-  onSearch: (query: string) => void;
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
   selectedId?: string;
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
-  searchQuery: string;
+  processingId?: string | null;
 }
 
 export function MaterialMappingList({
   mappings,
   loading,
   onSelect,
-  onSearch,
+  searchQuery,
+  onSearchChange,
   selectedId,
   currentPage,
   totalPages,
   onPageChange,
-  searchQuery,
+  processingId,
 }: MaterialMappingListProps) {
   const [searchValue, setSearchValue] = useState(searchQuery);
 
   useEffect(() => {
     const timer = setTimeout(() => {
       if (searchValue !== searchQuery) {
-        onSearch(searchValue);
+        onSearchChange(searchValue);
       }
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [searchValue, onSearch, searchQuery]);
+  }, [searchValue, onSearchChange, searchQuery]);
+
+  const handlePageChange = (page: number) => {
+    // Prevent default scroll behavior
+    const currentScroll = window.scrollY;
+    onPageChange(page);
+    // Restore scroll position after a short delay to ensure the new content is rendered
+    setTimeout(() => window.scrollTo(0, currentScroll), 0);
+  };
+
+  if (processingId) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[300px] space-y-4">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="text-sm text-muted-foreground">
+          {processingId === '' 
+            ? 'Removing current activity mapping...'
+            : 'Updating activity mapping...'}
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -59,6 +82,11 @@ export function MaterialMappingList({
       ) : mappings.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground">
           No mappings found
+          {searchQuery && (
+            <p className="text-sm mt-1">
+              Try adjusting your search criteria
+            </p>
+          )}
         </div>
       ) : (
         <div className="space-y-4">
@@ -104,7 +132,7 @@ export function MaterialMappingList({
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => onPageChange(currentPage - 1)}
+                onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1 || loading}
               >
                 <ChevronLeft className="h-4 w-4 mr-2" />
@@ -116,7 +144,7 @@ export function MaterialMappingList({
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => onPageChange(currentPage + 1)}
+                onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === totalPages || loading}
               >
                 Next

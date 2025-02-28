@@ -17,6 +17,7 @@ import { Route as LoginImport } from './routes/login'
 import { Route as DashboardImport } from './routes/dashboard'
 import { Route as ProductsListImport } from './routes/products/list'
 import { Route as ProductsIdImport } from './routes/products/$id'
+import { Route as AdminDashboardImport } from './routes/admin/dashboard'
 import { Route as AdminUsersIndexImport } from './routes/admin/users/index'
 import { Route as AdminProductsIndexImport } from './routes/admin/products/index'
 import { Route as AdminMaterialsIndexImport } from './routes/admin/materials/index'
@@ -67,6 +68,12 @@ const ProductsListRoute = ProductsListImport.update({
 const ProductsIdRoute = ProductsIdImport.update({
   id: '/products/$id',
   path: '/products/$id',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const AdminDashboardRoute = AdminDashboardImport.update({
+  id: '/admin/dashboard',
+  path: '/admin/dashboard',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -158,6 +165,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsLazyImport
       parentRoute: typeof rootRoute
     }
+    '/admin/dashboard': {
+      id: '/admin/dashboard'
+      path: '/admin/dashboard'
+      fullPath: '/admin/dashboard'
+      preLoaderRoute: typeof AdminDashboardImport
+      parentRoute: typeof rootRoute
+    }
     '/products/$id': {
       id: '/products/$id'
       path: '/products/$id'
@@ -245,6 +259,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/about': typeof AboutLazyRoute
   '/settings': typeof SettingsLazyRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
   '/products/$id': typeof ProductsIdRoute
   '/products/list': typeof ProductsListRoute
   '/admin/material-mappings/$id': typeof AdminMaterialMappingsIdRoute
@@ -263,6 +278,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/about': typeof AboutLazyRoute
   '/settings': typeof SettingsLazyRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
   '/products/$id': typeof ProductsIdRoute
   '/products/list': typeof ProductsListRoute
   '/admin/material-mappings/$id': typeof AdminMaterialMappingsIdRoute
@@ -282,6 +298,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/about': typeof AboutLazyRoute
   '/settings': typeof SettingsLazyRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
   '/products/$id': typeof ProductsIdRoute
   '/products/list': typeof ProductsListRoute
   '/admin/material-mappings/$id': typeof AdminMaterialMappingsIdRoute
@@ -302,6 +319,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/about'
     | '/settings'
+    | '/admin/dashboard'
     | '/products/$id'
     | '/products/list'
     | '/admin/material-mappings/$id'
@@ -319,6 +337,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/about'
     | '/settings'
+    | '/admin/dashboard'
     | '/products/$id'
     | '/products/list'
     | '/admin/material-mappings/$id'
@@ -336,6 +355,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/about'
     | '/settings'
+    | '/admin/dashboard'
     | '/products/$id'
     | '/products/list'
     | '/admin/material-mappings/$id'
@@ -355,6 +375,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   AboutLazyRoute: typeof AboutLazyRoute
   SettingsLazyRoute: typeof SettingsLazyRoute
+  AdminDashboardRoute: typeof AdminDashboardRoute
   ProductsIdRoute: typeof ProductsIdRoute
   ProductsListRoute: typeof ProductsListRoute
   AdminMaterialMappingsIdRoute: typeof AdminMaterialMappingsIdRoute
@@ -373,6 +394,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   AboutLazyRoute: AboutLazyRoute,
   SettingsLazyRoute: SettingsLazyRoute,
+  AdminDashboardRoute: AdminDashboardRoute,
   ProductsIdRoute: ProductsIdRoute,
   ProductsListRoute: ProductsListRoute,
   AdminMaterialMappingsIdRoute: AdminMaterialMappingsIdRoute,
@@ -400,6 +422,7 @@ export const routeTree = rootRoute
         "/login",
         "/about",
         "/settings",
+        "/admin/dashboard",
         "/products/$id",
         "/products/list",
         "/admin/material-mappings/$id",
@@ -424,6 +447,9 @@ export const routeTree = rootRoute
     },
     "/settings": {
       "filePath": "settings.lazy.tsx"
+    },
+    "/admin/dashboard": {
+      "filePath": "admin/dashboard.tsx"
     },
     "/products/$id": {
       "filePath": "products/$id.tsx"

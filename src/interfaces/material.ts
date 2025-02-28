@@ -16,6 +16,7 @@ export interface MaterialDetails {
   material_origin?: string;
   quantity?: number;
   unit?: string;
+  userName?: string;
   product_review_status?: string;
 }
 

@@ -6,7 +6,8 @@ import type {
   ProductsListQueryParams,
   ReviewStats,
 } from '@/interfaces/product';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
+import { ApiError } from '@/services/api';
 
 export function useProducts() {
   const [products, setProducts] = useState<Product[]>([]);

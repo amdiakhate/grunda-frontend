@@ -15,16 +15,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { MaterialStatusBadge } from './MaterialStatusBadge';
 import { adminService } from '@/services/admin';
 import type { MaterialListItem, ReviewStatus } from '@/interfaces/admin';
 import { Link } from '@tanstack/react-router';
-
-const statusColors: Record<ReviewStatus, string> = {
-  pending: 'bg-yellow-100 text-yellow-800',
-  reviewed: 'bg-green-100 text-green-800',
-  rejected: 'bg-red-100 text-red-800',
-};
+import { Loader2, Search } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
 
 export function MaterialsList() {
   const [materials, setMaterials] = useState<MaterialListItem[]>([]);
@@ -33,6 +30,7 @@ export function MaterialsList() {
   const [pageSize] = useState(10);
   const [status, setStatus] = useState<ReviewStatus | null>(null);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const fetchMaterials = async () => {
@@ -42,6 +40,7 @@ export function MaterialsList() {
           page,
           pageSize,
           status: status || undefined,
+          search: searchQuery || undefined,
         });
         setMaterials(response.items);
         setTotal(response.total);
@@ -52,8 +51,9 @@ export function MaterialsList() {
       }
     };
 
-    fetchMaterials();
-  }, [page, pageSize, status]);
+    const debounceTimer = setTimeout(fetchMaterials, 300);
+    return () => clearTimeout(debounceTimer);
+  }, [page, pageSize, status, searchQuery]);
 
   const handleStatusChange = (value: string) => {
     setStatus(value === 'all' ? null : value as ReviewStatus);
@@ -62,9 +62,18 @@ export function MaterialsList() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <h1 className="text-2xl font-bold">Materials Management</h1>
-        <div className="flex gap-4">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+          <div className="relative">
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search materials..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 w-[200px]"
+            />
+          </div>
           <Select value={status || "all"} onValueChange={handleStatusChange}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Filter by status" />
@@ -82,59 +91,75 @@ export function MaterialsList() {
       <div className="rounded-md border">
         <Table>
           <TableHeader>
-            <TableRow>
+            <TableRow className="bg-muted/50">
               <TableHead>Name</TableHead>
               <TableHead>Activity</TableHead>
-              <TableHead>Products Affected</TableHead>
+              <TableHead className="text-center">Products Affected</TableHead>
+              <TableHead>User</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Last Updated</TableHead>
-              <TableHead>Actions</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8">
-                  Loading...
+                <TableCell colSpan={7} className="h-24 text-center">
+                  <div className="flex items-center justify-center gap-2">
+                    <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                    <span className="text-muted-foreground">Loading materials...</span>
+                  </div>
                 </TableCell>
               </TableRow>
             ) : materials.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8">
-                  No materials found
+                <TableCell colSpan={7} className="h-24 text-center">
+                  <div className="flex flex-col items-center justify-center gap-1">
+                    <p className="text-muted-foreground">No materials found</p>
+                    {searchQuery && (
+                      <p className="text-sm text-muted-foreground">
+                        Try adjusting your search or filter criteria
+                      </p>
+                    )}
+                  </div>
                 </TableCell>
               </TableRow>
             ) : (
               materials.map((material) => (
                 <TableRow
                   key={material.id}
-                  className="cursor-pointer hover:bg-gray-50"
+                  className={cn(
+                    "group transition-colors hover:bg-muted/50",
+                    material.product_review_status === 'pending' && 'bg-amber-50/30',
+                    material.product_review_status === 'rejected' && 'bg-rose-50/30'
+                  )}
                 >
                   <TableCell className="font-medium">{material.name}</TableCell>
                   <TableCell>{material.activityName || 'Not set'}</TableCell>
-                  <TableCell>{material.product_affected}</TableCell>
+                  <TableCell className="text-center">{material.product_affected}</TableCell>
+                  <TableCell>{material.userName || 'Not set'}</TableCell>
                   <TableCell>
-                    <Badge
-                      className={statusColors[material.product_review_status]}
-                      variant="outline"
-                    >
-                      {material.product_review_status}
-                    </Badge>
+                    <MaterialStatusBadge status={material.product_review_status} />
                   </TableCell>
                   <TableCell>
-                    {new Date(material.updatedAt).toLocaleDateString()}
+                    {new Date(material.updatedAt).toLocaleDateString(undefined, {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric',
+                    })}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="text-right">
                     <Link
                       to="/admin/materials/$id"
                       params={{ id: material.id }}
                       className="inline-block"
                     >
                       <Button
-                        variant="outline"
+                        variant="ghost"
                         size="sm"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity"
                       >
-                        View
+                        View details
                       </Button>
                     </Link>
                   </TableCell>
@@ -145,7 +170,10 @@ export function MaterialsList() {
         </Table>
       </div>
 
-      <div className="mt-4 flex justify-end">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">
+          Showing {materials.length} of {total} materials
+        </p>
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
@@ -155,9 +183,12 @@ export function MaterialsList() {
           >
             Previous
           </Button>
-          <span className="text-sm text-gray-600">
-            Page {page} of {Math.ceil(total / pageSize)}
-          </span>
+          <div className="flex items-center gap-1">
+            <span className="text-sm font-medium">Page</span>
+            <span className="text-sm text-muted-foreground">
+              {page} of {Math.ceil(total / pageSize)}
+            </span>
+          </div>
           <Button
             variant="outline"
             size="sm"

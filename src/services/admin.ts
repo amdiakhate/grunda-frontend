@@ -16,6 +16,49 @@ import type {
   PaginatedMaterialMappings,
 } from '../interfaces/materialMapping';
 
+export interface DashboardStats {
+  products: {
+    total: number;
+    pending: number;
+    reviewed: number;
+    rejected: number;
+    completionRate: number;
+  };
+  materials: {
+    total: number;
+    mapped: number;
+    unmapped: number;
+    mappingRate: number;
+  };
+  mappings: {
+    total: number;
+    mostUsed: Array<{
+      materialPattern: string;
+      count: number;
+    }>;
+  };
+  users: {
+    total: number;
+    admins: number;
+    customers: number;
+    activeCustomers: number;
+    customerStats: Array<{
+      id: string;
+      name: string;
+      productsCount: number;
+      pendingReviews: number;
+      lastActivity: string;
+    }>;
+  };
+  recentActivity: Array<{
+    type: string;
+    action: string;
+    itemId: string;
+    itemName: string;
+    date: string;
+  }>;
+}
+
 export const adminService = {
   async getMaterials(params: MaterialListQueryParams = {}): Promise<MaterialsListResponse> {
     try {
@@ -173,6 +216,15 @@ export const adminService = {
       return api.get<Product>(`/admin/products/${id}`);
     } catch (error) {
       console.error('Error fetching product details:', error);
+      throw error;
+    }
+  },
+
+  async getDashboardStats(): Promise<DashboardStats> {
+    try {
+      return api.get<DashboardStats>('/admin/dashboard');
+    } catch (error) {
+      console.error('Error fetching dashboard stats:', error);
       throw error;
     }
   },

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { authService } from '@/services/auth';
 import { usersService } from '@/services/users';
 import type { User, LoginDto } from '@/interfaces/user';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(() => authService.getStoredUser());

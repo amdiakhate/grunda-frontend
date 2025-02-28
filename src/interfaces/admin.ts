@@ -7,7 +7,8 @@ export interface MaterialListItem {
   activityName?: string;
   quantity: number;
   unit: string;
-  customerId: string;
+  userId: string;
+  userName: string;
   product_review_status: ReviewStatus;
   updatedAt: string;
   product_affected: number;
@@ -33,7 +34,8 @@ export interface MaterialDetails {
   quantity: number;
   unit: string;
   productId: string;
-  customerId: string;
+  userId: string;
+  userName: string;
   product_review_status: ReviewStatus;
   createdAt: string;
   updatedAt: string;
@@ -60,4 +62,5 @@ export interface MaterialListQueryParams {
   page?: number;
   pageSize?: number;
   status?: ReviewStatus;
+  search?: string;
 } 

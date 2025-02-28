@@ -15,7 +15,7 @@ import { useMaterialMappings } from '@/hooks/useMaterialMappings';
 import { Link } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { materialMappingsService } from '@/services/materialMappings';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 interface MaterialMappingPanelProps {
   materialId: string;

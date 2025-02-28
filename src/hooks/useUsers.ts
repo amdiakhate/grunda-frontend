@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { usersService } from '@/services/users';
 import type { User, CreateUserDto, UpdateUserDto, UsersListQueryParams } from '@/interfaces/user';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 export function useUsers() {
   const [users, setUsers] = useState<User[]>([]);

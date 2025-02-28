@@ -3,7 +3,7 @@
 // import viteLogo from '/vite.svg'
 import { createRouter, RouterProvider } from '@tanstack/react-router'
 import {routeTree} from './routeTree.gen';
-import { Toaster } from './components/ui/toast';
+import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from './contexts/AuthContext';
 import { useAuthContext } from './contexts/AuthContext';
 

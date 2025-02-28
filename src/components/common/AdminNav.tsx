@@ -17,7 +17,7 @@ interface NavItem {
 export const adminNavItems: NavItem[] = [
   { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
   { name: 'Materials', href: '/admin/materials', icon: Box },
-  { name: 'Material Mappings', href: '/admin/material-mappings', icon: Link2 },
+  { name: 'Common Library', href: '/admin/material-mappings', icon: Link2 },
   { name: 'Products', href: '/admin/products', icon: FileText },
   { name: 'Users', href: '/admin/users', icon: Users },
   { name: 'Settings', href: '/admin/settings', icon: Settings },
