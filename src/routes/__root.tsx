@@ -1,11 +1,21 @@
-import { createRootRoute, Outlet } from "@tanstack/react-router";
+import { createRootRoute, Outlet, redirect } from "@tanstack/react-router";
 import { SidebarTrigger, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/common/AppSidebar";
 import { adminNavItems } from "@/components/common/AdminNav";
 import { useAuthContext } from "@/contexts/AuthContext";
+import type { AuthContextType } from "@/contexts/AuthContext";
 
 export const Route = createRootRoute({
     component: Layout,
+    beforeLoad: ({ context: { auth } }: { context: { auth: AuthContextType } }) => {
+        const isLoginPage = window.location.pathname === '/login';
+        if (!auth.isAuthenticated && !isLoginPage) {
+            throw redirect({
+                to: '/login',
+                state: { from: window.location.pathname },
+            });
+        }
+    },
 });
 
 function Layout() {

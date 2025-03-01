@@ -6,6 +6,10 @@ interface UploadResponse {
   message: string;
 }
 
+interface CalculateImpactResponse {
+  message: string;
+}
+
 export const productsService = {
   async getAll(): Promise<Product[]> {
     return api.get<Product[]>('/products');
@@ -32,5 +36,9 @@ export const productsService = {
       console.error('Error uploading file:', error);
       throw error;
     }
+  },
+
+  async calculateProductImpact(productId: string): Promise<CalculateImpactResponse> {
+    return api.post<CalculateImpactResponse>(`/impacts/${productId}/calculate-impact`, {});
   }
 };

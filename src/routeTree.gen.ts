@@ -15,6 +15,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { Route as rootRoute } from './routes/__root'
 import { Route as LoginImport } from './routes/login'
 import { Route as DashboardImport } from './routes/dashboard'
+import { Route as IndexImport } from './routes/index'
 import { Route as ProductsListImport } from './routes/products/list'
 import { Route as ProductsIdImport } from './routes/products/$id'
 import { Route as AdminDashboardImport } from './routes/admin/dashboard'
@@ -56,6 +57,12 @@ const LoginRoute = LoginImport.update({
 const DashboardRoute = DashboardImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const IndexRoute = IndexImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -137,6 +144,13 @@ const AdminMaterialMappingsIdRoute = AdminMaterialMappingsIdImport.update({
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexImport
+      parentRoute: typeof rootRoute
+    }
     '/dashboard': {
       id: '/dashboard'
       path: '/dashboard'
@@ -255,6 +269,7 @@ declare module '@tanstack/react-router' {
 // Create and export the route tree
 
 export interface FileRoutesByFullPath {
+  '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/about': typeof AboutLazyRoute
@@ -274,6 +289,7 @@ export interface FileRoutesByFullPath {
 }
 
 export interface FileRoutesByTo {
+  '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/about': typeof AboutLazyRoute
@@ -294,6 +310,7 @@ export interface FileRoutesByTo {
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
+  '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/about': typeof AboutLazyRoute
@@ -315,6 +332,7 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
+    | '/'
     | '/dashboard'
     | '/login'
     | '/about'
@@ -333,6 +351,7 @@ export interface FileRouteTypes {
     | '/admin/users'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/'
     | '/dashboard'
     | '/login'
     | '/about'
@@ -351,6 +370,7 @@ export interface FileRouteTypes {
     | '/admin/users'
   id:
     | '__root__'
+    | '/'
     | '/dashboard'
     | '/login'
     | '/about'
@@ -371,6 +391,7 @@ export interface FileRouteTypes {
 }
 
 export interface RootRouteChildren {
+  IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRoute
   LoginRoute: typeof LoginRoute
   AboutLazyRoute: typeof AboutLazyRoute
@@ -390,6 +411,7 @@ export interface RootRouteChildren {
 }
 
 const rootRouteChildren: RootRouteChildren = {
+  IndexRoute: IndexRoute,
   DashboardRoute: DashboardRoute,
   LoginRoute: LoginRoute,
   AboutLazyRoute: AboutLazyRoute,
@@ -418,6 +440,7 @@ export const routeTree = rootRoute
     "__root__": {
       "filePath": "__root.tsx",
       "children": [
+        "/",
         "/dashboard",
         "/login",
         "/about",
@@ -435,6 +458,9 @@ export const routeTree = rootRoute
         "/admin/products/",
         "/admin/users/"
       ]
+    },
+    "/": {
+      "filePath": "index.tsx"
     },
     "/dashboard": {
       "filePath": "dashboard.tsx"
