@@ -3,6 +3,7 @@ import { SidebarTrigger, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/common/AppSidebar";
 import { adminNavItems } from "@/components/common/AdminNav";
 import { useAuthContext } from "@/contexts/AuthContext";
+import { ImpersonationBanner } from "@/components/common/ImpersonationBanner";
 import type { AuthContextType } from "@/contexts/AuthContext";
 
 export const Route = createRootRoute({
@@ -30,6 +31,7 @@ function Layout() {
 
     return (
         <SidebarProvider>
+            <ImpersonationBanner />
             <AppSidebar items={isAdmin ? adminNavItems : undefined} />
             <SidebarTrigger />
 

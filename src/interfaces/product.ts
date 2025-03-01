@@ -1,5 +1,5 @@
 export type ReviewStatus = 'pending' | 'reviewed' | 'rejected';
-export type CalculationStatus = 'none' | 'pending' | 'completed' | 'failed';
+export type CalculationStatus = 'none' | 'pending' | 'completed' | 'failed' | 'SUCCESS';
 export type ImportSource = 'MANUAL' | 'CSV' | 'API';
 
 export interface Impact {
@@ -9,6 +9,13 @@ export interface Impact {
   unit: string;
   version: string;
   createdAt: string;
+  share?: number;
+  activityType?: 'main' | 'transformation';
+}
+
+export interface MaterialImpacts {
+  mainActivityImpacts: Impact[];
+  transformationActivityImpacts: Impact[];
 }
 
 export interface Material {
@@ -35,7 +42,16 @@ export interface Material {
   product_review_status: ReviewStatus;
   createdAt: string;
   updatedAt: string;
+  impacts?: MaterialImpacts;
+  completion?: boolean;
+}
+
+export interface ProductSummary {
+  itemId: string;
+  weight: number;
+  weightDiff: number;
   impacts: Impact[];
+  impactDiff: number;
 }
 
 export interface Product {
@@ -52,7 +68,10 @@ export interface Product {
   createdAt: string;
   updatedAt: string;
   materials: Material[];
+  summary?: ProductSummary;
   completionLevel: number;
+  unitFootprint?: number;
+  totalFootprint?: number;
 }
 
 export interface ReviewProductDto {

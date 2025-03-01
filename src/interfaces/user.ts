@@ -10,6 +10,8 @@ export interface User {
   lastLoginAt?: string | null;
   createdAt: string;
   updatedAt: string;
+  impersonatedBy?: string;
+  originalRole?: UserRole;
 }
 
 export interface CreateUserDto {
@@ -36,6 +38,10 @@ export interface LoginDto {
 export interface LoginResponse {
   access_token: string;
   user: User;
+}
+
+export interface ImpersonateDto {
+  userId: string;
 }
 
 export interface UsersListResponse {

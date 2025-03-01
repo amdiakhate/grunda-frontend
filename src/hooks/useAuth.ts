@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { authService } from '@/services/auth';
 import { usersService } from '@/services/users';
-import type { User, LoginDto } from '@/interfaces/user';
+import type { User, LoginDto, ImpersonateDto } from '@/interfaces/user';
 import { useToast } from '@/hooks/use-toast';
 
 export function useAuth() {
@@ -61,6 +61,51 @@ export function useAuth() {
     }
   };
 
+  const impersonate = async (data: ImpersonateDto) => {
+    try {
+      setLoading(true);
+      const response = await authService.impersonate(data);
+      setUser(response.user);
+      toast({
+        title: "Success",
+        description: `Successfully impersonating ${response.user.firstName} ${response.user.lastName}`,
+      });
+      return response;
+    } catch (error) {
+      console.error('Impersonation failed:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error instanceof Error ? error.message : "Impersonation failed",
+      });
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const stopImpersonating = async () => {
+    try {
+      setLoading(true);
+      await authService.stopImpersonating();
+      await fetchCurrentUser();
+      toast({
+        title: "Success",
+        description: "Successfully stopped impersonating",
+      });
+    } catch (error) {
+      console.error('Failed to stop impersonating:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to stop impersonating",
+      });
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const logout = () => {
     setLoading(true);
     try {
@@ -81,8 +126,11 @@ export function useAuth() {
     initialized,
     login,
     logout,
+    impersonate,
+    stopImpersonating,
     isAuthenticated: !!user && !!authService.getToken(),
     isAdmin: !!user?.role && user.role === 'ADMIN',
+    isImpersonating: authService.isImpersonating(),
     refetchUser: fetchCurrentUser,
   };
 } 

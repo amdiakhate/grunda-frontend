@@ -1,8 +1,9 @@
 import { api } from './api';
-import type { LoginDto, LoginResponse, User } from '@/interfaces/user';
+import type { LoginDto, LoginResponse, User, ImpersonateDto } from '@/interfaces/user';
 
 const TOKEN_KEY = 'token';
 const USER_KEY = 'user';
+const ORIGINAL_USER_KEY = 'original_user';
 
 interface StoredSession {
   token: string;
@@ -32,6 +33,57 @@ export const authService = {
     } catch (error) {
       this.clearSession(); // Clear any existing invalid session
       console.error('❌ Login failed:', error);
+      throw error;
+    }
+  },
+
+  async impersonate(data: ImpersonateDto): Promise<LoginResponse> {
+    console.log('👥 Impersonation attempt for user:', data.userId);
+    try {
+      const response = await api.post<LoginResponse>('/auth/impersonate', data);
+      console.log('📥 Impersonation response:', { success: !!response.access_token, hasUser: !!response.user });
+
+      if (!response.access_token || !response.user) {
+        console.error('❌ Invalid response:', { hasToken: !!response.access_token, hasUser: !!response.user });
+        throw new Error('Invalid response from server: missing token or user data');
+      }
+
+      // Store the original user before impersonation
+      const currentUser = this.getStoredUser();
+      if (currentUser) {
+        localStorage.setItem(ORIGINAL_USER_KEY, JSON.stringify(currentUser));
+      }
+
+      // Store the impersonated session
+      this.setSession({
+        token: response.access_token,
+        user: response.user,
+      });
+      console.log('✅ Impersonation session stored successfully');
+
+      return response;
+    } catch (error) {
+      console.error('❌ Impersonation failed:', error);
+      throw error;
+    }
+  },
+
+  async stopImpersonating(): Promise<void> {
+    console.log('🔄 Stopping impersonation');
+    try {
+      const originalUser = localStorage.getItem(ORIGINAL_USER_KEY);
+      if (!originalUser) {
+        console.error('❌ No original user found');
+        throw new Error('No original user found');
+      }
+
+      const user = JSON.parse(originalUser);
+      // Restore the original session
+      await this.login({ email: user.email, password: '' }); // The backend should handle this special case
+      localStorage.removeItem(ORIGINAL_USER_KEY);
+      console.log('✅ Original session restored successfully');
+    } catch (error) {
+      console.error('❌ Failed to stop impersonation:', error);
       throw error;
     }
   },
@@ -66,6 +118,7 @@ export const authService = {
     console.log('🗑️ Clearing session');
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
+    localStorage.removeItem(ORIGINAL_USER_KEY);
   },
 
   getToken(): string | null {
@@ -116,5 +169,9 @@ export const authService = {
     } catch {
       return false;
     }
+  },
+
+  isImpersonating(): boolean {
+    return !!localStorage.getItem(ORIGINAL_USER_KEY);
   }
 }; 

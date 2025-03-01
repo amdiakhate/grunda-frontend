@@ -34,13 +34,19 @@ export function MaterialsTreemap({ materials, threshold = 1 }: MaterialsTreemapP
     if (!displayedImpact) return null;
 
     const data: TreemapItem[] = materials
-        .map(material => ({
-            name: material.name,
-            size: material.impactResults.find(i => i.method === displayedImpact.method)?.share || 0,
-            details: material.details,
-            unit: material.unit,
-            referenceProduct: material.referenceProduct
-        }))
+        .map(material => {
+            const mainImpact = material.impacts?.mainActivityImpacts?.find(i => i.method === displayedImpact.method);
+            const transformImpact = material.impacts?.transformationActivityImpacts?.find(i => i.method === displayedImpact.method);
+            const totalShare = (mainImpact?.share || 0) + (transformImpact?.share || 0);
+            
+            return {
+                name: material.name,
+                size: totalShare,
+                details: material.description,
+                unit: material.unit,
+                referenceProduct: material.referenceProduct
+            };
+        })
         .sort((a, b) => b.size - a.size);
 
     const mainData = data.filter(item => item.size >= threshold);

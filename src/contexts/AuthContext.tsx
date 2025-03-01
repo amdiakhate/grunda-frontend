@@ -1,6 +1,6 @@
 import React, { createContext, useContext } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import type { User, LoginDto, LoginResponse } from '@/interfaces/user';
+import type { User, LoginDto, LoginResponse, ImpersonateDto } from '@/interfaces/user';
 
 export interface AuthContextType {
   user: User | null;
@@ -8,8 +8,11 @@ export interface AuthContextType {
   initialized: boolean;
   login: (credentials: LoginDto) => Promise<LoginResponse>;
   logout: () => void;
+  impersonate: (data: ImpersonateDto) => Promise<LoginResponse>;
+  stopImpersonating: () => Promise<void>;
   isAuthenticated: boolean;
   isAdmin: boolean;
+  isImpersonating: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);

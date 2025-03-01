@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useParams } from '@tanstack/react-router'
 import { useEffect, useState, useCallback } from 'react'
-import { ImpactResult, Material, Product } from '../../interfaces/product'
+import { Impact, Material, Product } from '../../interfaces/product'
 import { productsService } from '../../services/products'
 import { DataTable } from '../../components/products/datatable'
 import { Button } from '../../components/ui/button'
@@ -10,7 +10,7 @@ import { MaterialsTreemap } from '../../components/products/materialsTreemap'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/card'
 import { ProductActions } from "@/components/products/productActions";
 import { toast } from '../../hooks/use-toast'
-import { Loader2, LineChart, Filter, PieChart, ListFilter, ArrowLeft, CheckCircle2, AlertTriangle, Clock, AlertCircle, Calculator, ArrowDown } from 'lucide-react'
+import { Loader2, LineChart, Filter, PieChart, ListFilter, ArrowLeft, CheckCircle2, AlertTriangle, Clock, AlertCircle, Calculator } from 'lucide-react'
 import { Badge } from '../../components/ui/badge'
 
 export const Route = createFileRoute('/products/$id')({
@@ -24,20 +24,31 @@ function formatPercentage(value: number): string {
 function RouteComponent() {
   const productId = useParams({ from: '/products/$id' }).id;
   const [product, setProduct] = useState<Product | null>(null);
-  const [defaultImpactResults, setDefaultImpactResults] = useState<ImpactResult[] | null>(null);
+  const [defaultImpacts, setDefaultImpacts] = useState<Impact[] | null>(null);
   const [calculationLoading, setCalculationLoading] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
-  
+
   const fetchProduct = useCallback(async () => {
+    if (!productId) return;
+    
     try {
-      const product = await productsService.getById(productId);
-      setProduct(product);
-      setCalculationLoading(product.calculation_status === 'pending');
-      const materialWithImpactResults = product.materials.find(
-        (material: Material) => material.impactResults.length > 0
-      );
-      if (materialWithImpactResults) {
-        setDefaultImpactResults(materialWithImpactResults.impactResults);
+      const fetchedProduct = await productsService.getById(productId);
+      if (!fetchedProduct) {
+        throw new Error('Product not found');
+      }
+      
+      setProduct(fetchedProduct);
+      setCalculationLoading(fetchedProduct.calculation_status === 'pending');
+      
+      // Get default impacts from the first material that has impacts
+      if (fetchedProduct.materials && fetchedProduct.materials.length > 0) {
+        const materialWithImpacts = fetchedProduct.materials.find((material: Material) => {
+          const impacts = material.impacts?.mainActivityImpacts;
+          return Array.isArray(impacts) && impacts.length > 0;
+        });
+        
+        if (materialWithImpacts?.impacts?.mainActivityImpacts) {
+          setDefaultImpacts(materialWithImpacts.impacts.mainActivityImpacts);
+        }
       }
     } catch (error) {
       console.error('Error fetching product:', error);
@@ -49,29 +60,22 @@ function RouteComponent() {
     }
   }, [productId]);
 
+  // Initial fetch
   useEffect(() => {
     fetchProduct();
-  }, [productId, fetchProduct]);
-
-  // Fonction pour mettre à jour le produit après un changement de mapping
-  const handleProductUpdate = useCallback(async () => {
-    setIsUpdating(true);
-    try {
-      await fetchProduct();
-    } finally {
-      setIsUpdating(false);
-    }
-  }, [fetchProduct]);
+  }, [productId]); // Only depend on productId, not fetchProduct
 
   const startCalculation = async () => {
+    if (!productId) return;
+    
     try {
+      setCalculationLoading(true);
       await productsService.calculateProductImpact(productId);
       toast({
         title: "Impact calculation started",
         description: "This might take several minutes",
       });
-      fetchProduct();
-
+      await fetchProduct();
     } catch (error) {
       console.error('Error calculating product impact:', error);
       toast({
@@ -79,9 +83,10 @@ function RouteComponent() {
         description: "An error occurred while calculating the product impact",
         variant: "destructive",
       });
+    } finally {
+      setCalculationLoading(false);
     }
-
-}
+  };
 
   if(!product) {
     return (
@@ -93,7 +98,7 @@ function RouteComponent() {
   }
   
   return (
-    <div className={`space-y-6 transition-opacity duration-300 ${isUpdating ? 'opacity-50' : 'opacity-100'}`}>
+    <div className="space-y-6">
       {/* Header Section */}
       <div className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10 border-b pb-6">
         <div className="flex justify-between items-start pt-6 px-2">
@@ -192,8 +197,8 @@ function RouteComponent() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {defaultImpactResults && defaultImpactResults.length > 0 ? (
-              <ImpactFilter impactResults={defaultImpactResults} />
+            {defaultImpacts && defaultImpacts.length > 0 ? (
+              <ImpactFilter impactResults={defaultImpacts} />
             ) : (
               <div className="flex flex-col items-center justify-center py-8 space-y-4 text-center">
                 <div className="p-4 rounded-full bg-muted">
@@ -244,19 +249,6 @@ function RouteComponent() {
                           <p className="text-xs text-muted-foreground italic">
                             Note: Results will be incomplete and may not reflect the full environmental impact
                           </p>
-                          <div className="border-t pt-3">
-                            <Button
-                              variant="secondary"
-                              onClick={() => {
-                                const element = document.querySelector('#material-details');
-                                element?.scrollIntoView({ behavior: 'smooth' });
-                              }}
-                              className="w-full gap-2"
-                            >
-                              <ArrowDown className="h-4 w-4" />
-                              Complete Material Mapping First
-                            </Button>
-                          </div>
                         </div>
                       </>
                     )}
@@ -267,49 +259,33 @@ function RouteComponent() {
           </CardContent>
         </Card>
 
-        {/* Insights Section */}
+        {/* Materials Table */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <PieChart className="h-5 w-5" />
-              Material Impact Distribution
-            </CardTitle>
-            <CardDescription>
-              Visual breakdown of environmental impact by material
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pt-4">
-            {defaultImpactResults && defaultImpactResults.length > 0 ? (
-              <MaterialsTreemap materials={product.materials} />
-            ) : (
-              <div className="flex flex-col items-center justify-center py-8 space-y-2 text-center">
-                <div className="p-4 rounded-full bg-muted">
-                  <PieChart className="h-8 w-8 text-muted-foreground" />
-                </div>
-                <h3 className="font-medium">Impact Distribution Not Available</h3>
-                <p className="text-sm text-muted-foreground">
-                  Run an impact analysis to view the distribution of environmental impacts across materials.
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-    
-        {/* Technical Details Section */}
-        <Card id="material-details">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
               <ListFilter className="h-5 w-5" />
-              Material Details
+              Materials
             </CardTitle>
-            <CardDescription>
-              Detailed view of all materials and their environmental impacts
-            </CardDescription>
           </CardHeader>
           <CardContent>
-            <DataTable data={product} onUpdate={handleProductUpdate} />
+            <DataTable data={product} />
           </CardContent>
         </Card>
+
+        {/* Materials Treemap */}
+        {defaultImpacts && defaultImpacts.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <PieChart className="h-5 w-5" />
+                Impact Distribution
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <MaterialsTreemap materials={product.materials} />
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );

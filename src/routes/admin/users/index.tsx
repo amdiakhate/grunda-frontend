@@ -24,7 +24,9 @@ import { ProtectedRoute } from '@/components/common/ProtectedRoute';
 import { CreateUserDialog } from '@/components/users/CreateUserDialog';
 import { EditUserDialog } from '@/components/users/EditUserDialog';
 import { DeleteUserDialog } from '@/components/users/DeleteUserDialog';
-import { Loader2, Plus, Search } from 'lucide-react';
+import { Loader2, Plus, Search, UserPlus2, Edit2, Trash2 } from 'lucide-react';
+import { useAuthContext } from '@/contexts/AuthContext';
+import { useNavigate } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/admin/users/')({
   component: UsersPage,
@@ -49,6 +51,8 @@ function UsersList() {
   const pageSize = 10;
 
   const { users, loading, total, fetchUsers } = useUsers();
+  const { user: currentUser, impersonate } = useAuthContext();
+  const navigate = useNavigate();
 
   // Charger les utilisateurs avec les filtres
   const loadUsers = useCallback(() => {
@@ -77,6 +81,15 @@ function UsersList() {
     setRole(value as UserRole | 'all');
     setPage(1);
     loadUsers();
+  };
+
+  const handleImpersonate = async (userId: string) => {
+    try {
+      await impersonate({ userId });
+      navigate({ to: '/dashboard' });
+    } catch (error) {
+      console.error('Failed to impersonate user:', error);
+    }
   };
 
   return (
@@ -158,24 +171,33 @@ function UsersList() {
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Button
-                        variant="outline"
-                        size="sm"
+                        variant="ghost"
+                        size="icon"
                         onClick={() => {
                           setSelectedUserId(user.id);
                           setIsEditOpen(true);
                         }}
                       >
-                        Edit
+                        <Edit2 className="h-4 w-4" />
                       </Button>
+                      {currentUser?.role === 'ADMIN' && user.role === 'CUSTOMER' && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleImpersonate(user.id)}
+                        >
+                          <UserPlus2 className="h-4 w-4" />
+                        </Button>
+                      )}
                       <Button
-                        variant="outline"
-                        size="sm"
+                        variant="ghost"
+                        size="icon"
                         onClick={() => {
                           setSelectedUserId(user.id);
                           setIsDeleteOpen(true);
                         }}
                       >
-                        Delete
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </TableCell>

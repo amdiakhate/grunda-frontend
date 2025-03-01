@@ -11,12 +11,15 @@ import { Badge } from '../ui/badge'
 import { SortableHeader } from '../ui/sortable-header'
 import { sortItems } from '@/utils/sorting'
 import { useState } from 'react'
+import { MaterialImpacts } from './MaterialImpacts'
+import { useStore } from '@/stores/useStore'
 
 export interface DataTableProps {
     data: Product
 }
 
 export function DataTable({ data }: DataTableProps) {
+    const { displayedImpact } = useStore();
     const [sortConfig, setSortConfig] = useState<{
         key: string
         direction: 'asc' | 'desc' | null
@@ -68,6 +71,9 @@ export function DataTable({ data }: DataTableProps) {
                             />
                         </TableHead>
                         <TableHead>Unit</TableHead>
+                        <TableHead>Activity</TableHead>
+                        <TableHead>Origin</TableHead>
+                        {displayedImpact && <TableHead>Impacts</TableHead>}
                         <TableHead>Status</TableHead>
                     </TableRow>
                 </TableHeader>
@@ -78,10 +84,47 @@ export function DataTable({ data }: DataTableProps) {
                             <TableCell>{formatQuantity(material.quantity)}</TableCell>
                             <TableCell>{material.unit}</TableCell>
                             <TableCell>
+                                <div className="space-y-1">
+                                    {material.activityName && (
+                                        <div className="text-sm">
+                                            <span className="font-medium">Main: </span>
+                                            {material.activityName}
+                                        </div>
+                                    )}
+                                    {material.transformationActivityName && (
+                                        <div className="text-sm">
+                                            <span className="font-medium">Transform: </span>
+                                            {material.transformationActivityName}
+                                        </div>
+                                    )}
+                                </div>
+                            </TableCell>
+                            <TableCell>
+                                <div className="space-y-1">
+                                    {material.material_origin && (
+                                        <Badge variant="outline" className="text-xs">
+                                            Material: {material.material_origin}
+                                        </Badge>
+                                    )}
+                                    {material.assembling_location && (
+                                        <Badge variant="outline" className="text-xs">
+                                            Assembly: {material.assembling_location}
+                                        </Badge>
+                                    )}
+                                </div>
+                            </TableCell>
+                            {displayedImpact && (
+                                <TableCell>
+                                    {material.impacts && (
+                                        <MaterialImpacts impacts={material.impacts} />
+                                    )}
+                                </TableCell>
+                            )}
+                            <TableCell>
                                 <Badge
-                                    variant={material.status === 'pending' ? 'warning' : 'success'}
+                                    variant={material.completion ? 'success' : 'warning'}
                                 >
-                                    {material.status}
+                                    {material.completion ? 'Complete' : 'Pending'}
                                 </Badge>
                             </TableCell>
                         </TableRow>
