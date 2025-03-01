@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -33,18 +33,25 @@ export function ActivitySearch({ onSelect, trigger }: ActivitySearchProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [activities, setActivities] = useState<Activity[]>([]);
 
-  const handleSearch = async () => {
-    if (!searchTerm.trim()) return;
+  useEffect(() => {
+    setActivities([]); // Reset results when search terms change
+    const timer = setTimeout(() => {
+      handleSearch();
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm, location]);
 
+  const handleSearch = async () => {
     setIsLoading(true);
     try {
       const response = await materialMappingsService.searchActivities({
-        activityName: searchTerm,
-        activityLocation: location || undefined,
+        activityName: searchTerm.trim(),
+        activityLocation: location.trim() || undefined,
       });
       setActivities(response.activities);
     } catch (error) {
       console.error('Failed to search activities:', error);
+      setActivities([]);
     } finally {
       setIsLoading(false);
     }
@@ -74,7 +81,6 @@ export function ActivitySearch({ onSelect, trigger }: ActivitySearchProps) {
               placeholder="Search by activity name..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
             />
           </div>
           <div className="w-32">
@@ -82,7 +88,6 @@ export function ActivitySearch({ onSelect, trigger }: ActivitySearchProps) {
               placeholder="Location"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
             />
           </div>
           <Button onClick={handleSearch} disabled={isLoading}>
