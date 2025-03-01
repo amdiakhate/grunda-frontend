@@ -1,23 +1,9 @@
+import { useEffect, useState } from 'react';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { useState, useEffect } from 'react';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog';
+import { useProducts } from '@/hooks/useProducts';
+import { CompletionLevel } from '@/components/products/completionLevel';
+import { MaterialStatusBadge } from '@/components/materials/MaterialStatusBadge';
 import {
   Select,
   SelectContent,
@@ -25,105 +11,114 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { useProducts } from '@/hooks/useProducts';
-import { Product, ReviewStatus } from '@/interfaces/product';
-import { ProtectedRoute } from '@/components/common/ProtectedRoute';
-import { Loader2, CheckCircle, XCircle } from 'lucide-react';
-import { Progress } from '@radix-ui/react-progress';
-import { CompletionLevel } from '../../../components/products/completionLevel';
+import type { ReviewStatus } from '@/interfaces/product';
+import { AdminPageLayout } from '@/components/admin/AdminPageLayout';
+import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
+import { SearchInput } from '@/components/admin/SearchInput';
+import { AdminTable } from '@/components/admin/AdminTable';
+import { AdminTableFooter } from '@/components/admin/AdminTableFooter';
 
 export const Route = createFileRoute('/admin/products/')({
   component: ProductsPage,
 });
 
 function ProductsPage() {
-  return (
-    <ProtectedRoute requireAdmin>
-      <ProductsList />
-    </ProtectedRoute>
-  );
-}
-
-const statusColors: Record<ReviewStatus, string> = {
-  pending: 'bg-yellow-100 text-yellow-800',
-  reviewed: 'bg-green-100 text-green-800',
-  rejected: 'bg-red-100 text-red-800',
-};
-
-function ProductsList() {
-  const { products, loading, total, reviewProduct, fetchProducts } = useProducts();
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [comment, setComment] = useState('');
-  const [reviewing, setReviewing] = useState(false);
-  const [page, setPage] = useState(1);
+  const { products, loading, total, fetchProducts } = useProducts();
+  const [searchQuery, setSearchQuery] = useState('');
   const [status, setStatus] = useState<ReviewStatus | 'all'>('all');
-  const [search, setSearch] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
 
   useEffect(() => {
     fetchProducts({
-      page,
+      page: currentPage,
       pageSize,
       status: status === 'all' ? undefined : status,
-      search: search || undefined,
+      search: searchQuery || undefined,
     });
-  }, [fetchProducts, page, status, search]);
+  }, [fetchProducts, currentPage, status, searchQuery]);
 
-  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setPage(1);
-    fetchProducts({
-      page: 1,
-      pageSize,
-      status: status === 'all' ? undefined : status,
-      search: search || undefined,
-    });
+  const handleSearch = (value: string) => {
+    setSearchQuery(value);
+    setCurrentPage(1);
   };
 
-  const handleReview = async (action: 'approve' | 'reject') => {
-    if (!selectedProduct || reviewing) return;
-
-    try {
-      setReviewing(true);
-      await reviewProduct(selectedProduct.id, {
-        action,
-        comment: comment.trim() || undefined,
-      });
-      setSelectedProduct(null);
-      setComment('');
-      // Refresh the list after review
-      fetchProducts({
-        page,
-        pageSize,
-        status: status === 'all' ? undefined : status,
-        search: search || undefined,
-      });
-    } finally {
-      setReviewing(false);
-    }
+  const handleStatusChange = (value: string) => {
+    setStatus(value as ReviewStatus | 'all');
+    setCurrentPage(1);
   };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const columns = [
+    {
+      header: 'Name',
+      accessorKey: 'name' as const,
+      className: 'font-medium',
+    },
+    {
+      header: 'Reference',
+      accessorKey: 'reference' as const,
+    },
+    {
+      header: 'Category',
+      accessorKey: 'category' as const,
+    },
+    {
+      header: 'Completion',
+      accessorKey: 'completionLevel' as const,
+      className: 'text-center',
+      cell: (item: { completionLevel: number }) => (
+        <CompletionLevel level={item.completionLevel} />
+      ),
+    },
+    {
+      header: 'Status',
+      accessorKey: 'review_status' as const,
+      cell: (item: { review_status: ReviewStatus }) => (
+        <MaterialStatusBadge status={item.review_status} />
+      ),
+    },
+    {
+      header: 'Actions',
+      accessorKey: 'id' as const,
+      className: 'text-right',
+      cell: (item: { id: string }) => (
+        <div className="flex justify-end gap-2">
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+          >
+            <Link
+              to="/admin/products/$id"
+              params={{ id: item.id }}
+            >
+              View
+            </Link>
+          </Button>
+        </div>
+      ),
+    },
+  ];
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Products Management</h1>
-        <div className="flex gap-4">
-          <form onSubmit={handleSearch} className="flex gap-2">
-            <Input
-              placeholder="Search products..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-[200px]"
-            />
-            <Button type="submit" variant="secondary">Search</Button>
-          </form>
-          <Select value={status} onValueChange={(value: ReviewStatus | 'all') => {
-            setStatus(value);
-            setPage(1);
-          }}>
+    <AdminPageLayout>
+      <AdminPageHeader title="Products Management">
+        <div className="flex items-center gap-2">
+          <SearchInput
+            placeholder="Search products..."
+            value={searchQuery}
+            onChange={(e) => handleSearch(e.target.value)}
+          />
+          <Select
+            value={status}
+            onValueChange={handleStatusChange}
+          >
             <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filter by status" />
+              <SelectValue placeholder="All statuses" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All statuses</SelectItem>
@@ -133,160 +128,22 @@ function ProductsList() {
             </SelectContent>
           </Select>
         </div>
-      </div>
+      </AdminPageHeader>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Reference</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Completion Level</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loading ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin mx-auto" />
-                </TableCell>
-              </TableRow>
-            ) : products.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center py-8">
-                  No products found
-                </TableCell>
-              </TableRow>
-            ) : (
-              products.map((product) => (
-                <TableRow key={product.id}>
-                  <TableCell className="font-medium">{product.name}</TableCell>
-                  <TableCell>{product.reference}</TableCell>
-                  <TableCell>{product.category}</TableCell>
-                  <TableCell>
-                    <CompletionLevel level={product.completionLevel} />
-                  </TableCell>
+      <AdminTable
+        data={products}
+        columns={columns}
+        loading={loading}
+        searchQuery={searchQuery}
+      />
 
-                  <TableCell>
-                    <Badge
-                      className={statusColors[product.review_status]}
-                      variant="outline"
-                    >
-                      {product.review_status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      <Link
-                        to="/admin/products/$id"
-                        params={{ id: product.id }}
-                      >
-                        <Button
-                          variant="outline"
-                          size="sm"
-                        >
-                          View
-                        </Button>
-                      </Link>
-                      {product.review_status === 'pending' && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setSelectedProduct(product)}
-                        >
-                          Review
-                        </Button>
-                      )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
-
-      {/* Pagination */}
-      <div className="flex justify-between items-center">
-        <div className="text-sm text-muted-foreground">
-          Showing {products.length} of {total} products
-        </div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setPage(p => Math.max(1, p - 1))}
-            disabled={page === 1 || loading}
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setPage(p => p + 1)}
-            disabled={page * pageSize >= total || loading}
-          >
-            Next
-          </Button>
-        </div>
-      </div>
-
-      {/* Review Product Dialog */}
-      <Dialog open={!!selectedProduct} onOpenChange={(open) => !open && setSelectedProduct(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Review Product</DialogTitle>
-            <DialogDescription>
-              {selectedProduct?.name} - {selectedProduct?.reference}
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4 pt-4">
-            <Textarea
-              placeholder="Add a comment (optional)"
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              disabled={reviewing}
-            />
-            
-            <div className="flex justify-end gap-3">
-              <Button
-                variant="outline"
-                onClick={() => setSelectedProduct(null)}
-                disabled={reviewing}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={() => handleReview('reject')}
-                disabled={reviewing}
-              >
-                {reviewing ? (
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                ) : (
-                  <XCircle className="h-4 w-4 mr-2" />
-                )}
-                Reject
-              </Button>
-              <Button
-                onClick={() => handleReview('approve')}
-                disabled={reviewing}
-              >
-                {reviewing ? (
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                ) : (
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                )}
-                Approve
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </div>
+      <AdminTableFooter
+        total={total}
+        pageSize={pageSize}
+        currentPage={currentPage}
+        onPageChange={handlePageChange}
+        itemsName="products"
+      />
+    </AdminPageLayout>
   );
 } 
