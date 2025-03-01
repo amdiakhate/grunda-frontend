@@ -23,6 +23,7 @@ export function MaterialMappingForm({ initialData, onSubmit }: MaterialMappingFo
     activityName: initialData?.activityName || '',
     transformationActivityName: initialData?.transformationActivityName || '',
     density: initialData?.density,
+    lossRate: initialData?.lossRate,
   });
   const [alternateName, setAlternateName] = useState('');
 
@@ -176,6 +177,19 @@ export function MaterialMappingForm({ initialData, onSubmit }: MaterialMappingFo
           step="0.01"
           value={formData.density || ''}
           onChange={(e) => setFormData(prev => ({ ...prev, density: e.target.value ? parseFloat(e.target.value) : undefined }))}
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="lossRate">Loss Rate (%)</Label>
+        <Input
+          id="lossRate"
+          type="number"
+          step="0.01"
+          min="0"
+          max="100"
+          value={formData.lossRate || ''}
+          onChange={(e) => setFormData(prev => ({ ...prev, lossRate: e.target.value ? parseFloat(e.target.value) : undefined }))}
         />
       </div>
 

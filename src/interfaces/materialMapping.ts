@@ -7,6 +7,7 @@ export interface MaterialMapping {
   activityName: string;
   transformationActivityName?: string;
   density?: number;
+  lossRate?: number;
   comment?: string;
   materialsCount?: number;
   createdAt?: string;
@@ -21,6 +22,7 @@ export interface CreateMaterialMappingDto {
   activityName: string;
   transformationActivityName?: string;
   density?: number;
+  lossRate?: number;
 }
 
 export interface UpdateMaterialMappingDto {
@@ -31,6 +33,7 @@ export interface UpdateMaterialMappingDto {
   activityName?: string;
   transformationActivityName?: string;
   density?: number;
+  lossRate?: number;
 }
 
 export interface MaterialMappingListDto {
@@ -44,6 +47,7 @@ export interface MaterialMappingListDto {
   finalProduct: boolean;
   transformationActivityName?: string;
   density?: number;
+  lossRate?: number;
   createdAt: string;
   updatedAt: string;
 }

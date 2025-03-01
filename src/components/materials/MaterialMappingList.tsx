@@ -122,6 +122,14 @@ export function MaterialMappingList({
                     Transformation Activity: {mapping.transformationActivityName}
                   </div>
                 )}
+                <div className="flex gap-4 text-sm text-muted-foreground mt-1">
+                  {mapping.density && (
+                    <div>Density: {mapping.density} kg/m³</div>
+                  )}
+                  {mapping.lossRate !== undefined && (
+                    <div>Loss Rate: {mapping.lossRate}%</div>
+                  )}
+                </div>
                 {/* <div className="text-sm text-muted-foreground mt-1">
                   Origin: {mapping.activityOrigin || 'Not specified'}
                 </div> */}
