@@ -32,6 +32,12 @@ export function MaterialMappingList({
 }: MaterialMappingListProps) {
   const [searchValue, setSearchValue] = useState(searchQuery);
 
+  // Sync local search value with parent searchQuery
+  useEffect(() => {
+    setSearchValue(searchQuery);
+  }, [searchQuery]);
+
+  // Debounced search
   useEffect(() => {
     const timer = setTimeout(() => {
       if (searchValue !== searchQuery) {

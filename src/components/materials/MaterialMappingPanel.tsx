@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { MaterialMappingList } from './MaterialMappingList';
 import { MaterialMappingForm } from './MaterialMappingForm';
@@ -74,43 +74,50 @@ export function MaterialMappingPanel({
   };
 
   return (
-    <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetTrigger asChild>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
         <Button variant="outline" size="sm">
           <Link className="h-4 w-4 mr-2" />
           {currentMappingId ? 'Change Mapping' : 'Add Mapping'}
         </Button>
-      </SheetTrigger>
-      <SheetContent side="right" className="w-[800px] sm:max-w-[800px]">
-        <SheetHeader>
-          <SheetTitle>Material Mappings</SheetTitle>
-          <SheetDescription>
-            Select an existing mapping or create a new one
-          </SheetDescription>
-        </SheetHeader>
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'search' | 'create')} className="mt-6">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="search">Search Existing</TabsTrigger>
-            <TabsTrigger value="create">Create New</TabsTrigger>
-          </TabsList>
-          <TabsContent value="search" className="mt-4">
+      </DialogTrigger>
+      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col gap-0 p-0">
+        <div className="p-6 pb-2">
+          <DialogHeader>
+            <DialogTitle>Material Mappings</DialogTitle>
+            <DialogDescription>
+              Select an existing mapping or create a new one
+            </DialogDescription>
+          </DialogHeader>
+        </div>
+        
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'search' | 'create')} className="flex-1">
+          <div className="px-6">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="search">Search Existing</TabsTrigger>
+              <TabsTrigger value="create">Create New</TabsTrigger>
+            </TabsList>
+          </div>
+          
+          <TabsContent value="search" className="mt-2 px-6 pb-6 overflow-y-auto" style={{ maxHeight: 'calc(90vh - 180px)' }}>
             <MaterialMappingList
               mappings={mappings}
               loading={loading}
               onSelect={handleSelect}
-              onSearch={handleSearch}
+              searchQuery={searchQuery}
+              onSearchChange={handleSearch}
               selectedId={currentMappingId}
               currentPage={currentPage}
               totalPages={totalPages}
               onPageChange={handlePageChange}
-              searchQuery={searchQuery}
             />
           </TabsContent>
-          <TabsContent value="create" className="mt-4">
+          
+          <TabsContent value="create" className="mt-2 px-6 pb-6 overflow-y-auto" style={{ maxHeight: 'calc(90vh - 180px)' }}>
             <MaterialMappingForm onSubmit={handleCreateMapping} />
           </TabsContent>
         </Tabs>
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   );
 } 
