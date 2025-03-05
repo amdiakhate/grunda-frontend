@@ -31,13 +31,14 @@ interface TreemapItem {
 export function MaterialsTreemap({ materials, threshold = 1 }: MaterialsTreemapProps) {
     const displayedImpact = useStore(state => state.displayedImpact);
     
-    if (!displayedImpact) return null;
+    if (!displayedImpact || !materials || materials.length === 0) return null;
 
     const data: TreemapItem[] = materials
+        .filter(material => material.impacts)
         .map(material => {
             const mainImpact = material.impacts?.mainActivityImpacts?.find(i => i.method === displayedImpact.method);
             const transformImpact = material.impacts?.transformationActivityImpacts?.find(i => i.method === displayedImpact.method);
-            const totalShare = (mainImpact?.share || 0) + (transformImpact?.share || 0);
+            const totalShare = (mainImpact?.share ?? 0) + (transformImpact?.share ?? 0);
             
             return {
                 name: material.name,
@@ -47,7 +48,10 @@ export function MaterialsTreemap({ materials, threshold = 1 }: MaterialsTreemapP
                 referenceProduct: material.referenceProduct
             };
         })
+        .filter(item => item.size > 0)
         .sort((a, b) => b.size - a.size);
+
+    if (data.length === 0) return null;
 
     const mainData = data.filter(item => item.size >= threshold);
     const smallItems = data.filter(item => item.size < threshold);
@@ -61,6 +65,8 @@ export function MaterialsTreemap({ materials, threshold = 1 }: MaterialsTreemapP
             details: `${smallItems.length} materials: ${smallItems.map(i => i.name).join(', ')}`
         }] : [])
     ];
+
+    if (finalData.length === 0) return null;
 
     const TreemapCell = ({ item, index }: { item: TreemapItem, index: number }) => (
         <TooltipProvider>

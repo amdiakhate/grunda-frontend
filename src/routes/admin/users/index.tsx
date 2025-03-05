@@ -87,6 +87,8 @@ function UsersList() {
     try {
       await impersonate({ userId });
       navigate({ to: '/dashboard' });
+      // Force reload to ensure all contexts are updated
+      window.location.reload();
     } catch (error) {
       console.error('Failed to impersonate user:', error);
     }

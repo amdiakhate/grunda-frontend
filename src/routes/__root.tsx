@@ -30,16 +30,18 @@ function Layout() {
     }
 
     return (
-        <SidebarProvider>
+        <div className="flex flex-col min-h-screen">
             <ImpersonationBanner />
-            <AppSidebar items={isAdmin ? adminNavItems : undefined} />
-            <SidebarTrigger />
+            <SidebarProvider className="flex flex-1">
+                <AppSidebar items={isAdmin ? adminNavItems : undefined} />
+                <SidebarTrigger />
 
-            <main className={`flex flex-col items-center w-full ${isAdminRoute ? 'bg-gray-50' : ''}`}>
-                <div className={`container ${isAdminRoute ? 'py-8 px-4' : 'p-10'} w-full max-w-7xl`}>
-                    <Outlet />
-                </div>
-            </main>
-        </SidebarProvider>
+                <main className={`flex flex-col items-center w-full overflow-auto ${isAdminRoute ? 'bg-gray-50' : ''}`}>
+                    <div className={`container ${isAdminRoute ? 'py-8 px-4' : 'p-10'} w-full max-w-7xl`}>
+                        <Outlet />
+                    </div>
+                </main>
+            </SidebarProvider>
+        </div>
     );
 }
