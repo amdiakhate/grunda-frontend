@@ -16,12 +16,16 @@ import {
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { MaterialStatusBadge } from './MaterialStatusBadge';
+import { MaterialMappingStatusBadge } from './MaterialMappingStatusBadge';
 import { adminService } from '@/services/admin';
 import type { MaterialListItem, ReviewStatus } from '@/interfaces/admin';
 import { Link } from '@tanstack/react-router';
 import { Loader2, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { useAuthContext } from '@/contexts/AuthContext';
 
 export function MaterialsList() {
   const [materials, setMaterials] = useState<MaterialListItem[]>([]);
@@ -31,6 +35,8 @@ export function MaterialsList() {
   const [status, setStatus] = useState<ReviewStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showMapped, setShowMapped] = useState(false);
+  const { isAdmin } = useAuthContext();
 
   useEffect(() => {
     const fetchMaterials = async () => {
@@ -41,6 +47,7 @@ export function MaterialsList() {
           pageSize,
           status: status || undefined,
           search: searchQuery || undefined,
+          showMapped,
         });
         setMaterials(response.items);
         setTotal(response.total);
@@ -53,7 +60,7 @@ export function MaterialsList() {
 
     const debounceTimer = setTimeout(fetchMaterials, 300);
     return () => clearTimeout(debounceTimer);
-  }, [page, pageSize, status, searchQuery]);
+  }, [page, pageSize, status, searchQuery, showMapped]);
 
   const handleStatusChange = (value: string) => {
     setStatus(value === 'all' ? null : value as ReviewStatus);
@@ -85,6 +92,16 @@ export function MaterialsList() {
               <SelectItem value="rejected">Rejected</SelectItem>
             </SelectContent>
           </Select>
+          {isAdmin && (
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="show-mapped"
+                checked={showMapped}
+                onCheckedChange={setShowMapped}
+              />
+              <Label htmlFor="show-mapped">Show mapped materials</Label>
+            </div>
+          )}
         </div>
       </div>
 
@@ -96,7 +113,8 @@ export function MaterialsList() {
               <TableHead>Activity</TableHead>
               <TableHead className="text-center">Products Affected</TableHead>
               <TableHead>User</TableHead>
-              <TableHead>Status</TableHead>
+              <TableHead>Mapping Status</TableHead>
+              <TableHead>Product Status</TableHead>
               <TableHead>Last Updated</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -104,7 +122,7 @@ export function MaterialsList() {
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center">
+                <TableCell colSpan={8} className="h-24 text-center">
                   <div className="flex items-center justify-center gap-2">
                     <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
                     <span className="text-muted-foreground">Loading materials...</span>
@@ -113,7 +131,7 @@ export function MaterialsList() {
               </TableRow>
             ) : materials.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center">
+                <TableCell colSpan={8} className="h-24 text-center">
                   <div className="flex flex-col items-center justify-center gap-1">
                     <p className="text-muted-foreground">No materials found</p>
                     {searchQuery && (
@@ -130,14 +148,16 @@ export function MaterialsList() {
                   key={material.id}
                   className={cn(
                     "group transition-colors hover:bg-muted/50",
-                    material.product_review_status === 'pending' && 'bg-amber-50/30',
-                    material.product_review_status === 'rejected' && 'bg-rose-50/30'
+                    !material.activityUuid && 'bg-amber-50/30'
                   )}
                 >
                   <TableCell className="font-medium">{material.name}</TableCell>
                   <TableCell>{material.activityName || 'Not set'}</TableCell>
                   <TableCell className="text-center">{material.product_affected}</TableCell>
                   <TableCell>{material.userName || 'Not set'}</TableCell>
+                  <TableCell>
+                    <MaterialMappingStatusBadge activityName={material.activityName || ''} />
+                  </TableCell>
                   <TableCell>
                     <MaterialStatusBadge status={material.product_review_status} />
                   </TableCell>

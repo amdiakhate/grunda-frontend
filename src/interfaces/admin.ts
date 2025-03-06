@@ -1,9 +1,11 @@
 export type ReviewStatus = 'pending' | 'reviewed' | 'rejected';
+export type MappingStatus = 'mapped' | 'unmapped';
 
 export interface MaterialListItem {
   id: string;
   name: string;
   description?: string;
+  activityUuid?: string;
   activityName?: string;
   quantity: number;
   unit: string;
@@ -63,4 +65,5 @@ export interface MaterialListQueryParams {
   pageSize?: number;
   status?: ReviewStatus;
   search?: string;
+  showMapped?: boolean;
 } 

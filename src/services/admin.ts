@@ -67,6 +67,8 @@ export const adminService = {
       if (params.page) queryParams.append('page', params.page.toString());
       if (params.pageSize) queryParams.append('pageSize', params.pageSize.toString());
       if (params.status) queryParams.append('status', params.status);
+      if (params.search) queryParams.append('search', params.search);
+      if (params.showMapped !== undefined) queryParams.append('showMapped', params.showMapped.toString());
 
       const query = queryParams.toString();
       const url = `/admin/materials${query ? `?${query}` : ''}`;
