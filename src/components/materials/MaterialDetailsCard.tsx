@@ -5,13 +5,13 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { MaterialStatusBadge } from './MaterialStatusBadge';
-import type { MaterialDetails } from '@/interfaces/admin';
+import type { MaterialDetails, MaterialBasic } from '@/interfaces/admin';
 import { MapPin, Scale, Factory } from 'lucide-react';
 
 interface MaterialDetailsCardProps {
   material: MaterialDetails;
+  materialBasic?: MaterialBasic;
 }
 
 interface DetailItemProps {
@@ -44,38 +44,32 @@ interface ActivityDetailsProps {
 }
 
 function ActivityDetails({ title, uuid, name, unit, location, referenceProduct }: ActivityDetailsProps) {
-  if (!uuid) return null;
-
+  if (!uuid || !name) return null;
+  
   return (
-    <div className="space-y-3">
-      <h4 className="font-medium text-sm text-muted-foreground">{title}</h4>
-      <div className="bg-muted/50 rounded-lg p-4 space-y-2">
-        <div className="flex items-center gap-2">
-          <Badge variant="secondary" className="text-xs">Activity ID</Badge>
-          <span className="font-mono text-sm">{uuid}</span>
+    <div className="space-y-2">
+      <h3 className="text-sm font-medium text-muted-foreground">{title}</h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <div className="text-sm text-muted-foreground">Name</div>
+          <div className="font-medium">{name}</div>
         </div>
-        {name && (
-          <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="text-xs">Name</Badge>
-            <span>{name}</span>
-          </div>
-        )}
         {unit && (
-          <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="text-xs">Unit</Badge>
-            <span>{unit}</span>
+          <div>
+            <div className="text-sm text-muted-foreground">Unit</div>
+            <div className="font-medium">{unit}</div>
           </div>
         )}
         {location && (
-          <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="text-xs">Location</Badge>
-            <span>{location}</span>
+          <div>
+            <div className="text-sm text-muted-foreground">Location</div>
+            <div className="font-medium">{location}</div>
           </div>
         )}
         {referenceProduct && (
-          <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="text-xs">Reference Product</Badge>
-            <span>{referenceProduct}</span>
+          <div>
+            <div className="text-sm text-muted-foreground">Reference Product</div>
+            <div className="font-medium">{referenceProduct}</div>
           </div>
         )}
       </div>
@@ -83,16 +77,22 @@ function ActivityDetails({ title, uuid, name, unit, location, referenceProduct }
   );
 }
 
-export function MaterialDetailsCard({ material }: MaterialDetailsCardProps) {
+export function MaterialDetailsCard({ material, materialBasic }: MaterialDetailsCardProps) {
+  // Utiliser materialBasic si fourni, sinon utiliser les propriétés de material
+  const name = materialBasic ? materialBasic.name : material.name;
+  const description = materialBasic ? materialBasic.description : material.description;
+
   return (
     <Card>
       <CardHeader>
         <div className="flex items-start justify-between">
           <div>
-            <CardTitle>{material.name}</CardTitle>
-            <CardDescription>{material.description}</CardDescription>
+            <CardTitle>{name}</CardTitle>
+            <CardDescription>{description}</CardDescription>
           </div>
-          <MaterialStatusBadge status={material.product_review_status} />
+          {material.product_review_status && (
+            <MaterialStatusBadge status={material.product_review_status} />
+          )}
         </div>
       </CardHeader>
       <CardContent>

@@ -37,10 +37,35 @@ async function handleResponse<T>(response: Response): Promise<T> {
       authService.clearSession();
       window.location.href = '/login';
     }
-    const error = await response.json().catch(() => ({}));
-    throw new Error(error.message || 'An error occurred');
+    
+    // Tenter de lire l'erreur comme JSON, mais ne pas échouer si ce n'est pas du JSON
+    const errorText = await response.text();
+    let errorObj: { message?: string } = {};
+    try {
+      errorObj = JSON.parse(errorText);
+    } catch {
+      errorObj = { message: errorText };
+    }
+    
+    throw new Error(errorObj.message || 'An error occurred');
   }
-  return response.json();
+  
+  // Vérifier si la réponse est vide
+  const contentType = response.headers.get('content-type');
+  if (contentType && contentType.includes('application/json')) {
+    return response.json();
+  } else {
+    // Pour les réponses non-JSON ou vides
+    const text = await response.text();
+    if (!text) {
+      return {} as T;
+    }
+    try {
+      return JSON.parse(text);
+    } catch {
+      return text as unknown as T;
+    }
+  }
 }
 
 export const api = {
@@ -62,11 +87,17 @@ export const api = {
 
   async post<T>(endpoint: string, data: unknown, config?: RequestConfig): Promise<T> {
     try {
+      // Pour FormData, ne pas définir Content-Type
+      const isFormData = data instanceof FormData;
+      const configToUse = isFormData 
+        ? { ...config, skipContentType: true }
+        : config;
+        
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: 'POST',
-        headers: getHeaders(config),
+        headers: getHeaders(configToUse),
         credentials: 'include',
-        body: data instanceof FormData ? data : JSON.stringify(data),
+        body: isFormData ? data : JSON.stringify(data),
       });
       return handleResponse<T>(response);
     } catch (error) {

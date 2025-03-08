@@ -45,10 +45,21 @@ export function ActivitySearch({ onSelect, trigger }: ActivitySearchProps) {
     setIsLoading(true);
     try {
       const response = await materialMappingsService.searchActivities({
-        activityName: searchTerm.trim(),
-        activityLocation: location.trim() || undefined,
+        search: searchTerm.trim(),
+        limit: 20
       });
-      setActivities(response.activities);
+      
+      // Convertir les résultats au format Activity
+      const formattedActivities: Activity[] = response.map(result => ({
+        name: result.name,
+        location: result.origin || '',
+        unit: result.unit || '',
+        uuid: result.id,
+        referenceProduct: '',  // Ces champs ne sont pas disponibles dans ActivitySearchResult
+        comment: ''           // mais sont requis par l'interface Activity
+      }));
+      
+      setActivities(formattedActivities);
     } catch (error) {
       console.error('Failed to search activities:', error);
       setActivities([]);

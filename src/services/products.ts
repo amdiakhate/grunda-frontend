@@ -6,31 +6,37 @@ interface UploadResponse {
   message: string;
 }
 
-interface CalculateImpactResponse {
-  message: string;
-}
-
 export const productsService = {
   async getAll(): Promise<Product[]> {
-    return api.get<Product[]>('/products');
+    try {
+      return api.get<Product[]>('/products');
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      throw error;
+    }
   },
 
   async getById(id: string): Promise<Product> {
-    return api.get<Product>(`/products/${id}`);
+    try {
+      return api.get<Product>(`/products/${id}`);
+    } catch (error) {
+      console.error('Error fetching product:', error);
+      throw error;
+    }
+  },
+
+  // Alias pour getById pour la compatibilité
+  async getProductById(id: string): Promise<Product> {
+    return this.getById(id);
   },
 
   async uploadFile(file: File): Promise<UploadResponse> {
-    if (!file) {
-      throw new Error('No file provided');
-    }
-
-    const formData = new FormData();
-    formData.append('file', file);
-
     try {
-      // Don't set Content-Type header - let the browser set it with the boundary
+      const formData = new FormData();
+      formData.append('file', file);
+      
       return api.post<UploadResponse>('/products/upload', formData, {
-        skipContentType: true, // This will prevent api.ts from setting the default Content-Type
+        skipContentType: true // Ne pas définir Content-Type, laisser le navigateur le faire avec la boundary
       });
     } catch (error) {
       console.error('Error uploading file:', error);
@@ -38,7 +44,17 @@ export const productsService = {
     }
   },
 
-  async calculateProductImpact(productId: string): Promise<CalculateImpactResponse> {
-    return api.post<CalculateImpactResponse>(`/impacts/${productId}/calculate-impact`, {});
+  async calculateProductImpact(productId: string): Promise<{ success: boolean; message: string }> {
+    try {
+      return api.post<{ success: boolean; message: string }>(`/products/${productId}/calculate`, {});
+    } catch (error) {
+      console.error('Error calculating product impact:', error);
+      throw error;
+    }
+  },
+
+  // Alias pour calculateProductImpact pour la compatibilité
+  async calculateProduct(productId: string): Promise<{ success: boolean; message: string }> {
+    return this.calculateProductImpact(productId);
   }
 };

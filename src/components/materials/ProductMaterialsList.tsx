@@ -15,7 +15,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { MaterialStatusBadge } from './MaterialStatusBadge';
 import { MaterialMappingStatusBadge } from './MaterialMappingStatusBadge';
 import { adminService } from '@/services/admin';
 import type { MaterialListItem, ReviewStatus } from '@/interfaces/admin';
@@ -27,7 +26,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { useAuthContext } from '@/contexts/AuthContext';
 
-export function MaterialsList() {
+export function ProductMaterialsList() {
   const [materials, setMaterials] = useState<MaterialListItem[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -70,7 +69,7 @@ export function MaterialsList() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <h1 className="text-2xl font-bold">Materials Management</h1>
+        <h1 className="text-2xl font-bold">Product Materials Management</h1>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
           <div className="relative">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -111,10 +110,9 @@ export function MaterialsList() {
             <TableRow className="bg-muted/50">
               <TableHead>Name</TableHead>
               <TableHead>Activity</TableHead>
-              <TableHead className="text-center">Products Affected</TableHead>
-              <TableHead>User</TableHead>
+              <TableHead className="text-center">Quantity</TableHead>
+              <TableHead>Origin</TableHead>
               <TableHead>Mapping Status</TableHead>
-              <TableHead>Product Status</TableHead>
               <TableHead>Last Updated</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -122,7 +120,7 @@ export function MaterialsList() {
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={8} className="h-24 text-center">
+                <TableCell colSpan={7} className="h-24 text-center">
                   <div className="flex items-center justify-center gap-2">
                     <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
                     <span className="text-muted-foreground">Loading materials...</span>
@@ -131,7 +129,7 @@ export function MaterialsList() {
               </TableRow>
             ) : materials.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="h-24 text-center">
+                <TableCell colSpan={7} className="h-24 text-center">
                   <div className="flex flex-col items-center justify-center gap-1">
                     <p className="text-muted-foreground">No materials found</p>
                     {searchQuery && (
@@ -151,18 +149,15 @@ export function MaterialsList() {
                     !material.activityUuid && 'bg-amber-50/30'
                   )}
                 >
-                  <TableCell className="font-medium">{material.name}</TableCell>
+                  <TableCell className="font-medium">{material.material.name}</TableCell>
                   <TableCell>{material.activityName || 'Not set'}</TableCell>
-                  <TableCell className="text-center">{material.product_affected}</TableCell>
-                  <TableCell>{material.userName || 'Not set'}</TableCell>
+                  <TableCell className="text-center">{material.quantity} {material.unit}</TableCell>
+                  <TableCell>{material.material_origin || 'Not specified'}</TableCell>
                   <TableCell>
-                    <MaterialMappingStatusBadge activityName={material.activityName || ''} />
+                    <MaterialMappingStatusBadge activityUuid={material.activityUuid} />
                   </TableCell>
                   <TableCell>
-                    <MaterialStatusBadge status={material.product_review_status} />
-                  </TableCell>
-                  <TableCell>
-                    {new Date(material.updatedAt).toLocaleDateString(undefined, {
+                    {new Date(material.material.updatedAt).toLocaleDateString(undefined, {
                       year: 'numeric',
                       month: 'short',
                       day: 'numeric',
@@ -170,7 +165,7 @@ export function MaterialsList() {
                   </TableCell>
                   <TableCell className="text-right">
                     <Link
-                      to="/admin/materials/$id"
+                      to="/admin/product-materials/$id"
                       params={{ id: material.id }}
                       className="inline-block"
                     >

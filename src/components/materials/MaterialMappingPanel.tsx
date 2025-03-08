@@ -38,7 +38,7 @@ export function MaterialMappingPanel({
     totalPages,
     setSearchQuery,
     setCurrentPage,
-    refetch,
+    refresh,
   } = useMaterialMappings();
 
   const handleSelect = (mapping: MaterialMapping) => {
@@ -61,7 +61,7 @@ export function MaterialMappingPanel({
         title: "Success",
         description: "Material mapping created successfully",
       });
-      await refetch();
+      await refresh();
       handleSelect(newMapping);
     } catch (error) {
       console.error('Failed to create mapping:', error);
@@ -104,9 +104,10 @@ export function MaterialMappingPanel({
               mappings={mappings}
               loading={loading}
               onSelect={handleSelect}
+              processingId={null}
               searchQuery={searchQuery}
               onSearchChange={handleSearch}
-              selectedId={currentMappingId}
+              selectedId={currentMappingId || null}
               currentPage={currentPage}
               totalPages={totalPages}
               onPageChange={handlePageChange}

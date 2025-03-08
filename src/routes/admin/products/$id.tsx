@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Product, ReviewStatus, CalculationStatus, ImportSource } from '@/interfaces/product';
+import { Product, ReviewStatus, ImportSource } from '@/interfaces/product';
 import { ProtectedRoute } from '@/components/common/ProtectedRoute';
 import { MaterialMappingPanel } from '@/components/materials/MaterialMappingPanel';
 import { MaterialMapping } from '@/interfaces/materialMapping';
@@ -48,13 +48,6 @@ const statusColors: Record<ReviewStatus, string> = {
   pending: 'bg-yellow-100 text-yellow-800',
   reviewed: 'bg-green-100 text-green-800',
   rejected: 'bg-red-100 text-red-800',
-};
-
-const calculationStatusColors: Record<CalculationStatus, string> = {
-  none: 'bg-gray-100 text-gray-800',
-  pending: 'bg-blue-100 text-blue-800',
-  completed: 'bg-green-100 text-green-800',
-  failed: 'bg-red-100 text-red-800',
 };
 
 const importSourceLabels: Record<ImportSource, string> = {
@@ -134,7 +127,7 @@ function ProductDetails() {
 
       // Navigate back to products list after a short delay
       setTimeout(() => {
-        navigate({ to: '/admin/products' });
+        navigate({ to: '/admin/products/list' });
       }, 1500);
 
     } catch (error) {
@@ -160,7 +153,7 @@ function ProductDetails() {
           if (!prev) return null;
           return {
             ...prev,
-            materials: prev.materials.map(m => 
+            productMaterials: prev.productMaterials.map(m => 
               m.id === materialId ? {
                 ...m,
                 activityUuid: undefined,
@@ -190,7 +183,7 @@ function ProductDetails() {
             if (!prev) return null;
             return {
               ...prev,
-              materials: prev.materials.map(m => 
+              productMaterials: prev.productMaterials.map(m => 
                 m.id === materialId ? {
                   ...m,
                   activityUuid: result.activity.uuid,
@@ -210,20 +203,16 @@ function ProductDetails() {
           
           toast({
             title: "Success",
-            description: result.message,
+            description: "Activity mapping updated successfully",
           });
         }
       }
     } catch (error) {
-      console.error('Failed to match material:', error);
-      const errorMessage = error instanceof Error 
-        ? error.message 
-        : "Failed to match material. Please try again.";
-      
+      console.error('Error updating material mapping:', error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: errorMessage,
+        description: "Failed to update activity mapping",
       });
     } finally {
       setProcessingMaterialId(undefined);
@@ -328,12 +317,21 @@ function ProductDetails() {
                 </div>
                 <div>
                   <dt className="text-sm font-medium text-muted-foreground">Calculation Status</dt>
-                  <dd className="text-sm mt-1">
+                  <dd className="mt-1 flex items-center gap-2">
                     <Badge
-                      className={calculationStatusColors[product.calculation_status]}
+                      className={
+                        product.calculation_status === 'completed' || product.calculation_status === 'SUCCESS'
+                          ? 'bg-green-100 text-green-800 hover:bg-green-200'
+                          : product.calculation_status === 'pending'
+                          ? 'bg-blue-100 text-blue-800 hover:bg-blue-200'
+                          : product.calculation_status === 'failed'
+                          ? 'bg-red-100 text-red-800 hover:bg-red-200'
+                          : 'bg-slate-100 text-slate-800 hover:bg-slate-200'
+                      }
                       variant="outline"
                     >
-                      {product.calculation_status}
+                      {product.calculation_status === 'SUCCESS' ? 'Completed' : 
+                       product.calculation_status.charAt(0).toUpperCase() + product.calculation_status.slice(1)}
                     </Badge>
                   </dd>
                 </div>
@@ -423,17 +421,17 @@ function ProductDetails() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {product.materials.map((material) => (
+                {product.productMaterials.map((material) => (
                   <div
                     key={material.id}
                     className="p-4 rounded-lg border space-y-2 relative"
                   >
                     <div className="flex justify-between items-start">
                       <div>
-                        <h3 className="font-medium">{material.name}</h3>
-                        {material.description && (
+                        <h3 className="font-medium">{material.material.name}</h3>
+                        {material.material.description && (
                           <p className="text-sm text-muted-foreground mt-1">
-                            {material.description}
+                            {material.material.description}
                           </p>
                         )}
                       </div>

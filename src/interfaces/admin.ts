@@ -1,19 +1,55 @@
+export interface Impact {
+  id: string;
+  method: string;
+  value: number;
+  unit: string;
+  version: string;
+  createdAt: string;
+  share?: number;
+  activityType?: 'main' | 'transformation';
+}
+
+export interface MaterialImpacts {
+  mainActivityImpacts: Impact[];
+  transformationActivityImpacts: Impact[];
+}
+
 export type ReviewStatus = 'pending' | 'reviewed' | 'rejected';
 export type MappingStatus = 'mapped' | 'unmapped';
 
-export interface MaterialListItem {
+export interface MaterialBasic {
   id: string;
   name: string;
   description?: string;
-  activityUuid?: string;
-  activityName?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MaterialListItem {
+  id: string;
+  productId: string;
+  materialId: string;
+  material: MaterialBasic;
   quantity: number;
   unit: string;
-  userId: string;
-  userName: string;
-  product_review_status: ReviewStatus;
-  updatedAt: string;
-  product_affected: number;
+  activityUuid?: string;
+  activityName?: string;
+  activityUnit?: string;
+  activityOrigin?: string;
+  referenceProduct?: string;
+  transformationActivityUuid?: string;
+  transformationActivityName?: string;
+  transformationActivityUnit?: string;
+  transformationActivityOrigin?: string;
+  transformationReferenceProduct?: string;
+  material_origin?: string;
+  assembling_location?: string;
+  impacts?: MaterialImpacts;
+  completion?: boolean;
+  product_review_status?: ReviewStatus;
+  updatedAt?: string;
+  product_affected?: number;
+  userName?: string;
 }
 
 export interface MaterialDetails {

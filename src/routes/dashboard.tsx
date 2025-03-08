@@ -44,7 +44,7 @@ function Dashboard() {
     completedProducts: products.filter(p => p.completionLevel === 100).length,
     avgFootprint: products.reduce((acc, p) => acc + (p.unitFootprint || 0), 0) / products.length || 0,
     pendingCalculations: products.filter(p => p.calculation_status === 'pending').length,
-    materialsCount: products.reduce((acc, p) => acc + p.materials.length, 0),
+    materialsCount: products.reduce((acc, p) => acc + (p.productMaterials?.length || 0), 0),
   }
 
   // Get top impacting categories
@@ -184,13 +184,13 @@ function Dashboard() {
       </div>
 
       {/* Materials Impact Overview */}
-      {products.length > 0 && products[0].materials.length > 0 && (
+      {products.length > 0 && products[0].productMaterials && products[0].productMaterials.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle>Materials Impact Distribution</CardTitle>
           </CardHeader>
           <CardContent>
-            <MaterialsTreemap materials={products[0].materials} threshold={1} />
+            <MaterialsTreemap materials={products[0].productMaterials} threshold={1} />
           </CardContent>
         </Card>
       )}

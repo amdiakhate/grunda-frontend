@@ -54,6 +54,35 @@ export interface ProductSummary {
   impactDiff: number;
 }
 
+export interface ProductMaterial {
+  id: string;
+  productId: string;
+  materialId: string;
+  material: {
+    id: string;
+    name: string;
+    description?: string;
+    createdAt: string;
+    updatedAt: string;
+  };
+  quantity: number;
+  unit: string;
+  activityUuid?: string;
+  activityName?: string;
+  activityUnit?: string;
+  activityOrigin?: string;
+  referenceProduct?: string;
+  transformationActivityUuid?: string;
+  transformationActivityName?: string;
+  transformationActivityUnit?: string;
+  transformationActivityOrigin?: string;
+  transformationReferenceProduct?: string;
+  material_origin?: string;
+  assembling_location?: string;
+  impacts?: MaterialImpacts;
+  completion?: boolean;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -67,7 +96,7 @@ export interface Product {
   import_source: ImportSource;
   createdAt: string;
   updatedAt: string;
-  materials: Material[];
+  productMaterials: ProductMaterial[];
   summary?: ProductSummary;
   completionLevel: number;
   unitFootprint?: number;

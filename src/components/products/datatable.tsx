@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import {
     Table,
     TableRow,
@@ -5,14 +6,12 @@ import {
     TableHeader,
     TableBody,
     TableCell,
-  } from '../ui/table'
-import { Product } from '../../interfaces/product'
-import { Badge } from '../ui/badge'
-import { SortableHeader } from '../ui/sortable-header'
-import { sortItems } from '@/utils/sorting'
-import { useState } from 'react'
-import { MaterialImpacts } from './MaterialImpacts'
+  } from '@/components/ui/table'
+import { Badge } from '@/components/ui/badge'
+import { SortableHeader, SortConfig } from '@/components/ui/sortable-header'
+import { MaterialImpacts } from '@/components/products/MaterialImpacts'
 import { useStore } from '@/stores/useStore'
+import { Product } from '@/interfaces/product'
 
 export interface DataTableProps {
     data: Product
@@ -20,33 +19,47 @@ export interface DataTableProps {
 
 export function DataTable({ data }: DataTableProps) {
     const { displayedImpact } = useStore();
-    const [sortConfig, setSortConfig] = useState<{
-        key: string
-        direction: 'asc' | 'desc' | null
-    }>({
-        key: '',
-        direction: null,
-    })
+    const [sortConfig, setSortConfig] = useState<SortConfig>({
+        key: 'name',
+        direction: 'asc'
+    });
 
-    const sortedMaterials = sortItems(data.materials, sortConfig)
+    const sortedMaterials = [...data.productMaterials].sort((a, b) => {
+        if (sortConfig.key === 'name') {
+            return sortConfig.direction === 'asc'
+                ? a.material.name.localeCompare(b.material.name)
+                : b.material.name.localeCompare(a.material.name);
+        }
+        
+        if (sortConfig.key === 'quantity') {
+            const aValue = a.quantity || 0;
+            const bValue = b.quantity || 0;
+            return sortConfig.direction === 'asc'
+                ? aValue - bValue
+                : bValue - aValue;
+        }
+        
+        if (sortConfig.key === 'activity') {
+            const aValue = a.activityName || '';
+            const bValue = b.activityName || '';
+            return sortConfig.direction === 'asc'
+                ? aValue.localeCompare(bValue)
+                : bValue.localeCompare(aValue);
+        }
+        
+        return 0;
+    });
 
     const handleSort = (key: string) => {
-        setSortConfig((current) => {
-            if (current.key === key) {
-                if (current.direction === 'asc') {
-                    return { key, direction: 'desc' }
-                }
-                if (current.direction === 'desc') {
-                    return { key: '', direction: null }
-                }
-            }
-            return { key, direction: 'asc' }
-        })
-    }
+        setSortConfig(prevConfig => ({
+            key,
+            direction: prevConfig.key === key && prevConfig.direction === 'asc' ? 'desc' : 'asc'
+        }));
+    };
 
     const formatQuantity = (quantity: number | undefined) => {
         if (quantity === undefined) return '-'
-        return quantity.toFixed(2)
+        return quantity.toLocaleString()
     }
 
     return (
@@ -57,7 +70,7 @@ export function DataTable({ data }: DataTableProps) {
                         <TableHead>
                             <SortableHeader
                                 column="name"
-                                label="Material Name"
+                                label="Material"
                                 sortConfig={sortConfig}
                                 onSort={handleSort}
                             />
@@ -70,8 +83,14 @@ export function DataTable({ data }: DataTableProps) {
                                 onSort={handleSort}
                             />
                         </TableHead>
-                        <TableHead>Unit</TableHead>
-                        <TableHead>Activity</TableHead>
+                        <TableHead>
+                            <SortableHeader
+                                column="activity"
+                                label="Activity"
+                                sortConfig={sortConfig}
+                                onSort={handleSort}
+                            />
+                        </TableHead>
                         <TableHead>Origin</TableHead>
                         {displayedImpact && <TableHead>Impacts</TableHead>}
                         <TableHead>Status</TableHead>
@@ -80,24 +99,14 @@ export function DataTable({ data }: DataTableProps) {
                 <TableBody>
                     {sortedMaterials.map((material) => (
                         <TableRow key={material.id}>
-                            <TableCell>{material.name}</TableCell>
-                            <TableCell>{formatQuantity(material.quantity)}</TableCell>
-                            <TableCell>{material.unit}</TableCell>
+                            <TableCell className="font-medium">
+                                {material.material.name}
+                            </TableCell>
                             <TableCell>
-                                <div className="space-y-1">
-                                    {material.activityName && (
-                                        <div className="text-sm">
-                                            <span className="font-medium">Main: </span>
-                                            {material.activityName}
-                                        </div>
-                                    )}
-                                    {material.transformationActivityName && (
-                                        <div className="text-sm">
-                                            <span className="font-medium">Transform: </span>
-                                            {material.transformationActivityName}
-                                        </div>
-                                    )}
-                                </div>
+                                {formatQuantity(material.quantity)} {material.unit}
+                            </TableCell>
+                            <TableCell>
+                                {material.activityName || 'Not mapped'}
                             </TableCell>
                             <TableCell>
                                 <div className="space-y-1">

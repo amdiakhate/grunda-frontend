@@ -3,11 +3,11 @@ import { Check, X } from 'lucide-react';
 import type { MappingStatus } from '@/interfaces/admin';
 
 interface MaterialMappingStatusBadgeProps {
-  activityName?: string;
+  activityUuid?: string;
 }
 
-export function MaterialMappingStatusBadge({ activityName }: MaterialMappingStatusBadgeProps) {
-  const status: MappingStatus = activityName !== "" ? 'mapped' : 'unmapped';
+export function MaterialMappingStatusBadge({ activityUuid }: MaterialMappingStatusBadgeProps) {
+  const status: MappingStatus = activityUuid ? 'mapped' : 'unmapped';
 
   if (status === 'mapped') {
     return (

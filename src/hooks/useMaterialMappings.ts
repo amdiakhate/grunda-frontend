@@ -1,55 +1,78 @@
-import { useState, useCallback, useEffect } from 'react';
-import { MaterialMapping, MaterialMappingSearchParams } from '@/interfaces/materialMapping';
-import { adminService } from '@/services/admin';
+import { useState, useEffect } from 'react';
+import { materialMappingsService } from '@/services/materialMappings';
+import type { MaterialMapping } from '@/interfaces/materialMapping';
 
-export function useMaterialMappings() {
+interface UseMaterialMappingsResult {
+  mappings: MaterialMapping[];
+  loading: boolean;
+  error: Error | null;
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+  currentPage: number;
+  setCurrentPage: (page: number) => void;
+  totalPages: number;
+  totalItems: number;
+  pageSize: number;
+  setPageSize: (size: number) => void;
+  refresh: () => void;
+}
+
+export function useMaterialMappings(initialPageSize = 10): UseMaterialMappingsResult {
   const [mappings, setMappings] = useState<MaterialMapping[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [params, setParams] = useState<Required<MaterialMappingSearchParams>>({
-    page: 1,
-    pageSize: 10,
-    query: '',
-  });
+  const [totalItems, setTotalItems] = useState(0);
+  const [pageSize, setPageSize] = useState(initialPageSize);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  const fetchMappings = useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await adminService.getMaterialMappings(params);
-      setMappings(response.items);
-      setTotalPages(Math.ceil(response.total / params.pageSize));
-      setCurrentPage(params.page);
-    } catch (error) {
-      console.error('Failed to fetch mappings:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, [params]);
-
-  const search = useCallback((query: string) => {
-    setSearchQuery(query);
-    setParams(prev => ({ ...prev, query, page: 1 }));
-  }, []);
-
-  const refetch = useCallback(() => {
-    return fetchMappings();
-  }, [fetchMappings]);
-
-  // Fetch mappings when params change
   useEffect(() => {
+    const fetchMappings = async () => {
+      try {
+        setLoading(true);
+        const response = await materialMappingsService.getAll({
+          page: currentPage,
+          limit: pageSize,
+          search: searchQuery,
+        });
+        
+        setMappings(response.items);
+        setTotalPages(response.totalPages);
+        setTotalItems(response.totalItems);
+      } catch (err) {
+        console.error('Error fetching material mappings:', err);
+        setError(err instanceof Error ? err : new Error('Failed to fetch material mappings'));
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchMappings();
-  }, [fetchMappings]);
+  }, [currentPage, pageSize, searchQuery, refreshTrigger]);
+
+  // Reset to page 1 when search query changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
+  const refresh = () => {
+    setRefreshTrigger(prev => prev + 1);
+  };
 
   return {
     mappings,
     loading,
+    error,
     searchQuery,
+    setSearchQuery,
     currentPage,
+    setCurrentPage,
     totalPages,
-    setSearchQuery: search,
-    setCurrentPage: (page: number) => setParams(prev => ({ ...prev, page })),
-    refetch,
+    totalItems,
+    pageSize,
+    setPageSize,
+    refresh,
   };
 } 

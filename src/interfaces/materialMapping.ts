@@ -1,39 +1,60 @@
 export interface MaterialMapping {
   id: string;
   materialPattern: string;
-  alternateNames: string[];
-  referenceProduct: string;
-  finalProduct: boolean;
   activityName: string;
+  finalProduct: boolean;
+  alternateNames?: string[];
+  referenceProduct?: string;
   transformationActivityName?: string;
   density?: number;
   lossRate?: number;
+  activityOrigin?: string;
+  activityUnit?: string;
   comment?: string;
   materialsCount?: number;
   createdAt?: string;
   updatedAt?: string;
 }
 
-export interface CreateMaterialMappingDto {
-  materialPattern: string;
-  alternateNames: string[];
-  referenceProduct: string;
-  finalProduct: boolean;
-  activityName: string;
-  transformationActivityName?: string;
-  density?: number;
-  lossRate?: number;
+export type SortField = 'materialPattern' | 'activityName' | 'materialsCount' | 'createdAt' | 'updatedAt';
+export type SortOrder = 'asc' | 'desc';
+
+export interface MaterialMappingSearchParams {
+  page?: number;
+  limit?: number;
+  pageSize?: number;
+  search?: string;
+  finalProductOnly?: boolean;
+  sortBy?: SortField;
+  sortOrder?: SortOrder;
 }
 
-export interface UpdateMaterialMappingDto {
-  materialPattern?: string;
+export interface PaginatedMaterialMappings {
+  items: MaterialMapping[];
+  totalItems: number;
+  totalPages: number;
+  currentPage: number;
+  total?: number;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface CreateMaterialMappingDto {
+  materialPattern: string;
+  activityName: string;
+  finalProduct: boolean;
   alternateNames?: string[];
   referenceProduct?: string;
-  finalProduct?: boolean;
-  activityName?: string;
   transformationActivityName?: string;
   density?: number;
   lossRate?: number;
+  activityOrigin?: string;
+  activityUnit?: string;
+  comment?: string;
+}
+
+export interface UpdateMaterialMappingDto extends Partial<Omit<CreateMaterialMappingDto, 'materialPattern'>> {
+  materialPattern?: string;
 }
 
 export interface MaterialMappingListDto {
@@ -50,22 +71,4 @@ export interface MaterialMappingListDto {
   lossRate?: number;
   createdAt: string;
   updatedAt: string;
-}
-
-export type SortField = 'materialPattern' | 'activityName' | 'materialsCount' | 'createdAt' | 'updatedAt';
-export type SortOrder = 'asc' | 'desc';
-
-export interface MaterialMappingSearchParams {
-  page?: number;
-  pageSize?: number;
-  search?: string;
-  sortBy?: SortField;
-  sortOrder?: SortOrder;
-}
-
-export interface PaginatedMaterialMappings {
-  items: MaterialMappingListDto[];
-  total: number;
-  page: number;
-  pageSize: number;
 } 

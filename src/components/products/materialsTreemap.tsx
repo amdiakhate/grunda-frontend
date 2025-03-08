@@ -1,4 +1,4 @@
-import { Material } from "@/interfaces/product";
+import { Material, Impact, MaterialImpacts } from "@/interfaces/product";
 import { useStore } from "@/stores/useStore";
 import {
     Tooltip,
@@ -8,7 +8,12 @@ import {
 } from "@/components/ui/tooltip";
 
 interface MaterialsTreemapProps {
-    materials: Material[];
+    materials: Material[] | { 
+        material: { name: string, description?: string }, 
+        impacts?: MaterialImpacts, 
+        unit?: string, 
+        referenceProduct?: string 
+    }[];
     threshold?: number;
 }
 
@@ -34,18 +39,24 @@ export function MaterialsTreemap({ materials, threshold = 1 }: MaterialsTreemapP
     if (!displayedImpact || !materials || materials.length === 0) return null;
 
     const data: TreemapItem[] = materials
-        .filter(material => material.impacts)
+        .filter(material => 'impacts' in material && material.impacts)
         .map(material => {
-            const mainImpact = material.impacts?.mainActivityImpacts?.find(i => i.method === displayedImpact.method);
-            const transformImpact = material.impacts?.transformationActivityImpacts?.find(i => i.method === displayedImpact.method);
+            // Vérifier si nous avons affaire à l'ancien ou au nouveau format
+            const materialName = 'material' in material ? material.material.name : material.name;
+            const materialDetails = 'material' in material ? material.material.description : material.description;
+            const materialUnit = material.unit;
+            const materialReferenceProduct = material.referenceProduct;
+            
+            const mainImpact = material.impacts?.mainActivityImpacts?.find((i: Impact) => i.method === displayedImpact.method);
+            const transformImpact = material.impacts?.transformationActivityImpacts?.find((i: Impact) => i.method === displayedImpact.method);
             const totalShare = (mainImpact?.share ?? 0) + (transformImpact?.share ?? 0);
             
             return {
-                name: material.name,
+                name: materialName,
                 size: totalShare,
-                details: material.description,
-                unit: material.unit,
-                referenceProduct: material.referenceProduct
+                details: materialDetails,
+                unit: materialUnit,
+                referenceProduct: materialReferenceProduct
             };
         })
         .filter(item => item.size > 0)

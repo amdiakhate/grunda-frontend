@@ -1,172 +1,145 @@
-import { useState, useEffect } from 'react';
-import { Input } from '@/components/ui/input';
+import { useState } from 'react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { MaterialMapping } from '@/interfaces/materialMapping';
-import { Loader2, Search, ChevronLeft, ChevronRight } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Input } from '@/components/ui/input';
+import { Loader2, Search, Check } from 'lucide-react';
+import { Pagination } from '@/components/ui/pagination';
+import type { MaterialMapping } from '@/interfaces/materialMapping';
 
 interface MaterialMappingListProps {
   mappings: MaterialMapping[];
   loading: boolean;
   onSelect: (mapping: MaterialMapping) => void;
+  processingId: string | null;
   searchQuery: string;
   onSearchChange: (query: string) => void;
-  selectedId?: string;
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
-  processingId?: string | null;
+  selectedId: string | null;
 }
 
 export function MaterialMappingList({
   mappings,
   loading,
   onSelect,
+  processingId,
   searchQuery,
   onSearchChange,
-  selectedId,
   currentPage,
   totalPages,
   onPageChange,
-  processingId,
+  selectedId,
 }: MaterialMappingListProps) {
-  const [searchValue, setSearchValue] = useState(searchQuery);
+  const [localSearch, setLocalSearch] = useState(searchQuery);
 
-  // Sync local search value with parent searchQuery
-  useEffect(() => {
-    setSearchValue(searchQuery);
-  }, [searchQuery]);
-
-  // Debounced search
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (searchValue !== searchQuery) {
-        onSearchChange(searchValue);
-      }
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [searchValue, onSearchChange, searchQuery]);
-
-  const handlePageChange = (page: number) => {
-    // Prevent default scroll behavior
-    const currentScroll = window.scrollY;
-    onPageChange(page);
-    // Restore scroll position after a short delay to ensure the new content is rendered
-    setTimeout(() => window.scrollTo(0, currentScroll), 0);
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSearchChange(localSearch);
   };
 
-  if (processingId) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[300px] space-y-4">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="text-sm text-muted-foreground">
-          {processingId === '' 
-            ? 'Removing current activity mapping...'
-            : 'Updating activity mapping...'}
-        </p>
-      </div>
-    );
-  }
+  const handleClearMapping = () => {
+    onSelect({ 
+      id: '', 
+      materialPattern: '', 
+      activityName: '', 
+      finalProduct: false,
+      alternateNames: [],
+      referenceProduct: ''
+    });
+  };
 
   return (
     <div className="space-y-4">
-      <div className="relative">
-        <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search mappings..."
-          value={searchValue}
-          onChange={(e) => setSearchValue(e.target.value)}
-          className="pl-9"
-        />
+      <form onSubmit={handleSearchSubmit} className="flex gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="search"
+            placeholder="Search mappings..."
+            className="pl-8"
+            value={localSearch}
+            onChange={(e) => setLocalSearch(e.target.value)}
+          />
+        </div>
+        <Button type="submit">Search</Button>
+      </form>
+
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Material Pattern</TableHead>
+              <TableHead>Activity</TableHead>
+              <TableHead>Type</TableHead>
+              <TableHead className="w-[100px]">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={4} className="h-24 text-center">
+                  <div className="flex justify-center items-center space-x-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Loading mappings...</span>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : mappings.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={4} className="h-24 text-center">
+                  No mappings found.
+                </TableCell>
+              </TableRow>
+            ) : (
+              mappings.map((mapping) => (
+                <TableRow key={mapping.id} className={selectedId === mapping.id ? "bg-muted/50" : ""}>
+                  <TableCell>{mapping.materialPattern}</TableCell>
+                  <TableCell>{mapping.activityName}</TableCell>
+                  <TableCell>
+                    {mapping.finalProduct ? 'Final Product' : 'Intermediate'}
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      variant={selectedId === mapping.id ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => onSelect(mapping)}
+                      disabled={processingId !== null}
+                    >
+                      {processingId === mapping.id ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : selectedId === mapping.id ? (
+                        <Check className="h-4 w-4 mr-1" />
+                      ) : null}
+                      {selectedId === mapping.id ? "Selected" : "Select"}
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
       </div>
 
-      {loading ? (
-        <div className="flex justify-center items-center min-h-[300px]">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      {selectedId && (
+        <div className="flex justify-end">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleClearMapping}
+            disabled={processingId !== null}
+          >
+            Clear Mapping
+          </Button>
         </div>
-      ) : mappings.length === 0 ? (
-        <div className="text-center py-8 text-muted-foreground">
-          No mappings found
-          {searchQuery && (
-            <p className="text-sm mt-1">
-              Try adjusting your search criteria
-            </p>
-          )}
-        </div>
-      ) : (
-        <div className="space-y-4">
-          <div className="grid gap-2">
-            {mappings.map((mapping) => (
-              <button
-                key={mapping.id}
-                onClick={() => onSelect(mapping)}
-                className={cn(
-                  'p-4 text-left rounded-lg border hover:bg-muted/50 transition-colors',
-                  selectedId === mapping.id && 'border-primary bg-primary/5'
-                )}
-              >
-                <div className="font-medium">{mapping.materialPattern}</div>
-                {mapping.activityName && (
-                  <div className="text-sm text-muted-foreground mt-1">
-                    Activity: {mapping.activityName}
-                  </div>
-                )}
-                {mapping.referenceProduct && (
-                  <div className="text-sm text-muted-foreground mt-1">
-                    Reference Product: {mapping.referenceProduct}
-                  </div>
-                )}
-                {!mapping.finalProduct && mapping.transformationActivityName && (
-                  <div className="text-sm text-muted-foreground mt-1">
-                    Transformation Activity: {mapping.transformationActivityName}
-                  </div>
-                )}
-                <div className="flex gap-4 text-sm text-muted-foreground mt-1">
-                  {mapping.density && (
-                    <div>Density: {mapping.density} kg/m³</div>
-                  )}
-                  {mapping.lossRate !== undefined && (
-                    <div>Loss Rate: {mapping.lossRate}%</div>
-                  )}
-                </div>
-                {/* <div className="text-sm text-muted-foreground mt-1">
-                  Origin: {mapping.activityOrigin || 'Not specified'}
-                </div> */}
-                {/* <div className="text-sm text-muted-foreground">
-                  Unit: {mapping.activityUnit || 'Not specified'}
-                </div> */}
-              </button>
-            ))}
-          </div>
+      )}
 
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex justify-between items-center pt-4 border-t">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1 || loading}
-              >
-                <ChevronLeft className="h-4 w-4 mr-2" />
-                Previous
-              </Button>
-              <div className="text-sm text-muted-foreground">
-                Page {currentPage} of {totalPages}
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages || loading}
-              >
-                Next
-                <ChevronRight className="h-4 w-4 ml-2" />
-              </Button>
-            </div>
-          )}
-        </div>
+      {totalPages > 1 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={onPageChange}
+        />
       )}
     </div>
   );

@@ -1,56 +1,52 @@
 import { api } from './api';
-import {
+import type {
   MaterialMapping,
-  CreateMaterialMappingDto,
-  UpdateMaterialMappingDto,
-  MaterialMappingListDto,
   MaterialMappingSearchParams,
   PaginatedMaterialMappings,
-} from '../interfaces/materialMapping';
+  CreateMaterialMappingDto,
+  UpdateMaterialMappingDto
+} from '@/interfaces/materialMapping';
 
-interface Activity {
-  name: string;
-  location: string;
-  comment: string;
-  referenceProduct: string;
-  uuid: string;
-  unit: string;
-}
-
-interface SearchActivitiesResponse {
-  numberOfActivities: number;
-  activities: Activity[];
-}
-
-interface SearchActivitiesParams {
-  activityName: string;
-  activityLocation?: string;
-}
-
-export const materialMappingsService = {
+class MaterialMappingsService {
   async getAll(params?: MaterialMappingSearchParams): Promise<PaginatedMaterialMappings> {
-    return api.get<PaginatedMaterialMappings>('/admin/material-mappings', {
-      params: params as Record<string, string>,
+    return api.get<PaginatedMaterialMappings>('/admin/material-mappings', { 
+      params: params as Record<string, string> 
     });
-  },
+  }
 
-  async getById(id: string): Promise<MaterialMappingListDto> {
-    return api.get<MaterialMappingListDto>(`/admin/material-mappings/${id}`);
-  },
+  async getById(id: string): Promise<MaterialMapping> {
+    return api.get<MaterialMapping>(`/admin/material-mappings/${id}`);
+  }
 
-  async create(data: CreateMaterialMappingDto): Promise<MaterialMappingListDto> {
-    return api.post<MaterialMappingListDto>('/admin/material-mappings', data);
-  },
+  async create(data: CreateMaterialMappingDto): Promise<MaterialMapping> {
+    return api.post<MaterialMapping>('/admin/material-mappings', data);
+  }
 
-  async update(id: string, data: UpdateMaterialMappingDto): Promise<MaterialMappingListDto> {
-    return api.put<MaterialMappingListDto>(`/admin/material-mappings/${id}`, data);
-  },
+  async update(id: string, data: UpdateMaterialMappingDto): Promise<MaterialMapping> {
+    return api.put<MaterialMapping>(`/admin/material-mappings/${id}`, data);
+  }
 
-  async delete(id: string): Promise<{ success: boolean }> {
-    return api.delete<{ success: boolean }>(`/admin/material-mappings/${id}`);
-  },
+  async delete(id: string): Promise<void> {
+    return api.delete(`/admin/material-mappings/${id}`);
+  }
 
-  async searchActivities(params: SearchActivitiesParams): Promise<SearchActivitiesResponse> {
-    return api.post<SearchActivitiesResponse>('/admin/material-mappings/search-activities', params);
-  },
-}; 
+  async searchActivities(params: SearchActivityParams): Promise<ActivitySearchResult[]> {
+    return api.get<ActivitySearchResult[]>('/admin/material-mappings/activities/search', { 
+      params: params as Record<string, string> 
+    });
+  }
+}
+
+interface SearchActivityParams {
+  search?: string;
+  limit?: number;
+}
+
+interface ActivitySearchResult {
+  id: string;
+  name: string;
+  origin?: string;
+  unit?: string;
+}
+
+export const materialMappingsService = new MaterialMappingsService(); 

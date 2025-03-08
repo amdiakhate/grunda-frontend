@@ -39,14 +39,14 @@ function MaterialMappingsPage() {
     totalPages,
     setSearchQuery,
     setCurrentPage,
-    refetch,
+    refresh,
   } = useMaterialMappings();
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   const loadMappings = async () => {
     try {
-      await refetch();
+      refresh();
     } catch {
       toast({
         variant: "destructive",
@@ -110,14 +110,14 @@ function MaterialMappingsPage() {
             <TooltipTrigger asChild>
               <div className="font-medium cursor-help">
                 {item.materialPattern}
-                {item.alternateNames.length > 0 && (
+                {item.alternateNames && item.alternateNames.length > 0 && (
                   <Badge variant="secondary" className="ml-2 text-xs">
                     +{item.alternateNames.length}
                   </Badge>
                 )}
               </div>
             </TooltipTrigger>
-            {item.alternateNames.length > 0 && (
+            {item.alternateNames && item.alternateNames.length > 0 && (
               <TooltipContent>
                 <p className="font-medium mb-1">Alternate Names:</p>
                 <ul className="list-disc pl-4 space-y-1">

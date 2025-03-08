@@ -15,12 +15,12 @@ interface MaterialMappingFormProps {
 
 export function MaterialMappingForm({ initialData, onSubmit }: MaterialMappingFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState<CreateMaterialMappingDto>({
+  const [formData, setFormData] = useState<Partial<MaterialMappingListDto>>({
     materialPattern: initialData?.materialPattern || '',
+    activityName: initialData?.activityName || '',
+    finalProduct: initialData?.finalProduct || false,
     alternateNames: initialData?.alternateNames || [],
     referenceProduct: initialData?.referenceProduct || '',
-    finalProduct: initialData?.finalProduct ?? true,
-    activityName: initialData?.activityName || '',
     transformationActivityName: initialData?.transformationActivityName || '',
     density: initialData?.density,
     lossRate: initialData?.lossRate,
@@ -31,17 +31,17 @@ export function MaterialMappingForm({ initialData, onSubmit }: MaterialMappingFo
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      await onSubmit(formData);
+      await onSubmit(formData as CreateMaterialMappingDto);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const addAlternateName = () => {
-    if (alternateName && !formData.alternateNames.includes(alternateName)) {
+    if (alternateName && !formData.alternateNames?.includes(alternateName)) {
       setFormData(prev => ({
         ...prev,
-        alternateNames: [...prev.alternateNames, alternateName],
+        alternateNames: [...(prev.alternateNames || []), alternateName],
       }));
       setAlternateName('');
     }
@@ -50,7 +50,7 @@ export function MaterialMappingForm({ initialData, onSubmit }: MaterialMappingFo
   const removeAlternateName = (name: string) => {
     setFormData(prev => ({
       ...prev,
-      alternateNames: prev.alternateNames.filter(n => n !== name),
+      alternateNames: prev.alternateNames?.filter(n => n !== name) || [],
     }));
   };
 
@@ -60,7 +60,7 @@ export function MaterialMappingForm({ initialData, onSubmit }: MaterialMappingFo
         <Label htmlFor="materialPattern">Material Pattern</Label>
         <Input
           id="materialPattern"
-          value={formData.materialPattern}
+          value={formData.materialPattern || ''}
           onChange={(e) => setFormData(prev => ({ ...prev, materialPattern: e.target.value }))}
           required
         />
@@ -78,7 +78,7 @@ export function MaterialMappingForm({ initialData, onSubmit }: MaterialMappingFo
           <Button type="button" onClick={addAlternateName}>Add</Button>
         </div>
         <div className="flex flex-wrap gap-2">
-          {formData.alternateNames.map((name) => (
+          {formData.alternateNames?.map((name) => (
             <Badge
               key={name}
               variant="secondary"
@@ -175,7 +175,7 @@ export function MaterialMappingForm({ initialData, onSubmit }: MaterialMappingFo
           id="density"
           type="number"
           step="0.01"
-          value={formData.density || ''}
+          value={formData.density?.toString() || ''}
           onChange={(e) => setFormData(prev => ({ ...prev, density: e.target.value ? parseFloat(e.target.value) : undefined }))}
         />
       </div>
@@ -188,7 +188,7 @@ export function MaterialMappingForm({ initialData, onSubmit }: MaterialMappingFo
           step="0.01"
           min="0"
           max="100"
-          value={formData.lossRate || ''}
+          value={formData.lossRate?.toString() || ''}
           onChange={(e) => setFormData(prev => ({ ...prev, lossRate: e.target.value ? parseFloat(e.target.value) : undefined }))}
         />
       </div>

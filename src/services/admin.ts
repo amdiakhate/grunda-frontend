@@ -1,20 +1,20 @@
-import { api } from './api';
-import type {
-  MaterialListQueryParams,
+import {
   MaterialsListResponse,
-  MaterialDetails,
+  MaterialListItem,
+  MaterialListQueryParams,
 } from '../interfaces/admin';
-import type {
-  Product,
-  PaginatedProductsResponse,
-  ReviewProductDto,
-  ReviewStats,
-  ProductsListQueryParams,
-} from '../interfaces/product';
 import type {
   MaterialMappingSearchParams,
   PaginatedMaterialMappings,
 } from '../interfaces/materialMapping';
+import type {
+  Product,
+  PaginatedProductsResponse,
+  ProductsListQueryParams,
+  ReviewProductDto,
+  ReviewStats,
+} from '../interfaces/product';
+import { api } from './api';
 
 export interface DashboardStats {
   products: {
@@ -59,6 +59,37 @@ export interface DashboardStats {
   }>;
 }
 
+// Raw Materials
+interface RawMaterial {
+  id: string;
+  name: string;
+  description?: string;
+  product_affected: number;
+  isMapped: boolean;
+  mappingId?: string;
+  mappingInfo?: {
+    materialPattern: string;
+    activityName: string;
+    finalProduct: boolean;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface RawMaterialsListResponse {
+  items: RawMaterial[];
+  totalItems: number;
+  totalPages: number;
+  currentPage: number;
+}
+
+interface RawMaterialListQueryParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  mappingStatus?: 'mapped' | 'unmapped' | 'all';
+}
+
 export const adminService = {
   async getMaterials(params: MaterialListQueryParams = {}): Promise<MaterialsListResponse> {
     try {
@@ -71,7 +102,7 @@ export const adminService = {
       if (params.showMapped !== undefined) queryParams.append('showMapped', params.showMapped.toString());
 
       const query = queryParams.toString();
-      const url = `/admin/materials${query ? `?${query}` : ''}`;
+      const url = `/admin/product-materials${query ? `?${query}` : ''}`;
 
       return api.get<MaterialsListResponse>(url);
     } catch (error) {
@@ -80,9 +111,9 @@ export const adminService = {
     }
   },
 
-  async getMaterialById(id: string): Promise<MaterialDetails> {
+  async getMaterialById(id: string): Promise<MaterialListItem> {
     try {
-      return api.get<MaterialDetails>(`/admin/materials/${id}`);
+      return api.get<MaterialListItem>(`/admin/product-materials/${id}`);
     } catch (error) {
       console.error('Error fetching material details:', error);
       throw error;
@@ -95,7 +126,9 @@ export const adminService = {
       
       if (params.page) queryParams.append('page', params.page.toString());
       if (params.pageSize) queryParams.append('pageSize', params.pageSize.toString());
-      if (params.query) queryParams.append('search', params.query);
+      if (params.search) queryParams.append('search', params.search);
+      if (params.sortBy) queryParams.append('sortBy', params.sortBy);
+      if (params.sortOrder) queryParams.append('sortOrder', params.sortOrder);
 
       const query = queryParams.toString();
       const url = `/admin/material-mappings${query ? `?${query}` : ''}`;
@@ -107,7 +140,7 @@ export const adminService = {
     }
   },
 
-  async matchMaterial(materialId: string, mappingId: string): Promise<{
+  async matchMaterial(productMaterialId: string, mappingId: string): Promise<{
     success: boolean;
     message: string;
     material: {
@@ -138,28 +171,32 @@ export const adminService = {
     };
   }> {
     try {
-      return api.post(`/admin/materials/${materialId}/match`, {
-        mappingId,
-      });
+      return api.post(`/admin/product-materials/${productMaterialId}/match`, { mappingId });
     } catch (error) {
       console.error('Error matching material:', error);
       throw error;
     }
   },
 
-  async updateMaterialMapping(materialId: string, activityUuid: string) {
-    const response = await api.put<{ success: boolean }>(
-      `/admin/materials/${materialId}/mapping`,
-      { activityUuid }
-    );
-    return response;
+  async updateMaterialMapping(productMaterialId: string, activityUuid: string) {
+    try {
+      return api.put<{ success: boolean }>(
+        `/admin/product-materials/${productMaterialId}/mapping`,
+        { activityUuid }
+      );
+    } catch (error) {
+      console.error('Error updating material mapping:', error);
+      throw error;
+    }
   },
 
-  async removeMaterialMapping(materialId: string) {
-    const response = await api.delete<{ success: boolean }>(
-      `/admin/materials/${materialId}/mapping`
-    );
-    return response;
+  async removeMaterialMapping(productMaterialId: string) {
+    try {
+      return api.delete(`/admin/product-materials/${productMaterialId}/mapping`);
+    } catch (error) {
+      console.error('Error removing material mapping:', error);
+      throw error;
+    }
   },
 
   async getProducts(params: ProductsListQueryParams = {}): Promise<PaginatedProductsResponse> {
@@ -229,5 +266,24 @@ export const adminService = {
       console.error('Error fetching dashboard stats:', error);
       throw error;
     }
+  },
+
+  // Raw Materials
+  async getRawMaterials(params?: RawMaterialListQueryParams): Promise<RawMaterialsListResponse> {
+    return api.get<RawMaterialsListResponse>('/admin/raw-materials', { 
+      params: params as Record<string, string> 
+    });
+  },
+
+  async getRawMaterialById(id: string): Promise<RawMaterial> {
+    return api.get<RawMaterial>(`/admin/raw-materials/${id}`);
+  },
+
+  async matchMaterialGlobal(materialId: string, mappingId: string): Promise<{ success: boolean }> {
+    return api.post<{ success: boolean }>(`/admin/raw-materials/${materialId}/match`, { mappingId });
+  },
+
+  async removeMaterialGlobalMapping(materialId: string): Promise<{ success: boolean }> {
+    return api.delete<{ success: boolean }>(`/admin/raw-materials/${materialId}/match`);
   },
 }; 

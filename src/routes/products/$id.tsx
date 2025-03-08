@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useParams } from '@tanstack/react-router'
 import { useEffect, useState, useCallback } from 'react'
-import { Impact, Material, Product } from '../../interfaces/product'
+import { Impact, Product, ProductMaterial } from '../../interfaces/product'
 import { productsService } from '../../services/products'
 import { DataTable } from '../../components/products/datatable'
 import { Button } from '../../components/ui/button'
@@ -18,244 +18,253 @@ export const Route = createFileRoute('/products/$id')({
 })
 
 function formatPercentage(value: number): string {
-  return Math.round(value).toString();
+  return `${Math.round(value)}%`;
 }
 
 function RouteComponent() {
   const productId = useParams({ from: '/products/$id' }).id;
   const [product, setProduct] = useState<Product | null>(null);
-  const [defaultImpacts, setDefaultImpacts] = useState<Impact[] | null>(null);
+  const [loading, setLoading] = useState(true);
   const [calculationLoading, setCalculationLoading] = useState(false);
+  const [defaultImpacts, setDefaultImpacts] = useState<Impact[] | null>(null);
 
   const fetchProduct = useCallback(async () => {
-    if (!productId) return;
-    
     try {
-      const fetchedProduct = await productsService.getById(productId);
-      if (!fetchedProduct) {
-        throw new Error('Product not found');
-      }
-      
+      setLoading(true);
+      const fetchedProduct = await productsService.getProductById(productId);
       setProduct(fetchedProduct);
-      setCalculationLoading(fetchedProduct.calculation_status === 'pending');
-      
-      // Get default impacts from the first material that has impacts
-      if (fetchedProduct.materials && fetchedProduct.materials.length > 0) {
-        const materialWithImpacts = fetchedProduct.materials.find((material: Material) => {
-          const impacts = material.impacts?.mainActivityImpacts;
-          return Array.isArray(impacts) && impacts.length > 0;
-        });
-        
-        if (materialWithImpacts?.impacts?.mainActivityImpacts) {
+
+      // Trouver le premier matériau avec des impacts pour définir l'impact par défaut
+      if (fetchedProduct.productMaterials && fetchedProduct.productMaterials.length > 0) {
+        const materialWithImpacts = fetchedProduct.productMaterials.find(
+          (pm) => pm.impacts && 
+          Array.isArray(pm.impacts.mainActivityImpacts) && 
+          pm.impacts.mainActivityImpacts.length > 0
+        );
+
+        if (materialWithImpacts && materialWithImpacts.impacts) {
           setDefaultImpacts(materialWithImpacts.impacts.mainActivityImpacts);
         }
       }
     } catch (error) {
       console.error('Error fetching product:', error);
       toast({
-        title: "Error",
-        description: "Failed to load product data",
-        variant: "destructive",
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to load product details',
       });
+    } finally {
+      setLoading(false);
     }
   }, [productId]);
 
-  // Initial fetch
   useEffect(() => {
     fetchProduct();
-  }, [productId]); // Only depend on productId, not fetchProduct
+  }, [fetchProduct]);
 
   const startCalculation = async () => {
-    if (!productId) return;
-    
+    if (!product) return;
+
     try {
       setCalculationLoading(true);
-      await productsService.calculateProductImpact(productId);
+      await productsService.calculateProduct(product.id);
       toast({
-        title: "Impact calculation started",
-        description: "This might take several minutes",
+        title: 'Calculation started',
+        description: 'The product calculation has been initiated',
       });
-      await fetchProduct();
+      // Reload product after a short delay to get updated status
+      setTimeout(() => fetchProduct(), 2000);
     } catch (error) {
-      console.error('Error calculating product impact:', error);
+      console.error('Error starting calculation:', error);
       toast({
-        title: "Error",
-        description: "An error occurred while calculating the product impact",
-        variant: "destructive",
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to start product calculation',
       });
     } finally {
       setCalculationLoading(false);
     }
   };
 
-  if(!product) {
+  if (loading || !product) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="text-lg text-muted-foreground">Loading product details...</p>
+      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <p className="text-sm text-muted-foreground">Loading product details...</p>
       </div>
     );
   }
-  
+
   return (
     <div className="space-y-6">
-      {/* Header Section */}
-      <div className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10 border-b pb-6">
-        <div className="flex justify-between items-start pt-6 px-2">
-          <div className="space-y-3">
-            <div className="flex items-center gap-3">
-              <h1 className="text-4xl font-bold tracking-tight">{product.name}</h1>
-              <Badge variant="outline" className="text-sm px-3 py-1">
-                {product.category}
-              </Badge>
-              {product.completionLevel === 100 ? (
-                <Badge variant="success" className="flex items-center gap-2 px-3 py-1">
-                  <CheckCircle2 className="h-4 w-4" />
-                  Complete
-                </Badge>
-              ) : product.completionLevel >= 75 ? (
-                <Badge variant="warning" className="flex items-center gap-2 px-3 py-1">
-                  <AlertTriangle className="h-4 w-4" />
-                  Almost Complete ({formatPercentage(product.completionLevel)}%)
-                </Badge>
-              ) : product.completionLevel >= 50 ? (
-                <Badge variant="secondary" className="flex items-center gap-2 px-3 py-1">
-                  <Clock className="h-4 w-4" />
-                  In Progress ({formatPercentage(product.completionLevel)}%)
-                </Badge>
-              ) : (
-                <Badge variant="destructive" className="flex items-center gap-2 px-3 py-1">
-                  <AlertCircle className="h-4 w-4" />
-                  Incomplete ({formatPercentage(product.completionLevel)}%)
-                </Badge>
-              )}
-            </div>
-            <div className="flex items-center gap-6">
-              <p className="text-sm text-muted-foreground">
-                Last updated {new Date(product.updatedAt).toLocaleDateString()}
-              </p>
-              <div className="h-4 w-[1px] bg-border" />
-              <div className="flex items-center gap-3">
-                <div className="h-2.5 w-full bg-secondary rounded-full overflow-hidden" style={{ width: '120px' }}>
-                  <div
-                    className="h-full bg-primary transition-all duration-500"
-                    style={{ width: `${product.completionLevel}%` }}
-                  />
-                </div>
-                <span className="text-sm text-muted-foreground">
-                  {formatPercentage(product.completionLevel)}% complete
-                </span>
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center gap-6">
-            <ProductActions 
-              calculationLoading={calculationLoading}
-              onStartCalculation={startCalculation}
-              onDuplicate={() => {/* ... */}}
-              onHistory={() => {/* ... */}}
-              onDelete={() => {/* ... */}}
-              onExport={() => {/* ... */}}
-              onShare={() => {/* ... */}}
-            />
-            <Button asChild variant="outline" size="lg">
-              <Link to="/products/list" className="flex items-center gap-2">
-                <ArrowLeft className="h-5 w-5" />
-                Back to Products
-              </Link>
-            </Button>
-          </div>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Link
+            to="/products/list"
+            className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Products
+          </Link>
+          <h1 className="text-2xl font-bold">{product.name}</h1>
+          <Badge variant="outline" className="ml-2">
+            {product.reference}
+          </Badge>
         </div>
+        <ProductActions product={product} onRefresh={fetchProduct} />
       </div>
 
-      {/* Main Content */}
-      <div className="grid gap-6">
-        {/* Summary Section */}
-        {product.summary && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <LineChart className="h-5 w-5" />
-                Overview
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Summary summary={product.summary} />
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Impact Filter Section */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Product Status */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Filter className="h-5 w-5" />
-              Impact Metrics
+              <Clock className="h-5 w-5" />
+              Status
             </CardTitle>
-            <CardDescription>
-              Select the environmental impact metrics to analyze
-            </CardDescription>
           </CardHeader>
           <CardContent>
-            {defaultImpacts && defaultImpacts.length > 0 ? (
-              <ImpactFilter impactResults={defaultImpacts} />
-            ) : (
-              <div className="flex flex-col items-center justify-center py-8 space-y-4 text-center">
-                <div className="p-4 rounded-full bg-muted">
-                  <Calculator className="h-8 w-8 text-muted-foreground" />
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <div className="text-sm font-medium">Review Status</div>
+                  <div className="text-sm text-muted-foreground">
+                    Current review state of the product
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <h3 className="font-medium">No Impact Analysis Available</h3>
-                  <p className="text-sm text-muted-foreground max-w-[400px]">
-                    {product.completionLevel === 100 ? (
-                      <>
-                        All materials are mapped. You can now run an impact analysis to view environmental metrics.
-                        <div className="mt-4">
-                          <Button
-                            onClick={startCalculation}
-                            disabled={calculationLoading}
-                            className="gap-2"
-                          >
-                            {calculationLoading ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <Calculator className="h-4 w-4" />
-                            )}
-                            {calculationLoading ? "Analysis in Progress..." : "Start Analysis"}
-                          </Button>
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <div className="flex items-center gap-2 mb-2">
-                          <AlertTriangle className="h-4 w-4 text-warning" />
-                          <span className="font-medium text-warning">Incomplete Mapping</span>
-                        </div>
-                        Only {formatPercentage(product.completionLevel)}% of materials are mapped. You can:
-                        <div className="mt-4 space-y-3">
-                          <Button
-                            onClick={startCalculation}
-                            disabled={calculationLoading}
-                            variant="outline"
-                            className="w-full gap-2"
-                          >
-                            {calculationLoading ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <Calculator className="h-4 w-4" />
-                            )}
-                            {calculationLoading ? "Analysis in Progress..." : "Run Partial Analysis"}
-                          </Button>
-                          <p className="text-xs text-muted-foreground italic">
-                            Note: Results will be incomplete and may not reflect the full environmental impact
-                          </p>
-                        </div>
-                      </>
-                    )}
-                  </p>
-                </div>
+                <Badge
+                  className={
+                    product.review_status === 'reviewed'
+                      ? 'bg-green-100 text-green-800 hover:bg-green-200'
+                      : product.review_status === 'rejected'
+                      ? 'bg-red-100 text-red-800 hover:bg-red-200'
+                      : 'bg-amber-100 text-amber-800 hover:bg-amber-200'
+                  }
+                >
+                  {product.review_status === 'reviewed' && (
+                    <CheckCircle2 className="mr-1 h-3 w-3" />
+                  )}
+                  {product.review_status === 'rejected' && (
+                    <AlertCircle className="mr-1 h-3 w-3" />
+                  )}
+                  {product.review_status === 'pending' && (
+                    <Clock className="mr-1 h-3 w-3" />
+                  )}
+                  {product.review_status.charAt(0).toUpperCase() +
+                    product.review_status.slice(1)}
+                </Badge>
               </div>
-            )}
+
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <div className="text-sm font-medium">Calculation Status</div>
+                  <div className="text-sm text-muted-foreground">
+                    Environmental impact calculation status
+                  </div>
+                </div>
+                <Badge
+                  className={
+                    product.calculation_status === 'completed'
+                      ? 'bg-green-100 text-green-800 hover:bg-green-200'
+                      : product.calculation_status === 'failed'
+                      ? 'bg-red-100 text-red-800 hover:bg-red-200'
+                      : product.calculation_status === 'pending'
+                      ? 'bg-blue-100 text-blue-800 hover:bg-blue-200'
+                      : 'bg-slate-100 text-slate-800 hover:bg-slate-200'
+                  }
+                >
+                  {product.calculation_status === 'completed' && (
+                    <CheckCircle2 className="mr-1 h-3 w-3" />
+                  )}
+                  {product.calculation_status === 'failed' && (
+                    <AlertCircle className="mr-1 h-3 w-3" />
+                  )}
+                  {product.calculation_status === 'pending' && (
+                    <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                  )}
+                  {product.calculation_status.charAt(0).toUpperCase() +
+                    product.calculation_status.slice(1)}
+                </Badge>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <div className="text-sm font-medium">Completion Level</div>
+                  <div className="text-sm text-muted-foreground">
+                    Percentage of materials with activity mappings
+                  </div>
+                </div>
+                <Badge
+                  className={
+                    product.completionLevel === 100
+                      ? 'bg-green-100 text-green-800 hover:bg-green-200'
+                      : product.completionLevel >= 50
+                      ? 'bg-amber-100 text-amber-800 hover:bg-amber-200'
+                      : 'bg-red-100 text-red-800 hover:bg-red-200'
+                  }
+                >
+                  {formatPercentage(product.completionLevel)}
+                </Badge>
+              </div>
+
+              <div className="pt-4 border-t">
+                <p className="text-sm text-muted-foreground">
+                  {product.completionLevel === 100 ? (
+                    <>
+                      <div className="flex items-center gap-2 mb-2">
+                        <CheckCircle2 className="h-4 w-4 text-green-600" />
+                        <span className="font-medium text-green-600">
+                          All Materials Mapped
+                        </span>
+                      </div>
+                      All materials have been mapped to activities. You can now:
+                      <div className="mt-4">
+                        <Button
+                          onClick={startCalculation}
+                          disabled={calculationLoading}
+                          className="w-full gap-2"
+                        >
+                          {calculationLoading ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Calculator className="h-4 w-4" />
+                          )}
+                          {calculationLoading
+                            ? "Analysis in Progress..."
+                            : "Run Full Analysis"}
+                        </Button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-2 mb-2">
+                        <AlertTriangle className="h-4 w-4 text-warning" />
+                        <span className="font-medium text-warning">Incomplete Mapping</span>
+                      </div>
+                      Only {formatPercentage(product.completionLevel)}% of materials are mapped. You can:
+                      <div className="mt-4 space-y-3">
+                        <Button
+                          onClick={startCalculation}
+                          disabled={calculationLoading}
+                          variant="outline"
+                          className="w-full gap-2"
+                        >
+                          {calculationLoading ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Calculator className="h-4 w-4" />
+                          )}
+                          {calculationLoading ? "Analysis in Progress..." : "Run Partial Analysis"}
+                        </Button>
+                        <p className="text-xs text-muted-foreground italic">
+                          Note: Results will be incomplete and may not reflect the full environmental impact
+                        </p>
+                      </div>
+                    </>
+                  )}
+                </p>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
@@ -282,7 +291,7 @@ function RouteComponent() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <MaterialsTreemap materials={product.materials} />
+              <MaterialsTreemap materials={product.productMaterials} />
             </CardContent>
           </Card>
         )}
