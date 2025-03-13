@@ -65,6 +65,15 @@ export function ProductDetailView({ product, onBack }: ProductDetailViewProps) {
   const [showMethodDropdown, setShowMethodDropdown] = useState(false);
   const [showOthersTooltip, setShowOthersTooltip] = useState(false);
   
+  // Format number function to properly display decimal values
+  const formatNumber = (num: number) => {
+    if (num === 0) return '0';
+    if (num < 0.01) return num.toExponential(2);
+    if (num < 1) return num.toFixed(3);
+    if (num < 10) return num.toFixed(2);
+    return Math.round(num).toLocaleString();
+  };
+
   // Select the first impact method by default if none is selected
   useEffect(() => {
     if (!displayedImpact && product.summary?.impacts && product.summary.impacts.length > 0) {
@@ -306,7 +315,7 @@ export function ProductDetailView({ product, onBack }: ProductDetailViewProps) {
               <div>
                 <h3 className="text-sm font-medium text-gray-600">Total impact - {currentMethodName}</h3>
                 <p className="text-2xl font-bold">
-                  {Math.round(currentImpactSummary.value).toLocaleString()} {currentImpactSummary.unit}
+                  {formatNumber(currentImpactSummary.value)} {currentImpactSummary.unit}
                 </p>
               </div>
             </div>
@@ -346,7 +355,7 @@ export function ProductDetailView({ product, onBack }: ProductDetailViewProps) {
                                           <span>{detail.share < 1 ? '< 1%' : `${Math.round(detail.share)}%`}</span>
                                         </div>
                                         <div className="text-xs text-gray-300">
-                                          {Math.round(detail.value).toLocaleString()} {detail.unit}
+                                          {formatNumber(detail.value)} {detail.unit}
                                         </div>
                                       </div>
                                     ))}
@@ -403,7 +412,7 @@ export function ProductDetailView({ product, onBack }: ProductDetailViewProps) {
                       className="flex-1 text-center px-2"
                     >
                       <div className="text-xs text-gray-500">
-                        {Math.round(item.value).toLocaleString()} {item.unit}
+                        {formatNumber(item.value)} {item.unit}
                       </div>
                     </div>
                   ))}
@@ -448,10 +457,10 @@ export function ProductDetailView({ product, onBack }: ProductDetailViewProps) {
                                         <div key={i} className="mb-2">
                                           <div className="flex justify-between">
                                             <span>{detail.name}</span>
-                                            <span>{detail.share.toFixed(1)}%</span>
+                                            <span>{Math.round(detail.share)}%</span>
                                           </div>
                                           <div className="text-xs text-gray-300">
-                                            {Math.round(detail.value).toLocaleString()} {detail.unit}
+                                            {formatNumber(detail.value)} {detail.unit}
                                           </div>
                                         </div>
                                       ))}
@@ -465,7 +474,7 @@ export function ProductDetailView({ product, onBack }: ProductDetailViewProps) {
                         </td>
                         <td className="text-right py-2 px-4">{Math.round(item.share)}%</td>
                         <td className="text-right py-2 px-4">
-                          {Math.round(item.value).toLocaleString()} {item.unit}
+                          {formatNumber(item.value)} {item.unit}
                         </td>
                         <td className="text-right py-2 px-4">
                           {item.name !== 'Others' ? `${item.quantity} ${item.materialUnit}` : '-'}
