@@ -46,17 +46,18 @@ export function ActivitySearch({ onSelect, trigger }: ActivitySearchProps) {
     try {
       const response = await materialMappingsService.searchActivities({
         search: searchTerm.trim(),
+        location: location.trim() || 'GLO',
         limit: 20
       });
       
       // Convertir les résultats au format Activity
       const formattedActivities: Activity[] = response.map(result => ({
         name: result.name,
-        location: result.origin || '',
-        unit: result.unit || '',
-        uuid: result.id,
-        referenceProduct: '',  // Ces champs ne sont pas disponibles dans ActivitySearchResult
-        comment: ''           // mais sont requis par l'interface Activity
+        location: result.location,
+        comment: result.comment,
+        referenceProduct: result.referenceProduct,
+        uuid: result.uuid,
+        unit: result.unit
       }));
       
       setActivities(formattedActivities);

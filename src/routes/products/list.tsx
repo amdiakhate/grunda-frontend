@@ -197,12 +197,18 @@ function RouteComponent() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Button asChild variant="outline" size="sm">
-                      <Link to={`/products/${product.id}`} className="flex items-center gap-2">
-                        Details
-                        <ArrowUpRight className="h-4 w-4" />
-                      </Link>
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Button asChild variant="default" size="sm">
+                        <Link 
+                          to="/products/detail" 
+                          search={{ id: product.id }} 
+                          className="flex items-center gap-2"
+                        >
+                          Details
+                          <ArrowUpRight className="h-4 w-4" />
+                        </Link>
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

@@ -74,6 +74,15 @@ interface RawMaterial {
   };
   createdAt: string;
   updatedAt: string;
+  recentProducts?: Array<{
+    id: string;
+    name: string;
+    reference: string;
+    category: string;
+    updatedAt: string;
+    quantity: number;
+    unit: string;
+  }>;
 }
 
 interface RawMaterialsListResponse {
@@ -81,13 +90,18 @@ interface RawMaterialsListResponse {
   totalItems: number;
   totalPages: number;
   currentPage: number;
+  page: number;
+  pageSize: number;
+  total: number;
 }
 
-interface RawMaterialListQueryParams {
+export interface RawMaterialListQueryParams {
   page?: number;
   limit?: number;
   search?: string;
   mappingStatus?: 'mapped' | 'unmapped' | 'all';
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
 }
 
 export const adminService = {

@@ -18,38 +18,78 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Link } from '@tanstack/react-router';
-import { Loader2, Search, Check, X } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { Loader2, Check, X, ArrowDown, ArrowUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { adminService } from '@/services/admin';
 import { AdminPageLayout } from '@/components/admin/AdminPageLayout';
 import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
 import { SearchInput } from '@/components/admin/SearchInput';
 import { AdminTableFooter } from '@/components/admin/AdminTableFooter';
+import type { RawMaterialListQueryParams } from '@/services/admin';
 
 export const Route = createFileRoute('/admin/materials/')({
   component: MaterialsPage,
 });
 
+type SortField = 'name' | 'updatedAt' | 'products' | 'mappingStatus' | 'mapping';
+type SortOrder = 'asc' | 'desc';
+
 function MaterialsPage() {
-  const [materials, setMaterials] = useState<any[]>([]);
+  const [materials, setMaterials] = useState<Array<{
+    id: string;
+    name: string;
+    description?: string;
+    product_affected: number;
+    isMapped: boolean;
+    mappingId?: string;
+    mappingInfo?: {
+      materialPattern: string;
+      activityName: string;
+      finalProduct: boolean;
+    };
+    updatedAt: string;
+    recentProducts?: Array<{
+      id: string;
+      name: string;
+      reference: string;
+      category: string;
+      updatedAt: string;
+      quantity: number;
+      unit: string;
+    }>;
+  }>>([]);
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [filter, setFilter] = useState<'all' | 'mapped' | 'unmapped'>('all');
+  const [sortField, setSortField] = useState<SortField>('name');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
   const pageSize = 10;
 
   useEffect(() => {
     const fetchMaterials = async () => {
       try {
         setLoading(true);
-        const response = await adminService.getRawMaterials({
+        
+        // Préparer les paramètres en évitant les valeurs undefined
+        const params: RawMaterialListQueryParams = {
           page: currentPage,
-          pageSize,
-          search: searchQuery || undefined,
-          mapped: filter === 'all' ? undefined : filter === 'mapped',
-        });
+          limit: pageSize,
+          sortBy: sortField,
+          sortOrder: sortOrder
+        };
+        
+        // Ajouter les paramètres optionnels seulement s'ils ont une valeur
+        if (searchQuery) {
+          params.search = searchQuery;
+        }
+        
+        if (filter !== 'all') {
+          params.mappingStatus = filter;
+        }
+        
+        const response = await adminService.getRawMaterials(params);
         setMaterials(response.items);
         setTotal(response.total);
       } catch (error) {
@@ -60,7 +100,7 @@ function MaterialsPage() {
     };
 
     fetchMaterials();
-  }, [currentPage, pageSize, searchQuery, filter]);
+  }, [currentPage, pageSize, searchQuery, filter, sortField, sortOrder]);
 
   const handleSearch = (value: string) => {
     setSearchQuery(value);
@@ -74,6 +114,28 @@ function MaterialsPage() {
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
+  };
+
+  const handleSort = (field: SortField) => {
+    if (field === sortField) {
+      // Toggle sort order if clicking on the same field
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      // Set new sort field and default to ascending order
+      setSortField(field);
+      setSortOrder('asc');
+    }
+    setCurrentPage(1);
+  };
+
+  const renderSortIcon = (field: SortField) => {
+    if (field !== sortField) return null;
+    
+    return sortOrder === 'asc' ? (
+      <ArrowUp className="ml-1 h-4 w-4 inline" />
+    ) : (
+      <ArrowDown className="ml-1 h-4 w-4 inline" />
+    );
   };
 
   return (
@@ -105,11 +167,36 @@ function MaterialsPage() {
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/50">
-              <TableHead>Name</TableHead>
-              <TableHead className="text-center">Products</TableHead>
-              <TableHead>Mapping Status</TableHead>
-              <TableHead>Mapping</TableHead>
-              <TableHead>Last Updated</TableHead>
+              <TableHead 
+                className="cursor-pointer hover:bg-muted/70"
+                onClick={() => handleSort('name')}
+              >
+                Name {renderSortIcon('name')}
+              </TableHead>
+              <TableHead 
+                className="text-center cursor-pointer hover:bg-muted/70"
+                onClick={() => handleSort('products')}
+              >
+                Products {renderSortIcon('products')}
+              </TableHead>
+              <TableHead 
+                className="cursor-pointer hover:bg-muted/70"
+                onClick={() => handleSort('mappingStatus')}
+              >
+                Mapping Status {renderSortIcon('mappingStatus')}
+              </TableHead>
+              <TableHead 
+                className="cursor-pointer hover:bg-muted/70"
+                onClick={() => handleSort('mapping')}
+              >
+                Mapping {renderSortIcon('mapping')}
+              </TableHead>
+              <TableHead 
+                className="cursor-pointer hover:bg-muted/70"
+                onClick={() => handleSort('updatedAt')}
+              >
+                Last Updated {renderSortIcon('updatedAt')}
+              </TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>

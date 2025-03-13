@@ -17,6 +17,7 @@ interface MaterialMappingListProps {
   totalPages: number;
   onPageChange: (page: number) => void;
   selectedId: string | null;
+  disabled?: boolean;
 }
 
 export function MaterialMappingList({
@@ -30,6 +31,7 @@ export function MaterialMappingList({
   totalPages,
   onPageChange,
   selectedId,
+  disabled = false,
 }: MaterialMappingListProps) {
   const [localSearch, setLocalSearch] = useState(searchQuery);
 
@@ -60,9 +62,10 @@ export function MaterialMappingList({
             className="pl-8"
             value={localSearch}
             onChange={(e) => setLocalSearch(e.target.value)}
+            disabled={disabled}
           />
         </div>
-        <Button type="submit">Search</Button>
+        <Button type="submit" disabled={disabled}>Search</Button>
       </form>
 
       <div className="rounded-md border">
@@ -104,7 +107,7 @@ export function MaterialMappingList({
                       variant={selectedId === mapping.id ? "default" : "outline"}
                       size="sm"
                       onClick={() => onSelect(mapping)}
-                      disabled={processingId !== null}
+                      disabled={processingId !== null || disabled}
                     >
                       {processingId === mapping.id ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -127,7 +130,7 @@ export function MaterialMappingList({
             variant="outline"
             size="sm"
             onClick={handleClearMapping}
-            disabled={processingId !== null}
+            disabled={processingId !== null || disabled}
           >
             Clear Mapping
           </Button>
@@ -139,6 +142,7 @@ export function MaterialMappingList({
           currentPage={currentPage}
           totalPages={totalPages}
           onPageChange={onPageChange}
+          disabled={disabled}
         />
       )}
     </div>

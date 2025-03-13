@@ -21,6 +21,7 @@ import type {
 import type { MaterialDetails, MaterialListItem } from '@/interfaces/admin'
 import { useMaterialMappings } from '@/hooks/useMaterialMappings'
 import { MaterialDetailsCard } from '@/components/materials/MaterialDetailsCard'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 
 export const Route = createFileRoute('/admin/product-materials/$id')({
   component: MaterialDetailsPage,
@@ -44,6 +45,8 @@ function MaterialDetailsPage() {
     setSearchQuery,
     setCurrentPage,
   } = useMaterialMappings()
+  const [confirmMappingDialogOpen, setConfirmMappingDialogOpen] = useState(false);
+  const [pendingMapping, setPendingMapping] = useState<MaterialMapping | null>(null);
 
   useEffect(() => {
     if (id) {
@@ -71,6 +74,20 @@ function MaterialDetailsPage() {
   }
 
   const handleMappingSelect = async (mapping: MaterialMapping) => {
+    if (!productMaterial) return
+
+    // Si un mapping est fourni, afficher la boîte de dialogue de confirmation
+    if (mapping.id) {
+      setPendingMapping(mapping);
+      setConfirmMappingDialogOpen(true);
+      return;
+    }
+    
+    // Sinon, procéder à la suppression du mapping
+    await processMappingSelect(mapping);
+  }
+  
+  const processMappingSelect = async (mapping: MaterialMapping) => {
     if (!productMaterial) return
 
     try {
@@ -120,8 +137,7 @@ function MaterialDetailsPage() {
                   transformationActivityName: result.transformation?.name,
                   transformationActivityUnit: result.transformation?.unit,
                   transformationActivityOrigin: result.transformation?.location,
-                  transformationReferenceProduct:
-                    result.transformation?.referenceProduct,
+                  transformationReferenceProduct: result.transformation?.referenceProduct,
                 }
               : null,
           )
@@ -137,7 +153,7 @@ function MaterialDetailsPage() {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'Failed to update activity mapping',
+        description: 'Failed to update material mapping',
       })
     } finally {
       setProcessingId(null)
@@ -221,7 +237,7 @@ function MaterialDetailsPage() {
           totalPages={totalPages}
           onSearchChange={setSearchQuery}
           onPageChange={setCurrentPage}
-          selectedId={productMaterial.activityUuid}
+          selectedId={productMaterial.activityUuid || null}
         />
       </div>
 
@@ -262,6 +278,23 @@ function MaterialDetailsPage() {
           />
         </DialogContent>
       </Dialog>
+
+      {/* Dialogue de confirmation pour le mapping de matériau */}
+      <ConfirmDialog
+        open={confirmMappingDialogOpen}
+        onOpenChange={setConfirmMappingDialogOpen}
+        title="Confirmation de mise à jour"
+        description="Cette action mettra à jour tous les matériaux de produit utilisant le même matériau pour tous les clients. Voulez-vous continuer?"
+        onConfirm={() => {
+          if (pendingMapping) {
+            processMappingSelect(pendingMapping);
+            setPendingMapping(null);
+          }
+        }}
+        onCancel={() => {
+          setPendingMapping(null);
+        }}
+      />
     </div>
   )
 }

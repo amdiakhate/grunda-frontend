@@ -6,9 +6,10 @@ export interface PaginationProps {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
+  disabled?: boolean;
 }
 
-export function Pagination({ currentPage, totalPages, onPageChange }: PaginationProps) {
+export function Pagination({ currentPage, totalPages, onPageChange, disabled = false }: PaginationProps) {
   const handlePageChange = (page: number) => {
     // Prevent default scroll behavior
     const currentScroll = window.scrollY;
@@ -23,7 +24,7 @@ export function Pagination({ currentPage, totalPages, onPageChange }: Pagination
         variant="outline"
         size="sm"
         onClick={() => handlePageChange(currentPage - 1)}
-        disabled={currentPage === 1}
+        disabled={currentPage === 1 || disabled}
       >
         <ChevronLeft className="h-4 w-4 mr-2" />
         Previous
@@ -35,7 +36,7 @@ export function Pagination({ currentPage, totalPages, onPageChange }: Pagination
         variant="outline"
         size="sm"
         onClick={() => handlePageChange(currentPage + 1)}
-        disabled={currentPage === totalPages}
+        disabled={currentPage === totalPages || disabled}
       >
         Next
         <ChevronRight className="h-4 w-4 ml-2" />

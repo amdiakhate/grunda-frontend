@@ -31,22 +31,33 @@ class MaterialMappingsService {
   }
 
   async searchActivities(params: SearchActivityParams): Promise<ActivitySearchResult[]> {
-    return api.get<ActivitySearchResult[]>('/admin/material-mappings/activities/search', { 
-      params: params as Record<string, string> 
+    const response = await api.post<ActivitySearchResponse>('/admin/material-mappings/search-activities', {
+      activityName: params.search || '',
+      activityLocation: params.location || 'GLO'
     });
+    
+    return response.activities || [];
   }
 }
 
 interface SearchActivityParams {
   search?: string;
+  location?: string;
   limit?: number;
 }
 
+interface ActivitySearchResponse {
+  numberOfActivities: number;
+  activities: ActivitySearchResult[];
+}
+
 interface ActivitySearchResult {
-  id: string;
   name: string;
-  origin?: string;
-  unit?: string;
+  location: string;
+  comment: string;
+  referenceProduct: string;
+  uuid: string;
+  unit: string;
 }
 
 export const materialMappingsService = new MaterialMappingsService(); 
