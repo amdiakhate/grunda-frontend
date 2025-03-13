@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'; // adjust based on your backend URL
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'; // adjust based on your backend URL
 
 import { authService } from './auth';
 
@@ -31,6 +31,10 @@ function getHeaders(config?: RequestConfig): HeadersInit {
 }
 
 async function handleResponse<T>(response: Response): Promise<T> {
+  // Tenter de lire la réponse comme JSON, mais ne pas échouer si ce n'est pas du JSON
+  const contentType = response.headers.get('content-type');
+  const isJson = contentType && contentType.includes('application/json');
+  
   if (!response.ok) {
     if (response.status === 401) {
       // Clear session on unauthorized
@@ -38,24 +42,43 @@ async function handleResponse<T>(response: Response): Promise<T> {
       window.location.href = '/login';
     }
     
-    // Tenter de lire l'erreur comme JSON, mais ne pas échouer si ce n'est pas du JSON
+    // Pour les erreurs, essayer de lire comme JSON
     const errorText = await response.text();
-    let errorObj: { message?: string } = {};
+    let errorData: { 
+      message?: string; 
+      errors?: string[];
+      details?: string;
+      validationRules?: Record<string, string>;
+      suggestions?: string[];
+    } = {};
+    
     try {
-      errorObj = JSON.parse(errorText);
+      errorData = JSON.parse(errorText);
     } catch {
-      errorObj = { message: errorText };
+      errorData = { message: errorText };
     }
     
-    throw new Error(errorObj.message || 'An error occurred');
+    // Si c'est une erreur de validation CSV, retourner les détails complets
+    if (errorData.errors && Array.isArray(errorData.errors)) {
+      return errorData as T;
+    }
+    
+    throw new Error(errorData.message || 'An error occurred');
   }
   
-  // Vérifier si la réponse est vide
-  const contentType = response.headers.get('content-type');
-  if (contentType && contentType.includes('application/json')) {
-    return response.json();
+  // Pour les réponses réussies
+  if (isJson) {
+    const text = await response.text();
+    if (!text) {
+      return {} as T;
+    }
+    try {
+      return JSON.parse(text);
+    } catch {
+      return text as unknown as T;
+    }
   } else {
-    // Pour les réponses non-JSON ou vides
+    // Pour les réponses non-JSON
     const text = await response.text();
     if (!text) {
       return {} as T;

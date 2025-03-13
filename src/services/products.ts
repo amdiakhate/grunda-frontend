@@ -4,6 +4,10 @@ import { Product } from '../interfaces/product';
 interface UploadResponse {
   success: boolean;
   message: string;
+  errors?: string[];
+  details?: string;
+  validationRules?: Record<string, string>;
+  suggestions?: string[];
 }
 
 export const productsService = {
