@@ -25,13 +25,43 @@ export function MaterialMappingForm({ initialData, onSubmit }: MaterialMappingFo
     density: initialData?.density,
     lossRate: initialData?.lossRate,
   });
+  const [lossRateInput, setLossRateInput] = useState(initialData?.lossRate != null ? String(initialData.lossRate) : '');
+  const [densityInput, setDensityInput] = useState(initialData?.density != null ? String(initialData.density) : '');
   const [alternateName, setAlternateName] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    
     try {
-      await onSubmit(formData as CreateMaterialMappingDto);
+      // Convertir le taux de perte et la densité en nombres avant la soumission
+      const dataToSubmit = { ...formData };
+      
+      if (lossRateInput) {
+        // Remplacer la virgule par un point si nécessaire
+        const normalizedValue = lossRateInput.replace(',', '.');
+        const lossRateValue = parseFloat(normalizedValue);
+        
+        if (!isNaN(lossRateValue)) {
+          dataToSubmit.lossRate = lossRateValue;
+        }
+      } else {
+        dataToSubmit.lossRate = undefined;
+      }
+      
+      if (densityInput) {
+        // Remplacer la virgule par un point si nécessaire
+        const normalizedValue = densityInput.replace(',', '.');
+        const densityValue = parseFloat(normalizedValue);
+        
+        if (!isNaN(densityValue)) {
+          dataToSubmit.density = densityValue;
+        }
+      } else {
+        dataToSubmit.density = undefined;
+      }
+      
+      await onSubmit(dataToSubmit as CreateMaterialMappingDto);
     } finally {
       setIsSubmitting(false);
     }
@@ -173,10 +203,10 @@ export function MaterialMappingForm({ initialData, onSubmit }: MaterialMappingFo
         <Label htmlFor="density">Density (kg/m³)</Label>
         <Input
           id="density"
-          type="number"
-          step="0.01"
-          value={formData.density?.toString() || ''}
-          onChange={(e) => setFormData(prev => ({ ...prev, density: e.target.value ? parseFloat(e.target.value) : undefined }))}
+          type="text"
+          placeholder="0.00"
+          value={densityInput}
+          onChange={(e) => setDensityInput(e.target.value)}
         />
       </div>
 
@@ -184,12 +214,10 @@ export function MaterialMappingForm({ initialData, onSubmit }: MaterialMappingFo
         <Label htmlFor="lossRate">Loss Rate (%)</Label>
         <Input
           id="lossRate"
-          type="number"
-          step="0.01"
-          min="0"
-          max="100"
-          value={formData.lossRate?.toString() || ''}
-          onChange={(e) => setFormData(prev => ({ ...prev, lossRate: e.target.value ? parseFloat(e.target.value) : undefined }))}
+          type="text"
+          placeholder="0.006"
+          value={lossRateInput}
+          onChange={(e) => setLossRateInput(e.target.value)}
         />
       </div>
 
