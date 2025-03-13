@@ -46,7 +46,7 @@ export const productsService = {
 
   async calculateProductImpact(productId: string): Promise<{ success: boolean; message: string }> {
     try {
-      return api.post<{ success: boolean; message: string }>(`/products/${productId}/calculate-impact`, {});
+      return api.post<{ success: boolean; message: string }>(`/impacts/${productId}/calculate-impact`, {});
     } catch (error) {
       console.error('Error calculating product impact:', error);
       throw error;

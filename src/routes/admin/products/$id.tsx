@@ -16,6 +16,7 @@ import { ProtectedRoute } from '@/components/common/ProtectedRoute';
 import { MaterialMappingPanel } from '@/components/materials/MaterialMappingPanel';
 import { MaterialMapping } from '@/interfaces/materialMapping';
 import { adminService } from '@/services/admin';
+import { productsService } from '@/services/products';
 import {
   Loader2,
   ArrowLeft,
@@ -28,6 +29,7 @@ import {
   History,
   Package,
   Info,
+  Calculator,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useProducts } from '@/hooks/useProducts';
@@ -70,6 +72,7 @@ function ProductDetails() {
   const [processingMaterialId, setProcessingMaterialId] = useState<string | null>(null);
   const [confirmMappingDialogOpen, setConfirmMappingDialogOpen] = useState(false);
   const [pendingMapping, setPendingMapping] = useState<{ materialId: string, mapping: MaterialMapping } | null>(null);
+  const [calculating, setCalculating] = useState(false);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -128,10 +131,11 @@ function ProductDetails() {
         description: `Product ${action === 'approve' ? 'approved' : 'rejected'} successfully`,
       });
 
-      // Navigate back to products list after a short delay
-      setTimeout(() => {
-        navigate({ to: '/admin/products' });
-      }, 1500);
+      // Reload the product data instead of navigating away
+      const updatedProduct = await getProductById(id);
+      if (updatedProduct) {
+        setProduct(updatedProduct);
+      }
 
     } catch (error) {
       console.error('Failed to review product:', error);
@@ -142,6 +146,41 @@ function ProductDetails() {
       });
     } finally {
       setReviewing(false);
+    }
+  };
+
+  const handleCalculateImpact = async () => {
+    if (!product || !id || calculating) return;
+
+    try {
+      setCalculating(true);
+      const result = await productsService.calculateProductImpact(id);
+      
+      if (result.success) {
+        // Update local product state
+        setProduct(prev => prev ? {
+          ...prev,
+          calculation_status: 'pending',
+        } : null);
+
+        toast({
+          title: "Success",
+          description: result.message || "Impact calculation started successfully",
+        });
+      }
+
+      // Close modal and navigate back to products list
+      navigate({ to: '/admin/products' });
+
+    } catch (error) {
+      console.error('Failed to calculate product impact:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to start impact calculation",
+      });
+    } finally {
+      setCalculating(false);
     }
   };
 
@@ -348,12 +387,27 @@ function ProductDetails() {
                       >
                         {product.calculation_status === 'SUCCESS' ? 'Completed' : 
                          product.calculation_status.charAt(0).toUpperCase() + product.calculation_status.slice(1)}
-                        {product.review_status === 'pending' && (
-                          <span className="text-xs text-muted-foreground ml-2">
-                            Will be calculated upon approval
-                          </span>
-                        )}
                       </Badge>
+                      
+                      {product.review_status === 'reviewed' && 
+                       (product.calculation_status === 'failed' || 
+                        product.calculation_status === undefined || 
+                        product.calculation_status === 'none') && (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="ml-2"
+                          onClick={() => handleCalculateImpact()}
+                          disabled={calculating}
+                        >
+                          {calculating ? (
+                            <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                          ) : (
+                            <Calculator className="h-3 w-3 mr-1" />
+                          )}
+                          Calculate Impact
+                        </Button>
+                      )}
                     </dd>
                   </div>
                   <div>
@@ -378,7 +432,7 @@ function ProductDetails() {
                 </CardTitle>
                 <CardDescription>
                   {product.review_status === 'pending'
-                    ? 'Approve or reject this product with optional comments. Approving a product will automatically trigger the impact calculation.'
+                    ? 'Approve or reject this product with optional comments. After approval, you can manually trigger the impact calculation.'
                     : `This product is currently ${product.review_status}. You can update its review status.`}
                   {product.review_comment && (
                     <div className="mt-2 p-3 bg-muted rounded-md">
@@ -430,12 +484,83 @@ function ProductDetails() {
                   {product.review_status === 'pending' && (
                     <div className="text-xs text-muted-foreground flex items-center mt-2">
                       <Info className="h-3 w-3 mr-1" />
-                      Note: Approving a product will automatically trigger the impact calculation process.
+                      Note: After approving a product, you will need to manually trigger the impact calculation.
                     </div>
                   )}
                 </div>
               </CardContent>
             </Card>
+
+            {/* Impact Calculation Card - Only shown for approved products */}
+            {product.review_status === 'reviewed' && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Impact Calculation</CardTitle>
+                  <CardDescription>
+                    Manually trigger the impact calculation for this product
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-muted rounded-md">
+                      <div className="flex items-start gap-2">
+                        <Info className="h-5 w-5 text-blue-500 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-medium">Current calculation status: 
+                            <span className={
+                              product.calculation_status === 'completed' || product.calculation_status === 'SUCCESS'
+                                ? ' text-green-600'
+                                : product.calculation_status === 'pending'
+                                ? ' text-blue-600'
+                                : product.calculation_status === 'failed'
+                                ? ' text-red-600'
+                                : ' text-slate-600'
+                            }>
+                              {' '}{product.calculation_status === 'SUCCESS' ? 'Completed' : 
+                              product.calculation_status ? product.calculation_status.charAt(0).toUpperCase() + product.calculation_status.slice(1) : 'None'}
+                            </span>
+                          </p>
+                          <p className="text-sm mt-2">
+                            {product.calculation_status === 'completed' || product.calculation_status === 'SUCCESS'
+                              ? 'The impact calculation has been completed successfully.'
+                              : product.calculation_status === 'pending'
+                              ? 'The impact calculation is currently in progress. This may take a few minutes.'
+                              : 'You can trigger the impact calculation for this product using the button below.'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <Button
+                      onClick={handleCalculateImpact}
+                      disabled={calculating || product.calculation_status === 'pending'}
+                      className="w-full"
+                    >
+                      {calculating ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                          Calculating...
+                        </>
+                      ) : (
+                        <>
+                          <Calculator className="h-4 w-4 mr-2" />
+                          {product.calculation_status === 'failed' ? 'Retry Calculation' : 
+                           product.calculation_status === 'completed' || product.calculation_status === 'SUCCESS' ? 'Recalculate Impact' : 
+                           'Calculate Impact'}
+                        </>
+                      )}
+                    </Button>
+                    
+                    {(product.calculation_status === 'pending') && (
+                      <div className="text-xs text-muted-foreground flex items-center mt-2">
+                        <Info className="h-3 w-3 mr-1" />
+                        The calculation is in progress. You can check back later for results.
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           <TabsContent value="materials" className="space-y-6">
