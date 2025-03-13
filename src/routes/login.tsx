@@ -26,7 +26,7 @@ function LoginPage() {
 
     // Une fois authentifié et avec les données utilisateur, rediriger
     if (isAuthenticated && user) {
-      const redirectPath = from || (user.role === 'ADMIN' ? '/admin' : '/dashboard');
+      const redirectPath = from || (user.role === 'ADMIN' ? '/admin/dashboard' : '/dashboard');
       navigate({ to: redirectPath });
     }
   }, [initialized, isAuthenticated, navigate, user, from]);
@@ -38,7 +38,7 @@ function LoginPage() {
     setIsSubmitting(true);
     try {
       const response = await login({ email, password });
-      const redirectPath = from || (response.user.role === 'ADMIN' ? '/admin' : '/dashboard');
+      const redirectPath = from || (response.user.role === 'ADMIN' ? '/admin/dashboard' : '/dashboard');
       navigate({ to: redirectPath });
     } catch (error) {
       console.error('Login failed:', error);

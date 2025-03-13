@@ -27,7 +27,7 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
 
     if (currentPath === '/login') {
       if (isAuthenticated && user) {
-        navigate({ to: user.role === 'ADMIN' ? '/admin' : '/dashboard' });
+        navigate({ to: user.role === 'ADMIN' ? '/admin/dashboard' : '/dashboard' });
       }
       return;
     }

@@ -67,6 +67,22 @@ function ProductsPage() {
       accessorKey: 'category' as const,
     },
     {
+      header: 'Customer',
+      accessorKey: 'customer' as const,
+      cell: (item: { customer?: { fullName: string, email: string } }) => (
+        <div className="flex flex-col">
+          {item.customer ? (
+            <>
+              <span className="font-medium">{item.customer.fullName}</span>
+              <span className="text-xs text-muted-foreground">{item.customer.email}</span>
+            </>
+          ) : (
+            <span className="text-muted-foreground">-</span>
+          )}
+        </div>
+      ),
+    },
+    {
       header: 'Completion',
       accessorKey: 'completionLevel' as const,
       className: 'text-center',

@@ -83,6 +83,14 @@ export interface ProductMaterial {
   completion?: boolean;
 }
 
+export interface Customer {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  fullName: string;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -93,6 +101,7 @@ export interface Product {
   review_status: ReviewStatus;
   review_comment?: string;
   customerId: string;
+  customer?: Customer;
   import_source: ImportSource;
   createdAt: string;
   updatedAt: string;
