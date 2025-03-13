@@ -2,8 +2,8 @@ import { api } from './api';
 import { Product } from '../interfaces/product';
 
 interface UploadResponse {
-  success: boolean;
-  message: string;
+  success?: boolean;
+  message?: string;
   errors?: string[];
   details?: string;
   validationRules?: Record<string, string>;

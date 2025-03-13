@@ -36,24 +36,21 @@ function UploadFileRoute() {
         setValidationError(null)
         const response = await productsService.uploadFile(acceptedFiles[0])
         
-        if (response.success) {
-          setUploadSuccess(true)
-          toast({
-            title: 'Upload successful',
-            description: response.message || 'File has been received and will be processed',
-          })
-          // Redirect after 2 seconds
-          setTimeout(() => {
-            navigate({ to: '/products/list' })
-          }, 2000)
-        } else if (response.errors) {
-          // Handle validation errors
+        if (response.errors && response.errors.length > 0) {
           setValidationError({
             errors: response.errors,
             details: response.details,
             validationRules: response.validationRules,
             suggestions: response.suggestions,
           })
+        } else {
+          setUploadSuccess(true)
+          toast({
+            title: 'Upload successful',
+            description: response.message || 'File has been received and will be processed',
+          })
+          
+          window.location.href = '/products/list';
         }
       } catch (error) {
         toast({

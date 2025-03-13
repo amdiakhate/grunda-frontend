@@ -1,7 +1,6 @@
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, Info, CheckCircle, ChevronDown, ChevronUp, FileDown } from "lucide-react";
 import { useState } from "react";
-import { API_BASE_URL } from "@/services/api";
 import { Button } from "@/components/ui/button";
 import { downloadCSVTemplate } from "@/utils/download-helpers";
 
