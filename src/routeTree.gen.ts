@@ -16,6 +16,7 @@ import { Route as rootRoute } from './routes/__root'
 import { Route as LoginImport } from './routes/login'
 import { Route as DashboardImport } from './routes/dashboard'
 import { Route as IndexImport } from './routes/index'
+import { Route as ProductsUploadHistoryImport } from './routes/products/upload-history'
 import { Route as ProductsListImport } from './routes/products/list'
 import { Route as ProductsDetailImport } from './routes/products/detail'
 import { Route as AdminDashboardImport } from './routes/admin/dashboard'
@@ -65,6 +66,12 @@ const DashboardRoute = DashboardImport.update({
 const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const ProductsUploadHistoryRoute = ProductsUploadHistoryImport.update({
+  id: '/products/upload-history',
+  path: '/products/upload-history',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -216,6 +223,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProductsListImport
       parentRoute: typeof rootRoute
     }
+    '/products/upload-history': {
+      id: '/products/upload-history'
+      path: '/products/upload-history'
+      fullPath: '/products/upload-history'
+      preLoaderRoute: typeof ProductsUploadHistoryImport
+      parentRoute: typeof rootRoute
+    }
     '/admin/material-mappings/$id': {
       id: '/admin/material-mappings/$id'
       path: '/admin/material-mappings/$id'
@@ -307,6 +321,7 @@ export interface FileRoutesByFullPath {
   '/admin/dashboard': typeof AdminDashboardRoute
   '/products/detail': typeof ProductsDetailRoute
   '/products/list': typeof ProductsListRoute
+  '/products/upload-history': typeof ProductsUploadHistoryRoute
   '/admin/material-mappings/$id': typeof AdminMaterialMappingsIdRoute
   '/admin/materials/$id': typeof AdminMaterialsIdRoute
   '/admin/product-materials/$id': typeof AdminProductMaterialsIdRoute
@@ -329,6 +344,7 @@ export interface FileRoutesByTo {
   '/admin/dashboard': typeof AdminDashboardRoute
   '/products/detail': typeof ProductsDetailRoute
   '/products/list': typeof ProductsListRoute
+  '/products/upload-history': typeof ProductsUploadHistoryRoute
   '/admin/material-mappings/$id': typeof AdminMaterialMappingsIdRoute
   '/admin/materials/$id': typeof AdminMaterialsIdRoute
   '/admin/product-materials/$id': typeof AdminProductMaterialsIdRoute
@@ -352,6 +368,7 @@ export interface FileRoutesById {
   '/admin/dashboard': typeof AdminDashboardRoute
   '/products/detail': typeof ProductsDetailRoute
   '/products/list': typeof ProductsListRoute
+  '/products/upload-history': typeof ProductsUploadHistoryRoute
   '/admin/material-mappings/$id': typeof AdminMaterialMappingsIdRoute
   '/admin/materials/$id': typeof AdminMaterialsIdRoute
   '/admin/product-materials/$id': typeof AdminProductMaterialsIdRoute
@@ -376,6 +393,7 @@ export interface FileRouteTypes {
     | '/admin/dashboard'
     | '/products/detail'
     | '/products/list'
+    | '/products/upload-history'
     | '/admin/material-mappings/$id'
     | '/admin/materials/$id'
     | '/admin/product-materials/$id'
@@ -397,6 +415,7 @@ export interface FileRouteTypes {
     | '/admin/dashboard'
     | '/products/detail'
     | '/products/list'
+    | '/products/upload-history'
     | '/admin/material-mappings/$id'
     | '/admin/materials/$id'
     | '/admin/product-materials/$id'
@@ -418,6 +437,7 @@ export interface FileRouteTypes {
     | '/admin/dashboard'
     | '/products/detail'
     | '/products/list'
+    | '/products/upload-history'
     | '/admin/material-mappings/$id'
     | '/admin/materials/$id'
     | '/admin/product-materials/$id'
@@ -441,6 +461,7 @@ export interface RootRouteChildren {
   AdminDashboardRoute: typeof AdminDashboardRoute
   ProductsDetailRoute: typeof ProductsDetailRoute
   ProductsListRoute: typeof ProductsListRoute
+  ProductsUploadHistoryRoute: typeof ProductsUploadHistoryRoute
   AdminMaterialMappingsIdRoute: typeof AdminMaterialMappingsIdRoute
   AdminMaterialsIdRoute: typeof AdminMaterialsIdRoute
   AdminProductMaterialsIdRoute: typeof AdminProductMaterialsIdRoute
@@ -463,6 +484,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminDashboardRoute: AdminDashboardRoute,
   ProductsDetailRoute: ProductsDetailRoute,
   ProductsListRoute: ProductsListRoute,
+  ProductsUploadHistoryRoute: ProductsUploadHistoryRoute,
   AdminMaterialMappingsIdRoute: AdminMaterialMappingsIdRoute,
   AdminMaterialsIdRoute: AdminMaterialsIdRoute,
   AdminProductMaterialsIdRoute: AdminProductMaterialsIdRoute,
@@ -494,6 +516,7 @@ export const routeTree = rootRoute
         "/admin/dashboard",
         "/products/detail",
         "/products/list",
+        "/products/upload-history",
         "/admin/material-mappings/$id",
         "/admin/materials/$id",
         "/admin/product-materials/$id",
@@ -530,6 +553,9 @@ export const routeTree = rootRoute
     },
     "/products/list": {
       "filePath": "products/list.tsx"
+    },
+    "/products/upload-history": {
+      "filePath": "products/upload-history.tsx"
     },
     "/admin/material-mappings/$id": {
       "filePath": "admin/material-mappings/$id.tsx"

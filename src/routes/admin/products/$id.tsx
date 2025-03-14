@@ -362,14 +362,14 @@ function ProductDetails() {
                     <dt className="text-sm font-medium text-muted-foreground">Category</dt>
                     <dd className="text-sm mt-1">{product.category}</dd>
                   </div>
-                  <div>
+                  {/* <div>
                     <dt className="text-sm font-medium text-muted-foreground">Import Source</dt>
                     <dd className="text-sm mt-1">
                       <Badge variant="outline">
                         {importSourceLabels[product.import_source]}
                       </Badge>
                     </dd>
-                  </div>
+                  </div> */}
                   <div>
                     <dt className="text-sm font-medium text-muted-foreground">Calculation Status</dt>
                     <dd className="mt-1 flex items-center gap-2">
