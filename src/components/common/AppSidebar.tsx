@@ -9,7 +9,7 @@ import {
     SidebarMenuItem,
     SidebarFooter,
   } from "@/components/ui/sidebar"
-import { HomeIcon, InfoIcon, PackageIcon, SettingsIcon, LogOutIcon, UserIcon, LucideIcon, HistoryIcon, UploadIcon } from "lucide-react"
+import { HomeIcon, InfoIcon, PackageIcon, SettingsIcon, LogOutIcon, UserIcon, LucideIcon, UploadIcon } from "lucide-react"
 import { Link, useNavigate } from "@tanstack/react-router"
 import { useAuthContext } from "@/contexts/AuthContext"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -36,11 +36,6 @@ const defaultItems = [
     name: "Upload Products",
     icon: UploadIcon,
     href: "/products/steps/upload-file",
-  },
-  {
-    name: "Upload History",
-    icon: HistoryIcon,
-    href: "/products/upload-history",
   },
   {
     name: "About",

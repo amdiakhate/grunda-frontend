@@ -16,6 +16,7 @@ import { Loader2, Calendar, Box, ArrowUpRight } from 'lucide-react'
 import { Badge } from '../../components/ui/badge'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../../components/ui/tooltip'
 import { formatDistanceToNow } from 'date-fns'
+import { useAuthContext } from '../../contexts/AuthContext'
 
 export const Route = createFileRoute('/products/list')({
   component: RouteComponent,
@@ -32,6 +33,9 @@ function RouteComponent() {
     category: '',
     search: ''
   })
+  
+  // Get user role from auth context
+  const { isAdmin } = useAuthContext();
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -51,6 +55,11 @@ function RouteComponent() {
   const itemsPerPage = 5
   
   const filteredProducts = products.filter(product => {
+    // For customers, only show approved products
+    if (!isAdmin && product.review_status !== 'reviewed') {
+      return false;
+    }
+    
     const matchesCategory = !filters.category || product.category === filters.category
     const matchesSearch = !filters.search || 
       product.name.toLowerCase().includes(filters.search.toLowerCase()) ||
@@ -89,6 +98,20 @@ function RouteComponent() {
       return <Badge variant="secondary">In Progress</Badge>;
     } else {
       return <Badge variant="destructive">Incomplete</Badge>;
+    }
+  };
+
+  // Function to render review status badge
+  const getReviewStatusBadge = (status: string) => {
+    switch (status) {
+      case 'reviewed':
+        return <Badge variant="success">Approved</Badge>;
+      case 'pending':
+        return <Badge variant="warning">Pending Review</Badge>;
+      case 'rejected':
+        return <Badge variant="destructive">Rejected</Badge>;
+      default:
+        return <Badge variant="outline">Unknown</Badge>;
     }
   };
 
@@ -137,87 +160,101 @@ function RouteComponent() {
                 <TableHead className="w-[150px]">Category</TableHead>
                 <TableHead className="w-[200px]">Environmental Impact</TableHead>
                 <TableHead className="w-[150px]">Materials Status</TableHead>
+                {isAdmin && <TableHead className="w-[150px]">Review Status</TableHead>}
                 <TableHead className="w-[150px]">Last Updated</TableHead>
                 <TableHead className="w-[100px]">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {paginatedProducts.map((product) => (
-                <TableRow key={product.id}>
-                  <TableCell>
-                    <div className="flex flex-col">
-                      <span className="font-medium">{product.name}</span>
-                      <span className="text-xs text-muted-foreground">ID: {product.id}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="font-normal">
-                      {product.category}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger className="text-left">
-                          <div className="flex flex-col">
-                            <span>Unit: {formatValue(product.unitFootprint)}</span>
-                            <span className="text-xs text-muted-foreground">
-                              Total: {formatValue(product.totalFootprint)}
-                            </span>
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <div className="space-y-1">
-                            <div>
-                              <span className="font-medium">Unit Footprint:</span> {formatValue(product.unitFootprint)}
-                            </div>
-                            <div>
-                              <span className="font-medium">Total Footprint:</span> {formatValue(product.totalFootprint)}
-                            </div>
-                          </div>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col gap-1">
-                      {getCompletionBadge(product.completionLevel)}
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div
-                          className="bg-primary rounded-full h-2"
-                          style={{ width: `${product.completionLevel}%` }}
-                        />
+              {paginatedProducts.length > 0 ? (
+                paginatedProducts.map((product) => (
+                  <TableRow key={product.id}>
+                    <TableCell>
+                      <div className="flex flex-col">
+                        <span className="font-medium">{product.name}</span>
+                        <span className="text-xs text-muted-foreground">ID: {product.id}</span>
                       </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Calendar className="h-4 w-4" />
-                      {formatDate(product.updatedAt)}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Button asChild variant="default" size="sm">
-                        <Link 
-                          to="/products/detail" 
-                          search={{ id: product.id }} 
-                          className="flex items-center gap-2"
-                        >
-                          Details
-                          <ArrowUpRight className="h-4 w-4" />
-                        </Link>
-                      </Button>
-                    </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="font-normal">
+                        {product.category}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger className="text-left">
+                            <div className="flex flex-col">
+                              <span>Unit: {formatValue(product.unitFootprint)}</span>
+                              <span className="text-xs text-muted-foreground">
+                                Total: {formatValue(product.totalFootprint)}
+                              </span>
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <div className="space-y-1">
+                              <div>
+                                <span className="font-medium">Unit Footprint:</span> {formatValue(product.unitFootprint)}
+                              </div>
+                              <div>
+                                <span className="font-medium">Total Footprint:</span> {formatValue(product.totalFootprint)}
+                              </div>
+                            </div>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col gap-1">
+                        {getCompletionBadge(product.completionLevel)}
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div
+                            className="bg-primary rounded-full h-2"
+                            style={{ width: `${product.completionLevel}%` }}
+                          />
+                        </div>
+                      </div>
+                    </TableCell>
+                    {isAdmin && (
+                      <TableCell>
+                        {getReviewStatusBadge(product.review_status)}
+                      </TableCell>
+                    )}
+                    <TableCell>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Calendar className="h-4 w-4" />
+                        {formatDate(product.updatedAt)}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Button asChild variant="default" size="sm">
+                          <Link 
+                            to="/products/detail" 
+                            search={{ id: product.id }} 
+                            className="flex items-center gap-2"
+                          >
+                            Details
+                            <ArrowUpRight className="h-4 w-4" />
+                          </Link>
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={isAdmin ? 7 : 6} className="text-center py-8 text-gray-500">
+                    No products found
                   </TableCell>
                 </TableRow>
-              ))}
+              )}
             </TableBody>
           </Table>
 
           <div className="flex justify-between items-center mt-4">
             <div className="text-sm text-muted-foreground">
-              Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredProducts.length)} of {filteredProducts.length} products
+              Showing {filteredProducts.length > 0 ? startIndex + 1 : 0} to {Math.min(startIndex + itemsPerPage, filteredProducts.length)} of {filteredProducts.length} products
             </div>
             <div className="flex gap-2">
               <Button
@@ -228,12 +265,12 @@ function RouteComponent() {
                 Previous
               </Button>
               <span className="py-2">
-                Page {currentPage} of {totalPages}
+                Page {currentPage} of {totalPages || 1}
               </span>
               <Button
                 variant="outline"
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(p => Math.min(totalPages || 1, p + 1))}
+                disabled={currentPage === totalPages || totalPages === 0}
               >
                 Next
               </Button>
