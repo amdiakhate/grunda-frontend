@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Product, Impact } from '@/interfaces/product';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -64,6 +64,13 @@ export function ProductDetailView({ product, onBack }: ProductDetailViewProps) {
   const [viewMode, setViewMode] = useState<'graph' | 'table'>('graph');
   const [showMethodDropdown, setShowMethodDropdown] = useState(false);
   const [showOthersTooltip, setShowOthersTooltip] = useState(false);
+  
+  // Check if product has any material analysis data
+  const hasMaterialAnalysis = useMemo(() => {
+    return product.summary?.impacts && 
+           product.summary.impacts.length > 0 && 
+           product.productMaterials?.some(material => material.impacts);
+  }, [product]);
   
   // Format number function to properly display decimal values
   const formatNumber = (num: number) => {
@@ -244,259 +251,287 @@ export function ProductDetailView({ product, onBack }: ProductDetailViewProps) {
         <Card className="p-6 rounded-lg shadow-sm">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-bold">Materials analysis</h2>
-            <div className="flex bg-black text-white rounded-full overflow-hidden">
-              <button 
-                className={`px-4 py-2 flex items-center ${viewMode === 'graph' ? 'bg-black' : 'bg-gray-700'}`}
-                onClick={() => setViewMode('graph')}
-              >
-                <BarChart3 className="h-4 w-4 mr-2" />
-                Graph
-              </button>
-              <button 
-                className={`px-4 py-2 flex items-center ${viewMode === 'table' ? 'bg-black' : 'bg-gray-700'}`}
-                onClick={() => setViewMode('table')}
-              >
-                <TableIcon className="h-4 w-4 mr-2" />
-                Table
-              </button>
-            </div>
+            {hasMaterialAnalysis && (
+              <div className="flex bg-black text-white rounded-full overflow-hidden">
+                <button 
+                  className={`px-4 py-2 flex items-center ${viewMode === 'graph' ? 'bg-black' : 'bg-gray-700'}`}
+                  onClick={() => setViewMode('graph')}
+                >
+                  <BarChart3 className="h-4 w-4 mr-2" />
+                  Graph
+                </button>
+                <button 
+                  className={`px-4 py-2 flex items-center ${viewMode === 'table' ? 'bg-black' : 'bg-gray-700'}`}
+                  onClick={() => setViewMode('table')}
+                >
+                  <TableIcon className="h-4 w-4 mr-2" />
+                  Table
+                </button>
+              </div>
+            )}
           </div>
 
-          <div className="mb-6">
-            <h3 className="text-sm font-medium mb-2">Impact Method</h3>
-            <div className="relative">
-              <button 
-                className="w-full flex items-center justify-between px-4 py-2 bg-gray-100 rounded-md border border-gray-300 text-left"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowMethodDropdown(!showMethodDropdown);
-                }}
-              >
-                <span className="flex items-center">
-                  {currentMethodIcon && <span className="mr-2">{currentMethodIcon}</span>}
-                  {currentMethodName}
-                </span>
-                <ChevronDown className="h-4 w-4" />
-              </button>
-              
-              {showMethodDropdown && (
-                <div className="absolute z-10 mt-1 w-full bg-white rounded-md shadow-lg max-h-60 overflow-auto">
-                  {impactMethods.map((method) => {
-                    const isAvailable = product.summary?.impacts.some(impact => impact.method === method.method);
-                    const isSelected = displayedImpact?.method === method.method;
-                    
-                    return (
-                      <button
-                        key={method.method}
-                        disabled={!isAvailable}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setDisplayedImpact({ method: method.method, unit: method.unit });
-                          setShowMethodDropdown(false);
-                        }}
-                        className={`w-full text-left px-4 py-2 flex items-center ${
-                          isSelected 
-                            ? 'bg-black text-white' 
-                            : 'hover:bg-gray-100'
-                        } ${!isAvailable ? 'opacity-50 cursor-not-allowed' : ''}`}
-                      >
-                        <span className="mr-2">{method.icon}</span>
-                        {method.name}
-                      </button>
-                    );
-                  })}
+          {!hasMaterialAnalysis ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="bg-gray-100 p-4 rounded-full mb-4">
+                <BarChart3 className="h-8 w-8 text-gray-400" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-700 mb-2">No material analysis available yet</h3>
+              <p className="text-gray-500 max-w-md">
+                This product doesn't have any material analysis data yet. Material analysis will be available once the product has been processed and reviewed.
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="mb-6">
+                <h3 className="text-sm font-medium mb-2">Impact Method</h3>
+                <div className="relative">
+                  <button 
+                    className="w-full flex items-center justify-between px-4 py-2 bg-gray-100 rounded-md border border-gray-300 text-left"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowMethodDropdown(!showMethodDropdown);
+                    }}
+                  >
+                    <span className="flex items-center">
+                      {currentMethodIcon && <span className="mr-2">{currentMethodIcon}</span>}
+                      {currentMethodName}
+                    </span>
+                    <ChevronDown className="h-4 w-4" />
+                  </button>
+                  
+                  {showMethodDropdown && (
+                    <div className="absolute z-10 mt-1 w-full bg-white rounded-md shadow-lg max-h-60 overflow-auto">
+                      {impactMethods.map((method) => {
+                        const isAvailable = product.summary?.impacts.some(impact => impact.method === method.method);
+                        const isSelected = displayedImpact?.method === method.method;
+                        
+                        return (
+                          <button
+                            key={method.method}
+                            disabled={!isAvailable}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDisplayedImpact({ method: method.method, unit: method.unit });
+                              setShowMethodDropdown(false);
+                            }}
+                            className={`w-full text-left px-4 py-2 flex items-center ${
+                              isSelected 
+                                ? 'bg-black text-white' 
+                                : 'hover:bg-gray-100'
+                            } ${!isAvailable ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          >
+                            <span className="mr-2">{method.icon}</span>
+                            {method.name}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {currentImpactSummary && (
+                <div className="mb-6 p-4 bg-gray-100 rounded-lg">
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-600">Total impact - {currentMethodName}</h3>
+                    <p className="text-2xl font-bold">
+                      {formatNumber(currentImpactSummary.value)} {currentImpactSummary.unit}
+                    </p>
+                  </div>
                 </div>
               )}
-            </div>
-          </div>
 
-          {currentImpactSummary && (
-            <div className="mb-6 p-4 bg-gray-100 rounded-lg">
-              <div>
-                <h3 className="text-sm font-medium text-gray-600">Total impact - {currentMethodName}</h3>
-                <p className="text-2xl font-bold">
-                  {formatNumber(currentImpactSummary.value)} {currentImpactSummary.unit}
-                </p>
-              </div>
-            </div>
-          )}
-
-          {viewMode === 'graph' && chartData.length > 0 && (
-            <div className="mt-6">
-              <h3 className="text-sm font-medium mb-4">Impact distribution by material</h3>
-              
-              <div className="mt-8">
-                {/* Material names and percentages at the top */}
-                <div className="flex mb-4">
-                  {chartData.map((item, index) => (
-                    <div 
-                      key={`header-${index}`} 
-                      className="flex-1 text-center px-2"
-                    >
-                      <div className="flex flex-col items-center">
-                        <div className="flex items-center mb-1">
-                          <span className="text-sm font-medium truncate">{item.name}</span>
-                          {item.name === 'Others' && item.details && (
-                            <div 
-                              className="ml-1 cursor-help relative"
-                              onMouseEnter={handleOthersMouseEnter}
-                              onMouseLeave={handleOthersMouseLeave}
-                            >
-                              <Info size={14} className="text-gray-500" />
-                              
-                              {showOthersTooltip && (
-                                <div className="absolute bottom-full right-0 mb-2 p-3 bg-black text-white rounded-md shadow-lg z-50 w-64">
-                                  <h4 className="font-bold mb-2">Other materials</h4>
-                                  <div className="max-h-60 overflow-y-auto">
-                                    {item.details.map((detail, i) => (
-                                      <div key={i} className="mb-2">
-                                        <div className="flex justify-between">
-                                          <span>{detail.name}</span>
-                                          <span>{detail.share < 1 ? '< 1%' : `${Math.round(detail.share)}%`}</span>
-                                        </div>
-                                        <div className="text-xs text-gray-300">
-                                          {formatNumber(detail.value)} {detail.unit}
-                                        </div>
+              {viewMode === 'graph' && chartData.length > 0 && (
+                <div className="mt-6">
+                  <h3 className="text-sm font-medium mb-4">Impact distribution by material</h3>
+                  
+                  <div className="mt-8">
+                    {/* Material names and percentages at the top */}
+                    <div className="flex mb-4">
+                      {chartData.map((item, index) => (
+                        <div 
+                          key={`header-${index}`} 
+                          className="flex-1 text-center px-2"
+                        >
+                          <div className="flex flex-col items-center">
+                            <div className="flex items-center mb-1">
+                              <span className="text-sm font-medium truncate">{item.name}</span>
+                              {item.name === 'Others' && item.details && (
+                                <div 
+                                  className="ml-1 cursor-help relative"
+                                  onMouseEnter={handleOthersMouseEnter}
+                                  onMouseLeave={handleOthersMouseLeave}
+                                >
+                                  <Info size={14} className="text-gray-500" />
+                                  
+                                  {showOthersTooltip && (
+                                    <div className="absolute bottom-full right-0 mb-2 p-3 bg-black text-white rounded-md shadow-lg z-50 w-64">
+                                      <h4 className="font-bold mb-2">Other materials</h4>
+                                      <div className="max-h-60 overflow-y-auto">
+                                        {item.details.map((detail, i) => (
+                                          <div key={i} className="mb-2">
+                                            <div className="flex justify-between">
+                                              <span>{detail.name}</span>
+                                              <span>{detail.share < 1 ? '< 1%' : `${Math.round(detail.share)}%`}</span>
+                                            </div>
+                                            <div className="text-xs text-gray-300">
+                                              {formatNumber(detail.value)} {detail.unit}
+                                            </div>
+                                          </div>
+                                        ))}
                                       </div>
-                                    ))}
-                                  </div>
-                                  <div className="absolute right-4 -bottom-2 w-3 h-3 bg-black rotate-45"></div>
+                                      <div className="absolute right-4 -bottom-2 w-3 h-3 bg-black rotate-45"></div>
+                                    </div>
+                                  )}
                                 </div>
                               )}
                             </div>
-                          )}
+                            <div className="text-lg font-bold">{item.displayShare}%</div>
+                          </div>
                         </div>
-                        <div className="text-lg font-bold">{item.displayShare}%</div>
-                      </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-                
-                {/* Vertical bars */}
-                <div className="flex h-[300px] items-end mb-4">
-                  {chartData.map((item, index) => {
-                    // Calculate bar height based on percentage, with minimum height for visibility
-                    const barHeight = item.share > 0 
-                      ? Math.max((item.share / 100) * 300, 5)
-                      : 5;
                     
-                    return (
-                      <div 
-                        key={`bar-${index}`} 
-                        className="flex-1 flex items-end justify-center px-2"
-                      >
-                        <div 
-                          className={`rounded-md relative w-full ${
-                            item.name === 'Others' ? 'bg-gray-400' : 'bg-[#6B5CA5]'
-                          }`}
-                          style={{
-                            height: `${barHeight}px`,
-                          }}
-                        >
-                          {item.share >= 5 && (
-                            <div className="absolute inset-0 flex items-center justify-center text-white font-medium">
-                              {item.displayShare}%
+                    {/* Vertical bars */}
+                    <div className="flex h-[300px] items-end mb-4">
+                      {chartData.map((item, index) => {
+                        // Calculate bar height based on percentage, with minimum height for visibility
+                        const barHeight = item.share > 0 
+                          ? Math.max((item.share / 100) * 300, 5)
+                          : 5;
+                        
+                        return (
+                          <div 
+                            key={`bar-${index}`} 
+                            className="flex-1 flex items-end justify-center px-2"
+                          >
+                            <div 
+                              className={`rounded-md relative w-full ${
+                                item.name === 'Others' ? 'bg-gray-400' : 'bg-[#6B5CA5]'
+                              }`}
+                              style={{
+                                height: `${barHeight}px`,
+                              }}
+                            >
+                              {item.share >= 5 && (
+                                <div className="absolute inset-0 flex items-center justify-center text-white font-medium">
+                                  {item.displayShare}%
+                                </div>
+                              )}
                             </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-                
-                {/* Values at the bottom */}
-                <div className="flex">
-                  {chartData.map((item, index) => (
-                    <div 
-                      key={`value-${index}`} 
-                      className="flex-1 text-center px-2"
-                    >
-                      <div className="text-xs text-gray-500">
-                        {formatNumber(item.value)} {item.unit}
-                      </div>
+                          </div>
+                        );
+                      })}
                     </div>
-                  ))}
+                    
+                    {/* Values at the bottom */}
+                    <div className="flex">
+                      {chartData.map((item, index) => (
+                        <div 
+                          key={`value-${index}`} 
+                          className="flex-1 text-center px-2"
+                        >
+                          <div className="text-xs text-gray-500">
+                            {formatNumber(item.value)} {item.unit}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          )}
+              )}
 
-          {viewMode === 'table' && chartData.length > 0 && (
-            <div className="mt-6">
-              <h3 className="text-sm font-medium mb-4">Impact details by material</h3>
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="text-left py-2 px-4">Material</th>
-                      <th className="text-right py-2 px-4">Share (%)</th>
-                      <th className="text-right py-2 px-4">Value</th>
-                      <th className="text-right py-2 px-4">Quantity</th>
-                      <th className="text-left py-2 px-4">Activity</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {chartData.map((item, index) => (
-                      <tr key={index} className="border-b hover:bg-gray-50">
-                        <td className="py-2 px-4">
-                          <div className="flex items-center">
-                            {item.name}
-                            {item.name === 'Others' && item.details && (
-                              <div 
-                                className="ml-1 cursor-help relative"
-                                onMouseEnter={handleOthersMouseEnter}
-                                onMouseLeave={handleOthersMouseLeave}
-                              >
-                                <Info size={16} className="text-gray-500" />
-                                
-                                {showOthersTooltip && (
-                                  <div className="absolute bottom-full left-0 mb-2 p-3 bg-black text-white rounded-md shadow-lg z-50 w-64">
-                                    <h4 className="font-bold mb-2">Other materials</h4>
-                                    <div className="max-h-60 overflow-y-auto">
-                                      {item.details.map((detail, i) => (
-                                        <div key={i} className="mb-2">
-                                          <div className="flex justify-between">
-                                            <span>{detail.name}</span>
-                                            <span>{Math.round(detail.share)}%</span>
-                                          </div>
-                                          <div className="text-xs text-gray-300">
-                                            {formatNumber(detail.value)} {detail.unit}
-                                          </div>
+              {viewMode === 'table' && chartData.length > 0 && (
+                <div className="mt-6">
+                  <h3 className="text-sm font-medium mb-4">Impact details by material</h3>
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr className="border-b">
+                          <th className="text-left py-2 px-4">Material</th>
+                          <th className="text-right py-2 px-4">Share (%)</th>
+                          <th className="text-right py-2 px-4">Value</th>
+                          <th className="text-right py-2 px-4">Quantity</th>
+                          <th className="text-left py-2 px-4">Activity</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {chartData.map((item, index) => (
+                          <tr key={index} className="border-b hover:bg-gray-50">
+                            <td className="py-2 px-4">
+                              <div className="flex items-center">
+                                {item.name}
+                                {item.name === 'Others' && item.details && (
+                                  <div 
+                                    className="ml-1 cursor-help relative"
+                                    onMouseEnter={handleOthersMouseEnter}
+                                    onMouseLeave={handleOthersMouseLeave}
+                                  >
+                                    <Info size={16} className="text-gray-500" />
+                                    
+                                    {showOthersTooltip && (
+                                      <div className="absolute bottom-full left-0 mb-2 p-3 bg-black text-white rounded-md shadow-lg z-50 w-64">
+                                        <h4 className="font-bold mb-2">Other materials</h4>
+                                        <div className="max-h-60 overflow-y-auto">
+                                          {item.details.map((detail, i) => (
+                                            <div key={i} className="mb-2">
+                                              <div className="flex justify-between">
+                                                <span>{detail.name}</span>
+                                                <span>{Math.round(detail.share)}%</span>
+                                              </div>
+                                              <div className="text-xs text-gray-300">
+                                                {formatNumber(detail.value)} {detail.unit}
+                                              </div>
+                                            </div>
+                                          ))}
                                         </div>
-                                      ))}
-                                    </div>
-                                    <div className="absolute left-4 -bottom-2 w-3 h-3 bg-black rotate-45"></div>
+                                        <div className="absolute left-4 -bottom-2 w-3 h-3 bg-black rotate-45"></div>
+                                      </div>
+                                    )}
                                   </div>
                                 )}
                               </div>
-                            )}
-                          </div>
-                        </td>
-                        <td className="text-right py-2 px-4">{Math.round(item.share)}%</td>
-                        <td className="text-right py-2 px-4">
-                          {formatNumber(item.value)} {item.unit}
-                        </td>
-                        <td className="text-right py-2 px-4">
-                          {item.name !== 'Others' ? `${item.quantity} ${item.materialUnit}` : '-'}
-                        </td>
-                        <td className="py-2 px-4">
-                          {item.name !== 'Others' && (
-                            <div className="text-sm">
-                              {item.activityName}
-                              {item.transformationActivityName && item.transformationActivityName !== "NA" && (
-                                <div className="text-xs text-gray-500 mt-1">
-                                  Transformation: {item.transformationActivityName}
+                            </td>
+                            <td className="text-right py-2 px-4">{Math.round(item.share)}%</td>
+                            <td className="text-right py-2 px-4">
+                              {formatNumber(item.value)} {item.unit}
+                            </td>
+                            <td className="text-right py-2 px-4">
+                              {item.name !== 'Others' ? `${item.quantity} ${item.materialUnit}` : '-'}
+                            </td>
+                            <td className="py-2 px-4">
+                              {item.name !== 'Others' && (
+                                <div className="text-sm">
+                                  {item.activityName}
+                                  {item.transformationActivityName && item.transformationActivityName !== "NA" && (
+                                    <div className="text-xs text-gray-500 mt-1">
+                                      Transformation: {item.transformationActivityName}
+                                    </div>
+                                  )}
                                 </div>
                               )}
-                            </div>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {chartData.length === 0 && (
+                <div className="flex flex-col items-center justify-center py-8 text-center">
+                  <div className="bg-gray-100 p-3 rounded-full mb-3">
+                    <BarChart3 className="h-6 w-6 text-gray-400" />
+                  </div>
+                  <h3 className="text-base font-medium text-gray-700 mb-1">No impact data available</h3>
+                  <p className="text-sm text-gray-500 max-w-md">
+                    There is no impact data available for the selected method. Try selecting a different impact method.
+                  </p>
+                </div>
+              )}
+            </>
           )}
         </Card>
       </div>

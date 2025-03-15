@@ -6,16 +6,20 @@ import {routeTree} from './routeTree.gen';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from './contexts/AuthContext';
 import { useAuthContext } from './contexts/AuthContext';
+import { useMemo } from 'react';
 
 function AppRouter() {
   const auth = useAuthContext();
-
-  const router = createRouter({
-    routeTree,
-    context: {
-      auth,
-    },
-  });
+  
+  // Utiliser useMemo pour éviter de recréer le routeur à chaque rendu
+  const router = useMemo(() => {
+    return createRouter({
+      routeTree,
+      context: {
+        auth,
+      },
+    });
+  }, [auth]);
 
   return <RouterProvider router={router} />;
 }

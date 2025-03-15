@@ -9,20 +9,43 @@ import type { AuthContextType } from "@/contexts/AuthContext";
 export const Route = createRootRoute({
     component: Layout,
     beforeLoad: ({ context: { auth } }: { context: { auth: AuthContextType } }) => {
+        // Ne pas rediriger si l'authentification n'est pas encore initialisée
+        if (!auth.initialized) {
+            return;
+        }
+        
         const isLoginPage = window.location.pathname === '/login';
+        
+        // Si l'utilisateur n'est pas authentifié et n'est pas sur la page de connexion, rediriger vers la page de connexion
         if (!auth.isAuthenticated && !isLoginPage) {
             throw redirect({
                 to: '/login',
                 state: { from: window.location.pathname },
             });
         }
+        
+        // Si l'utilisateur est authentifié et est sur la page de connexion, rediriger vers le tableau de bord approprié
+        if (auth.isAuthenticated && isLoginPage) {
+            throw redirect({
+                to: auth.isAdmin ? '/admin/dashboard' : '/dashboard',
+            });
+        }
     },
 });
 
 function Layout() {
-    const { isAdmin, isAuthenticated } = useAuthContext();
+    const { isAdmin, isAuthenticated, loading, initialized } = useAuthContext();
     const isAdminRoute = window.location.pathname.startsWith('/admin');
     const isLoginPage = window.location.pathname === '/login';
+
+    // Afficher un indicateur de chargement pendant l'initialisation
+    if (!initialized || loading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+        );
+    }
 
     // Don't show sidebar on login page or when not authenticated
     if (isLoginPage || !isAuthenticated) {

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { authService } from '@/services/auth';
 import { usersService } from '@/services/users';
 import type { User, LoginDto, ImpersonateDto } from '@/interfaces/user';
@@ -9,10 +9,15 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
   const [initialized, setInitialized] = useState(false);
   const { toast } = useToast();
+  const initializationInProgress = useRef(false);
 
   const fetchCurrentUser = useCallback(async () => {
+    if (initializationInProgress.current) return;
+    
     try {
+      initializationInProgress.current = true;
       setLoading(true);
+      
       if (authService.getToken()) {
         const userData = await usersService.getCurrentUser();
         setUser(userData);
@@ -31,18 +36,22 @@ export function useAuth() {
     } finally {
       setLoading(false);
       setInitialized(true);
+      initializationInProgress.current = false;
     }
   }, []);
 
   useEffect(() => {
-    fetchCurrentUser();
-  }, [fetchCurrentUser]);
+    if (!initialized && !initializationInProgress.current) {
+      fetchCurrentUser();
+    }
+  }, [fetchCurrentUser, initialized]);
 
   const login = async (credentials: LoginDto) => {
     try {
       setLoading(true);
       const response = await authService.login(credentials);
       setUser(response.user);
+      setInitialized(true);
       toast({
         title: "Success",
         description: "Successfully logged in",

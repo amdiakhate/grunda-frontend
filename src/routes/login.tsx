@@ -1,5 +1,5 @@
-import { createFileRoute, useNavigate, useRouter } from '@tanstack/react-router';
-import { useState, useEffect } from 'react';
+import { createFileRoute } from '@tanstack/react-router';
+import { useState } from 'react';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,20 +16,9 @@ function LoginPage() {
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { login, isAuthenticated, user, loading, initialized } = useAuthContext();
-  const navigate = useNavigate();
-  const router = useRouter();
-  const from = router.state.location.state?.from as string | undefined;
 
-  useEffect(() => {
-    // Si l'authentification n'est pas initialisée, attendre
-    if (!initialized) return;
-
-    // Une fois authentifié et avec les données utilisateur, rediriger
-    if (isAuthenticated && user) {
-      const redirectPath = from || (user.role === 'ADMIN' ? '/admin/dashboard' : '/dashboard');
-      navigate({ to: redirectPath });
-    }
-  }, [initialized, isAuthenticated, navigate, user, from]);
+  // La redirection est maintenant gérée dans la route racine (__root.tsx)
+  // Nous n'avons plus besoin de gérer la redirection ici
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,16 +26,15 @@ function LoginPage() {
     
     setIsSubmitting(true);
     try {
-      const response = await login({ email, password });
-      const redirectPath = from || (response.user.role === 'ADMIN' ? '/admin/dashboard' : '/dashboard');
-      navigate({ to: redirectPath });
+      await login({ email, password });
+      // La redirection sera gérée automatiquement par la route racine
     } catch (error) {
       console.error('Login failed:', error);
       setIsSubmitting(false);
     }
   };
 
-  // Pendant l'initialisation ou le chargement
+  // Pendant l'initialisation ou le chargement, afficher un loader
   if (!initialized || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -56,7 +44,8 @@ function LoginPage() {
     );
   }
 
-  // Si déjà authentifié, afficher un loader pendant la redirection
+  // Si déjà authentifié, la redirection sera gérée par la route racine
+  // Nous pouvons simplement afficher un loader pendant ce temps
   if (isAuthenticated && user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
