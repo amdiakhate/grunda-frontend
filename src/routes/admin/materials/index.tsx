@@ -140,7 +140,7 @@ function MaterialsPage() {
 
   return (
     <AdminPageLayout>
-      <AdminPageHeader title="Materials Management">
+      <AdminPageHeader title="Materials to match">
         <div className="flex items-center gap-2">
           <SearchInput
             placeholder="Search materials..."
