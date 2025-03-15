@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 import { useProducts } from '@/hooks/useProducts';
+import { useCustomers } from '@/hooks/useCustomers';
 import { CompletionLevel } from '@/components/products/completionLevel';
 import { MaterialStatusBadge } from '@/components/materials/MaterialStatusBadge';
 import {
@@ -24,10 +25,16 @@ export const Route = createFileRoute('/admin/products/')({
 
 function ProductsPage() {
   const { products, loading, total, fetchProducts } = useProducts();
+  const { customers, loading: customersLoading, fetchCustomers } = useCustomers();
   const [searchQuery, setSearchQuery] = useState('');
   const [status, setStatus] = useState<ReviewStatus | 'all'>('all');
+  const [customerId, setCustomerId] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
+
+  useEffect(() => {
+    fetchCustomers();
+  }, [fetchCustomers]);
 
   useEffect(() => {
     fetchProducts({
@@ -35,8 +42,9 @@ function ProductsPage() {
       pageSize,
       status: status === 'all' ? undefined : status,
       search: searchQuery || undefined,
+      customerId: customerId === 'all' ? undefined : customerId,
     });
-  }, [fetchProducts, currentPage, status, searchQuery]);
+  }, [fetchProducts, currentPage, status, searchQuery, customerId]);
 
   const handleSearch = (value: string) => {
     setSearchQuery(value);
@@ -45,6 +53,11 @@ function ProductsPage() {
 
   const handleStatusChange = (value: string) => {
     setStatus(value as ReviewStatus | 'all');
+    setCurrentPage(1);
+  };
+
+  const handleCustomerChange = (value: string) => {
+    setCustomerId(value);
     setCurrentPage(1);
   };
 
@@ -141,6 +154,23 @@ function ProductsPage() {
               <SelectItem value="pending">Pending</SelectItem>
               <SelectItem value="reviewed">Reviewed</SelectItem>
               <SelectItem value="rejected">Rejected</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select
+            value={customerId}
+            onValueChange={handleCustomerChange}
+            disabled={customersLoading}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="All customers" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All customers</SelectItem>
+              {customers.map((customer) => (
+                <SelectItem key={customer.id} value={customer.id}>
+                  {customer.fullName}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
