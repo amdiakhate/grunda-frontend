@@ -221,6 +221,7 @@ export const adminService = {
       if (params.pageSize) queryParams.append('pageSize', params.pageSize.toString());
       if (params.status) queryParams.append('status', params.status);
       if (params.customerId) queryParams.append('customerId', params.customerId);
+      if (params.search) queryParams.append('search', params.search);
 
       const query = queryParams.toString();
       const url = `/admin/products${query ? `?${query}` : ''}`;
