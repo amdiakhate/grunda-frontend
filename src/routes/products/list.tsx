@@ -12,11 +12,31 @@ import { Button } from '../../components/ui/button'
 import { Input } from '../../components/ui/input'
 import { productsService } from '../../services/products'
 import { Product } from '../../interfaces/product'
-import { Loader2, Calendar, Box, ArrowUpRight } from 'lucide-react'
+import { Loader2, Calendar, Box, ArrowUpRight, Scale } from 'lucide-react'
 import { Badge } from '../../components/ui/badge'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../../components/ui/tooltip'
 import { formatDistanceToNow } from 'date-fns'
 import { useAuthContext } from '../../contexts/AuthContext'
+
+// Liste des méthodes d'impact disponibles
+const impactMethods = [
+  { id: 'climate change', label: 'Climate change', unit: 'kg CO2-Eq' },
+  { id: 'acidification', label: 'Acidification', unit: 'mol H+-Eq' },
+  { id: 'ecotoxicity: freshwater', label: 'Ecotoxicity', unit: 'CTUe' },
+  { id: 'eutrophication: freshwater', label: 'Eutrophication (freshwater)', unit: 'kg P-Eq' },
+  { id: 'eutrophication: marine', label: 'Eutrophication (marine)', unit: 'kg N-Eq' },
+  { id: 'eutrophication: terrestrial', label: 'Eutrophication (terrestrial)', unit: 'mol N-Eq' },
+  { id: 'human toxicity: carcinogenic', label: 'Human toxicity (cancer)', unit: 'CTUh' },
+  { id: 'human toxicity: non-carcinogenic', label: 'Human toxicity (non-cancer)', unit: 'CTUh' },
+  { id: 'ionising radiation: human health', label: 'Ionising radiation', unit: 'kBq U235-Eq' },
+  { id: 'land use', label: 'Land use', unit: 'dimensionless' },
+  { id: 'ozone depletion', label: 'Ozone depletion', unit: 'kg CFC-11-Eq' },
+  { id: 'particulate matter formation', label: 'Particulate matter', unit: 'disease incidence' },
+  { id: 'photochemical oxidant formation: human health', label: 'Photochemical oxidation', unit: 'kg NMVOC-Eq' },
+  { id: 'energy resources: non-renewable', label: 'Energy resources', unit: 'MJ, net calorific value' },
+  { id: 'material resources: metals/minerals', label: 'Material resources', unit: 'kg Sb-Eq' },
+  { id: 'water use', label: 'Water use', unit: 'm3 world Eq deprived' },
+];
 
 export const Route = createFileRoute('/products/list')({
   component: RouteComponent,
@@ -33,6 +53,7 @@ function RouteComponent() {
     category: '',
     search: ''
   })
+  const [selectedImpactMethod, setSelectedImpactMethod] = useState('climate change');
   
   // Get user role from auth context
   const { isAdmin } = useAuthContext();
@@ -78,6 +99,21 @@ function RouteComponent() {
     return value.toFixed(2);
   };
 
+  const getImpactValue = (product: Product, method: string) => {
+    if (!product.summary || !product.summary.impacts) return undefined;
+    
+    const impact = product.summary.impacts.find(
+      impact => impact.method === method
+    );
+    
+    return impact?.value;
+  };
+
+  const getImpactUnit = (method: string) => {
+    const impactMethod = impactMethods.find(m => m.id === method);
+    return impactMethod?.unit || '';
+  };
+
   const formatDate = (dateString: string | undefined) => {
     if (!dateString) return 'N/A';
     try {
@@ -89,36 +125,10 @@ function RouteComponent() {
     }
   };
 
-  const getCompletionBadge = (level: number) => {
-    if (level === 100) {
-      return <Badge variant="success">Complete</Badge>;
-    } else if (level >= 75) {
-      return <Badge variant="warning">Almost Complete</Badge>;
-    } else if (level >= 50) {
-      return <Badge variant="secondary">In Progress</Badge>;
-    } else {
-      return <Badge variant="destructive">Incomplete</Badge>;
-    }
-  };
-
-  // Function to render review status badge
-  const getReviewStatusBadge = (status: string) => {
-    switch (status) {
-      case 'reviewed':
-        return <Badge variant="success">Approved</Badge>;
-      case 'pending':
-        return <Badge variant="warning">Pending Review</Badge>;
-      case 'rejected':
-        return <Badge variant="destructive">Rejected</Badge>;
-      default:
-        return <Badge variant="outline">Unknown</Badge>;
-    }
-  };
-
   return (
     <>
       <h1 className="text-2xl font-bold">Products List</h1>
-      <div className="flex gap-4 mb-4">
+      <div className="flex flex-wrap gap-4 mb-4">
         <Input 
           placeholder="Search products..."
           value={filters.search}
@@ -126,16 +136,31 @@ function RouteComponent() {
           className="max-w-sm"
         />
         
-        <select
-          value={filters.category}
-          onChange={(e) => setFilters(prev => ({...prev, category: e.target.value}))}
-          className="border rounded p-2"
-        >
-          <option value="">All Categories</option>
-          {categories.map(category => (
-            <option key={category} value={category}>{category}</option>
-          ))}
-        </select>
+        <div className="flex items-center gap-2">
+          <select
+            value={filters.category}
+            onChange={(e) => setFilters(prev => ({...prev, category: e.target.value}))}
+            className="border rounded p-2"
+          >
+            <option value="">All categories</option>
+            {categories.map(category => (
+              <option key={category} value={category}>{category}</option>
+            ))}
+          </select>
+          
+          <div className="flex items-center border rounded p-2">
+            <Scale className="h-4 w-4 mr-2 text-muted-foreground" />
+            <select
+              value={selectedImpactMethod}
+              onChange={(e) => setSelectedImpactMethod(e.target.value)}
+              className="bg-transparent border-none focus:outline-none"
+            >
+              {impactMethods.map(method => (
+                <option key={method.id} value={method.id}>{method.label}</option>
+              ))}
+            </select>
+          </div>
+        </div>
       </div>
       <div className="flex justify-end mb-4">
         <Button asChild>
@@ -156,12 +181,14 @@ function RouteComponent() {
           <Table className="w-full">
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[250px]">Product Information</TableHead>
-                <TableHead className="w-[150px]">Category</TableHead>
-                <TableHead className="w-[200px]">Environmental Impact</TableHead>
-                <TableHead className="w-[150px]">Materials Status</TableHead>
-                {isAdmin && <TableHead className="w-[150px]">Review Status</TableHead>}
-                <TableHead className="w-[150px]">Last Updated</TableHead>
+                <TableHead>Product name</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Popularity</TableHead>
+                <TableHead>SKU</TableHead>
+                <TableHead>Upload date</TableHead>
+                <TableHead>
+                  {impactMethods.find(m => m.id === selectedImpactMethod)?.label || 'Environmental impact'}
+                </TableHead>
                 <TableHead className="w-[100px]">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -170,9 +197,22 @@ function RouteComponent() {
                 paginatedProducts.map((product) => (
                   <TableRow key={product.id}>
                     <TableCell>
-                      <div className="flex flex-col">
+                      <div className="flex items-center gap-3">
+                        <div className="flex-shrink-0 w-10 h-10 bg-gray-100 rounded flex items-center justify-center">
+                          {product.category && (
+                            <img 
+                              src={`/product-images/${product.category.toLowerCase().replace(/\s+/g, '-')}.svg`}
+                              alt={product.category}
+                              className="w-8 h-8 object-contain"
+                              onError={(e) => {
+                                // Utiliser une référence statique pour éviter les boucles infinies
+                                (e.target as HTMLImageElement).onerror = null;
+                                (e.target as HTMLImageElement).src = "/product-images/default.svg";
+                              }}
+                            />
+                          )}
+                        </div>
                         <span className="font-medium">{product.name}</span>
-                        <span className="text-xs text-muted-foreground">ID: {product.id}</span>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -181,50 +221,41 @@ function RouteComponent() {
                       </Badge>
                     </TableCell>
                     <TableCell>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-primary rounded-full h-2"
+                          style={{ width: `${product.completionLevel}%` }}
+                        />
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className="font-mono text-sm">{product.reference}</span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Calendar className="h-4 w-4" />
+                        {formatDate(product.updatedAt)}
+                      </div>
+                    </TableCell>
+                    <TableCell>
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger className="text-left">
-                            <div className="flex flex-col">
-                              <span>Unit: {formatValue(product.unitFootprint)}</span>
-                              <span className="text-xs text-muted-foreground">
-                                Total: {formatValue(product.totalFootprint)}
+                            <div className="flex items-center">
+                              <span>
+                                {formatValue(getImpactValue(product, selectedImpactMethod))} {getImpactUnit(selectedImpactMethod)}
                               </span>
                             </div>
                           </TooltipTrigger>
                           <TooltipContent>
                             <div className="space-y-1">
                               <div>
-                                <span className="font-medium">Unit Footprint:</span> {formatValue(product.unitFootprint)}
-                              </div>
-                              <div>
-                                <span className="font-medium">Total Footprint:</span> {formatValue(product.totalFootprint)}
+                                <span className="font-medium">{impactMethods.find(m => m.id === selectedImpactMethod)?.label || selectedImpactMethod}:</span> {formatValue(getImpactValue(product, selectedImpactMethod))} {getImpactUnit(selectedImpactMethod)}
                               </div>
                             </div>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-col gap-1">
-                        {getCompletionBadge(product.completionLevel)}
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div
-                            className="bg-primary rounded-full h-2"
-                            style={{ width: `${product.completionLevel}%` }}
-                          />
-                        </div>
-                      </div>
-                    </TableCell>
-                    {isAdmin && (
-                      <TableCell>
-                        {getReviewStatusBadge(product.review_status)}
-                      </TableCell>
-                    )}
-                    <TableCell>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Calendar className="h-4 w-4" />
-                        {formatDate(product.updatedAt)}
-                      </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
@@ -244,7 +275,7 @@ function RouteComponent() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={isAdmin ? 7 : 6} className="text-center py-8 text-gray-500">
+                  <TableCell colSpan={7} className="text-center py-8 text-gray-500">
                     No products found
                   </TableCell>
                 </TableRow>
