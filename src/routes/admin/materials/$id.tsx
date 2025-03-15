@@ -59,6 +59,8 @@ function MaterialDetailsPage() {
     searchQuery,
     currentPage,
     totalPages,
+    totalItems,
+    pageSize,
     setSearchQuery,
     setCurrentPage,
     refresh,
@@ -335,19 +337,31 @@ function MaterialDetailsPage() {
             </div>
           )}
 
-          <MaterialMappingList
-            mappings={mappings}
-            loading={mappingsLoading}
-            onSelect={handleMappingSelect}
-            processingId={processingId}
-            searchQuery={searchQuery}
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onSearchChange={setSearchQuery}
-            onPageChange={setCurrentPage}
-            selectedId={material?.mappingId || null}
-            disabled={isMappingLoading}
-          />
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg">Available Mappings</CardTitle>
+              <CardDescription>
+                Select a mapping to associate with this material or create a new one.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <MaterialMappingList
+                mappings={mappings}
+                loading={mappingsLoading}
+                onSelect={handleMappingSelect}
+                processingId={processingId}
+                searchQuery={searchQuery}
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={totalItems}
+                pageSize={pageSize}
+                onSearchChange={setSearchQuery}
+                onPageChange={setCurrentPage}
+                selectedId={material?.mappingId || null}
+                disabled={isMappingLoading}
+              />
+            </CardContent>
+          </Card>
         </div>
 
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>

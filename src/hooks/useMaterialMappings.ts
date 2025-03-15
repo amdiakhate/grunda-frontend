@@ -39,8 +39,8 @@ export function useMaterialMappings(initialPageSize = 10): UseMaterialMappingsRe
         });
         
         setMappings(response.items);
-        setTotalPages(response.totalPages);
-        setTotalItems(response.totalItems);
+        setTotalPages(response.totalPages || Math.ceil((response.total || 0) / pageSize));
+        setTotalItems(response.total || response.totalItems || 0);
       } catch (err) {
         console.error('Error fetching material mappings:', err);
         setError(err instanceof Error ? err : new Error('Failed to fetch material mappings'));

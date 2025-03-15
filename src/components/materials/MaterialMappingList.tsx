@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Loader2, Search, Check } from 'lucide-react';
+import { Loader2, Search, Check, X } from 'lucide-react';
 import { Pagination } from '@/components/ui/pagination';
 import type { MaterialMapping } from '@/interfaces/materialMapping';
+import { debounce } from '@/lib/utils';
 
 interface MaterialMappingListProps {
   mappings: MaterialMapping[];
@@ -15,6 +16,8 @@ interface MaterialMappingListProps {
   onSearchChange: (query: string) => void;
   currentPage: number;
   totalPages: number;
+  totalItems?: number;
+  pageSize?: number;
   onPageChange: (page: number) => void;
   selectedId: string | null;
   disabled?: boolean;
@@ -29,15 +32,36 @@ export function MaterialMappingList({
   onSearchChange,
   currentPage,
   totalPages,
+  totalItems = 0,
+  pageSize = 10,
   onPageChange,
   selectedId,
   disabled = false,
 }: MaterialMappingListProps) {
   const [localSearch, setLocalSearch] = useState(searchQuery);
+  
+  // Créer une fonction debounce typée correctement
+  const debouncedSearch = useRef<(value: string) => void>(
+    debounce((value: unknown) => {
+      onSearchChange(value as string);
+    }, 300)
+  ).current;
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSearchChange(localSearch);
+  // Mettre à jour la recherche locale lorsque searchQuery change
+  useEffect(() => {
+    setLocalSearch(searchQuery);
+  }, [searchQuery]);
+
+  // Déclencher la recherche à chaque frappe
+  const handleSearchChange = (value: string) => {
+    setLocalSearch(value);
+    debouncedSearch(value);
+  };
+
+  // Effacer la recherche
+  const handleClearSearch = () => {
+    setLocalSearch('');
+    onSearchChange('');
   };
 
   const handleClearMapping = () => {
@@ -51,22 +75,40 @@ export function MaterialMappingList({
     });
   };
 
+  // Calculer les indices des éléments affichés
+  const startIndex = mappings.length > 0 ? (currentPage - 1) * pageSize + 1 : 0;
+  const endIndex = mappings.length > 0 ? startIndex + mappings.length - 1 : 0;
+
+  // Déterminer s'il y a des données à afficher
+  const hasData = !loading && mappings.length > 0;
+
+  // Utiliser le nombre total d'éléments fourni par le backend
+  const actualTotalItems = totalItems || 0;
+
   return (
     <div className="space-y-4">
-      <form onSubmit={handleSearchSubmit} className="flex gap-2">
+      <div className="relative flex gap-2">
         <div className="relative flex-1">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
             placeholder="Search mappings..."
-            className="pl-8"
+            className="pl-8 pr-8"
             value={localSearch}
-            onChange={(e) => setLocalSearch(e.target.value)}
-            disabled={disabled}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            disabled={disabled || loading}
           />
+          {localSearch && (
+            <button 
+              className="absolute right-2.5 top-2.5 h-4 w-4 text-muted-foreground hover:text-foreground"
+              onClick={handleClearSearch}
+              disabled={disabled || loading}
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
         </div>
-        <Button type="submit" disabled={disabled}>Search</Button>
-      </form>
+      </div>
 
       <div className="rounded-md border">
         <Table>
@@ -91,13 +133,27 @@ export function MaterialMappingList({
             ) : mappings.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={4} className="h-24 text-center">
-                  No mappings found.
+                  {searchQuery ? (
+                    <div className="flex flex-col items-center gap-2">
+                      <p>No mappings found for "{searchQuery}"</p>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={handleClearSearch}
+                        disabled={disabled}
+                      >
+                        Clear search
+                      </Button>
+                    </div>
+                  ) : (
+                    <p>No mappings found.</p>
+                  )}
                 </TableCell>
               </TableRow>
             ) : (
               mappings.map((mapping) => (
                 <TableRow key={mapping.id} className={selectedId === mapping.id ? "bg-muted/50" : ""}>
-                  <TableCell>{mapping.materialPattern}</TableCell>
+                  <TableCell className="font-medium">{mapping.materialPattern}</TableCell>
                   <TableCell>{mapping.activityName}</TableCell>
                   <TableCell>
                     {mapping.finalProduct ? 'Final Product' : 'Intermediate'}
@@ -108,9 +164,10 @@ export function MaterialMappingList({
                       size="sm"
                       onClick={() => onSelect(mapping)}
                       disabled={processingId !== null || disabled}
+                      className="w-full"
                     >
                       {processingId === mapping.id ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <Loader2 className="h-4 w-4 animate-spin mr-1" />
                       ) : selectedId === mapping.id ? (
                         <Check className="h-4 w-4 mr-1" />
                       ) : null}
@@ -124,7 +181,7 @@ export function MaterialMappingList({
         </Table>
       </div>
 
-      {selectedId && (
+      {/* {selectedId && (
         <div className="flex justify-end">
           <Button
             variant="outline"
@@ -135,16 +192,24 @@ export function MaterialMappingList({
             Clear Mapping
           </Button>
         </div>
-      )}
+      )} */}
 
-      {totalPages > 1 && (
+      {/* Toujours afficher la pagination avec les informations sur le nombre total d'éléments */}
+      <div className="flex flex-col space-y-2">
+        <div className="text-sm text-muted-foreground text-right">
+          {hasData ? (
+            <>Showing {startIndex}-{endIndex} of {actualTotalItems} mappings</>
+          ) : (
+            <>No mappings found</>
+          )}
+        </div>
         <Pagination
           currentPage={currentPage}
-          totalPages={totalPages}
+          totalPages={Math.max(1, totalPages)}
           onPageChange={onPageChange}
-          disabled={disabled}
+          disabled={disabled || loading}
         />
-      )}
+      </div>
     </div>
   );
 } 
