@@ -49,7 +49,7 @@ export function ProductCatalog({ products, categories, isLoading }: ProductCatal
   // Formater la valeur d'impact
   const formatImpact = (value: number | undefined) => {
     if (value === undefined) return 'N/A';
-    return `${value.toFixed(2)} kg CO2e`;
+    return `${value} kg CO2e`;
   };
 
   // Générer les étoiles de popularité

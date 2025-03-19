@@ -11,7 +11,7 @@ export function MaterialImpacts({ impacts }: MaterialImpactsProps) {
   const { displayedImpact } = useStore();
 
   const formatNumber = (num: number) => {
-    return num < 1 ? num.toExponential(2) : num.toFixed(2);
+    return num.toString();
   };
 
   const getImpactValue = (type: 'main' | 'transformation') => {

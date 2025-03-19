@@ -96,7 +96,7 @@ function RouteComponent() {
 
   const formatValue = (value: number | undefined) => {
     if (value === undefined) return '-';
-    return value.toFixed(2);
+    return value.toString();
   };
 
   const getImpactValue = (product: Product, method: string) => {

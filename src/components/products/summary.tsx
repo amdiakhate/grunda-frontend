@@ -20,7 +20,7 @@ export function Summary({ summary }: SummaryProps) {
     }, [displayedImpact, summary.impacts]);
 
     const formatNumber = (num: number) => {
-        return num < 1 ? num.toExponential(2) : num.toFixed(2);
+        return num.toString();
     };
 
     return (

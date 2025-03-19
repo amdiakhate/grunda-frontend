@@ -50,18 +50,18 @@ export function useAuth() {
       const response = await authService.login(credentials);
       setUser(response.user);
       setInitialized(true);
-      toast({
-        title: "Success",
-        description: "Successfully logged in",
-      });
+      // toast({
+      //   title: "Success",
+      //   description: "Successfully logged in",
+      // });
       return response;
     } catch (error) {
       console.error('Login failed:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error instanceof Error ? error.message : "Login failed",
-      });
+      // toast({
+      //   variant: "destructive",
+      //   title: "Error",
+      //   description: error instanceof Error ? error.message : "Login failed",
+      // });
       throw error;
     } finally {
       setLoading(false);
@@ -73,18 +73,18 @@ export function useAuth() {
       setLoading(true);
       const response = await authService.impersonate(data);
       setUser(response.user);
-      toast({
-        title: "Success",
-        description: `Successfully impersonating ${response.user.firstName} ${response.user.lastName}`,
-      });
+      // toast({
+      //   title: "Success",
+      //   description: `Successfully impersonating ${response.user.firstName} ${response.user.lastName}`,
+      // });
       return response;
     } catch (error) {
       console.error('Impersonation failed:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error instanceof Error ? error.message : "Impersonation failed",
-      });
+      // toast({
+      //   variant: "destructive",
+      //   title: "Error",
+      //   description: error instanceof Error ? error.message : "Impersonation failed",
+      // });
       throw error;
     } finally {
       setLoading(false);
@@ -96,17 +96,17 @@ export function useAuth() {
       setLoading(true);
       await authService.stopImpersonating();
       await fetchCurrentUser();
-      toast({
-        title: "Success",
-        description: "Successfully stopped impersonating",
-      });
+      // toast({
+      //   title: "Success",
+      //   description: "Successfully stopped impersonating",
+      // });
     } catch (error) {
       console.error('Failed to stop impersonating:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to stop impersonating",
-      });
+      // toast({
+      //   variant: "destructive",
+      //   title: "Error",
+      //   description: error instanceof Error ? error.message : "Failed to stop impersonating",
+      // });
       throw error;
     } finally {
       setLoading(false);
@@ -118,10 +118,10 @@ export function useAuth() {
     try {
       authService.logout();
       setUser(null);
-      toast({
-        title: "Success",
-        description: "Successfully logged out",
-      });
+      // toast({
+      //   title: "Success",
+      //   description: "Successfully logged out",
+      // });
     } finally {
       setLoading(false);
     }

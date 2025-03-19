@@ -59,7 +59,7 @@ export function DataTable({ data }: DataTableProps) {
 
     const formatQuantity = (quantity: number | undefined) => {
         if (quantity === undefined) return '-'
-        return quantity.toLocaleString()
+        return quantity.toString()
     }
 
     return (

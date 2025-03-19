@@ -99,7 +99,7 @@ export function MaterialsTreemap({ materials, threshold = 1 }: MaterialsTreemapP
                                 <>
                                     <div className="absolute bottom-3 left-3">
                                         <div className="text-2xl font-medium">
-                                            {item.size.toFixed(1)}
+                                            {item.size}
                                         </div>
                                         <div className="text-xs opacity-80">
                                             {displayedImpact?.unit}
@@ -109,7 +109,7 @@ export function MaterialsTreemap({ materials, threshold = 1 }: MaterialsTreemapP
                                         className="absolute inset-0 flex items-center justify-center text-[48px] font-light opacity-20"
                                         style={{ pointerEvents: 'none' }}
                                     >
-                                        {item.size.toFixed(0)}%
+                                        {item.size}%
                                     </div>
                                 </>
                             )}
@@ -122,10 +122,10 @@ export function MaterialsTreemap({ materials, threshold = 1 }: MaterialsTreemapP
                         {item.name !== "Others" && (
                             <>
                                 <p className="text-sm text-muted-foreground">
-                                    {item.size.toFixed(1)}% of total impact
+                                    {item.size}% of total impact
                                 </p>
                                 <p className="text-sm">
-                                    {item.size.toFixed(1)} {displayedImpact?.unit}
+                                    {item.size} {displayedImpact?.unit}
                                 </p>
                             </>
                         )}

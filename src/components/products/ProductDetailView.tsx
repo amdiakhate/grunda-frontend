@@ -26,7 +26,7 @@ interface ProductDetailViewProps {
 interface MaterialItem {
   name: string;
   share: number;
-  displayShare?: number;
+  displayShare: number;
   value: number;
   unit: string;
   quantity: number;
@@ -74,11 +74,7 @@ export function ProductDetailView({ product, onBack }: ProductDetailViewProps) {
   
   // Format number function to properly display decimal values
   const formatNumber = (num: number) => {
-    if (num === 0) return '0';
-    if (num < 0.01) return num.toExponential(2);
-    if (num < 1) return num.toFixed(3);
-    if (num < 10) return num.toFixed(2);
-    return Math.round(num).toLocaleString();
+    return num.toString();
   };
 
   // Select the first impact method by default if none is selected
@@ -145,6 +141,7 @@ export function ProductDetailView({ product, onBack }: ProductDetailViewProps) {
         return {
           name: material.material.name,
           share: impact?.share ?? 0,
+          displayShare: impact?.share ?? 0,
           value: impact?.value ?? 0,
           unit: impact?.unit || '',
           quantity: material.quantity,
@@ -169,6 +166,7 @@ export function ProductDetailView({ product, onBack }: ProductDetailViewProps) {
       significantMaterials.push({
         name: 'Others',
         share: othersShare,
+        displayShare: othersShare,
         value: othersValue,
         unit,
         quantity: 0,
@@ -181,25 +179,6 @@ export function ProductDetailView({ product, onBack }: ProductDetailViewProps) {
 
     // Sort by share in descending order
     const sortedMaterials = significantMaterials.sort((a, b) => b.share - a.share);
-    
-    // Normalize percentages to ensure they sum to 100%
-    const totalShare = sortedMaterials.reduce((sum, item) => sum + item.share, 0);
-    
-    // Only normalize if the total is not already 100% (with a small margin for floating point errors)
-    if (Math.abs(totalShare - 100) > 0.01) {
-      sortedMaterials.forEach(item => {
-        item.share = (item.share / totalShare) * 100;
-      });
-    }
-    
-    // Round very small percentages to 0 for display purposes
-    sortedMaterials.forEach(item => {
-      if (item.share < 1) {
-        item.displayShare = 0;
-      } else {
-        item.displayShare = Math.round(item.share);
-      }
-    });
     
     return sortedMaterials;
   };
@@ -373,7 +352,7 @@ export function ProductDetailView({ product, onBack }: ProductDetailViewProps) {
                                           <div key={i} className="mb-2">
                                             <div className="flex justify-between">
                                               <span>{detail.name}</span>
-                                              <span>{detail.share < 1 ? '< 1%' : `${Math.round(detail.share)}%`}</span>
+                                              <span>{detail.share}%</span>
                                             </div>
                                             <div className="text-xs text-gray-300">
                                               {formatNumber(detail.value)} {detail.unit}
@@ -478,7 +457,7 @@ export function ProductDetailView({ product, onBack }: ProductDetailViewProps) {
                                             <div key={i} className="mb-2">
                                               <div className="flex justify-between">
                                                 <span>{detail.name}</span>
-                                                <span>{Math.round(detail.share)}%</span>
+                                                <span>{detail.share}%</span>
                                               </div>
                                               <div className="text-xs text-gray-300">
                                                 {formatNumber(detail.value)} {detail.unit}
@@ -493,7 +472,7 @@ export function ProductDetailView({ product, onBack }: ProductDetailViewProps) {
                                 )}
                               </div>
                             </td>
-                            <td className="text-right py-2 px-4">{Math.round(item.share)}%</td>
+                            <td className="text-right py-2 px-4">{item.share}%</td>
                             <td className="text-right py-2 px-4">
                               {formatNumber(item.value)} {item.unit}
                             </td>

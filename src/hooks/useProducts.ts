@@ -20,13 +20,13 @@ export function useProducts() {
       setStats(stats);
     } catch (error) {
       console.error('Failed to fetch product stats:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to load product statistics",
-      });
+      // toast({
+      //   variant: "destructive",
+      //   title: "Error",
+      //   description: "Failed to load product statistics",
+      // });
     }
-  }, [toast]);
+  }, []);
 
   const fetchProducts = useCallback(async (params: ProductsListQueryParams = {}) => {
     try {
@@ -40,16 +40,16 @@ export function useProducts() {
       setTotal(response.total);
     } catch (error) {
       console.error('Failed to fetch products:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to load products. Please try again.",
-      });
+      // toast({
+      //   variant: "destructive",
+      //   title: "Error",
+      //   description: "Failed to load products. Please try again.",
+      // });
       setProducts([]);
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, []);
 
   const fetchPendingProducts = useCallback(async (customerId: string) => {
     try {
@@ -59,15 +59,15 @@ export function useProducts() {
       setTotal(products.length);
     } catch (error) {
       console.error('Failed to fetch pending products:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to load pending products. Please try again.",
-      });
+      // toast({
+      //   variant: "destructive",
+      //   title: "Error",
+      //   description: "Failed to load pending products. Please try again.",
+      // });
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, []);
 
   const reviewProduct = useCallback(async (productId: string, reviewData: ReviewProductDto, refreshList: boolean = true) => {
     try {
@@ -80,25 +80,25 @@ export function useProducts() {
           await fetchProducts();
         }
         
-        toast({
-          title: "Success",
-          description: result.message || 'Product reviewed successfully',
-        });
+        // toast({
+        //   title: "Success",
+        //   description: result.message || 'Product reviewed successfully',
+        // });
       }
 
       return result;
     } catch (error) {
       console.error('Failed to review product:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to review product",
-      });
+      // toast({
+      //   variant: "destructive",
+      //   title: "Error",
+      //   description: error instanceof Error ? error.message : "Failed to review product",
+      // });
       throw error;
     } finally {
       setLoading(false);
     }
-  }, [toast, fetchProducts]);
+  }, [ fetchProducts]);
 
   const getProductById = useCallback(async (id: string): Promise<Product | null> => {
     try {
@@ -110,14 +110,14 @@ export function useProducts() {
         return null;
       }
       console.error('Failed to fetch product:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to load product details",
-      });
+      // toast({
+      //   variant: "destructive",
+      //   title: "Error",
+      //   description: "Failed to load product details",
+      // });
       throw error;
     }
-  }, [toast]);
+  }, []);
 
   return {
     products,

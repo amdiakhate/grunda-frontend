@@ -105,7 +105,7 @@ function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {((stats.completedProducts / stats.totalProducts) * 100).toFixed(1)}%
+              {((stats.completedProducts / stats.totalProducts) * 100)}%
             </div>
             <p className="text-xs text-muted-foreground">
               {stats.pendingCalculations} calculations pending
@@ -120,7 +120,7 @@ function Dashboard() {
             <Atom className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.avgFootprint.toFixed(2)}</div>
+            <div className="text-2xl font-bold">{stats.avgFootprint}</div>
             <p className="text-xs text-muted-foreground">
               kg CO₂e per unit
             </p>
@@ -140,7 +140,7 @@ function Dashboard() {
                 <div key={category} className="flex items-center justify-between">
                   <div className="space-y-1">
                     <p className="text-sm font-medium">{category}</p>
-                    <p className="text-2xl font-bold">{impact.toFixed(1)} kg CO₂e</p>
+                    <p className="text-2xl font-bold">{impact} kg CO₂e</p>
                   </div>
                   <div className={`h-4 w-4 rounded-full ${
                     index === 0 ? 'bg-red-100' :
@@ -168,7 +168,7 @@ function Dashboard() {
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium">
-                      {product.unitFootprint?.toFixed(1) || '...'} kg CO₂e
+                      {product.unitFootprint || '...'} kg CO₂e
                     </span>
                     {product.unitFootprint && (product.unitFootprint > stats.avgFootprint ? (
                       <ArrowUpIcon className="h-4 w-4 text-red-500" />
