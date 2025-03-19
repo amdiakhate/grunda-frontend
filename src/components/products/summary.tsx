@@ -3,6 +3,7 @@ import { ProductSummary } from "@/interfaces/product";
 import { ArrowDownIcon, ArrowUpIcon, ScaleIcon, Atom, PackageIcon, Target } from "lucide-react";
 import { useStore } from "../../stores/useStore";
 import { useEffect, useState } from "react";
+import { formatImpactValue } from "@/utils/format";
 
 interface SummaryProps {
     summary: ProductSummary;
@@ -20,7 +21,7 @@ export function Summary({ summary }: SummaryProps) {
     }, [displayedImpact, summary.impacts]);
 
     const formatNumber = (num: number) => {
-        return num.toString();
+        return formatImpactValue(num);
     };
 
     return (

@@ -3,6 +3,7 @@ import { Product, Impact } from '@/interfaces/product';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { formatImpactValue } from '@/utils/format';
 import { 
   ArrowLeft, 
   BarChart3, 
@@ -74,7 +75,7 @@ export function ProductDetailView({ product, onBack }: ProductDetailViewProps) {
   
   // Format number function to properly display decimal values
   const formatNumber = (num: number) => {
-    return num.toString();
+    return formatImpactValue(num);
   };
 
   // Select the first impact method by default if none is selected

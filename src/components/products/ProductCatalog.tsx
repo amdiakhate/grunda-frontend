@@ -1,12 +1,14 @@
-import { useState } from 'react';
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Product } from "@/interfaces/product";
+import { Info } from "lucide-react";
+import { useState } from "react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { formatImpactValue } from "@/utils/format";
 import { Link } from '@tanstack/react-router';
-import { Search, Upload, ChevronRight, Info, Star, StarHalf } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import type { Product } from '@/interfaces/product';
+import { Search, Upload, ChevronRight, Star, StarHalf } from 'lucide-react';
 
 interface ProductCatalogProps {
   products: Product[];
@@ -48,8 +50,8 @@ export function ProductCatalog({ products, categories, isLoading }: ProductCatal
 
   // Formater la valeur d'impact
   const formatImpact = (value: number | undefined) => {
-    if (value === undefined) return 'N/A';
-    return `${value} kg CO2e`;
+    if (value === undefined || value === null) return '-';
+    return `${formatImpactValue(value)} kg CO2e`;
   };
 
   // Générer les étoiles de popularité

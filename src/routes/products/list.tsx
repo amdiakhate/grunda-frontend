@@ -17,6 +17,7 @@ import { Badge } from '../../components/ui/badge'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../../components/ui/tooltip'
 import { formatDistanceToNow } from 'date-fns'
 import { useAuthContext } from '../../contexts/AuthContext'
+import { formatImpactValue } from '@/utils/format'
 
 // Liste des méthodes d'impact disponibles
 const impactMethods = [
@@ -96,11 +97,11 @@ function RouteComponent() {
 
   const formatValue = (value: number | undefined) => {
     if (value === undefined) return '-';
-    return value.toString();
+    return formatImpactValue(value);
   };
 
   const getImpactValue = (product: Product, method: string) => {
-    if (!product.summary || !product.summary.impacts) return undefined;
+    if (!product.summary?.impacts || product.summary.impacts.length === 0) return undefined;
     
     const impact = product.summary.impacts.find(
       impact => impact.method === method
@@ -243,14 +244,21 @@ function RouteComponent() {
                           <TooltipTrigger className="text-left">
                             <div className="flex items-center">
                               <span>
-                                {formatValue(getImpactValue(product, selectedImpactMethod))} {getImpactUnit(selectedImpactMethod)}
+                                {getImpactValue(product, selectedImpactMethod) === undefined ? 
+                                  '-' : 
+                                  `${formatValue(getImpactValue(product, selectedImpactMethod))} ${getImpactUnit(selectedImpactMethod)}`
+                                }
                               </span>
                             </div>
                           </TooltipTrigger>
                           <TooltipContent>
                             <div className="space-y-1">
                               <div>
-                                <span className="font-medium">{impactMethods.find(m => m.id === selectedImpactMethod)?.label || selectedImpactMethod}:</span> {formatValue(getImpactValue(product, selectedImpactMethod))} {getImpactUnit(selectedImpactMethod)}
+                                <span className="font-medium">{impactMethods.find(m => m.id === selectedImpactMethod)?.label || selectedImpactMethod}:</span>
+                                {getImpactValue(product, selectedImpactMethod) === undefined ? 
+                                  ' No impact data available' : 
+                                  ` ${formatValue(getImpactValue(product, selectedImpactMethod))} ${getImpactUnit(selectedImpactMethod)}`
+                                }
                               </div>
                             </div>
                           </TooltipContent>

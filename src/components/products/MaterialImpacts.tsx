@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MaterialImpacts as MaterialImpactsType } from "@/interfaces/product";
 import { Badge } from "@/components/ui/badge";
 import { useStore } from "@/stores/useStore";
+import { formatImpactValue } from "@/utils/format";
 
 interface MaterialImpactsProps {
   impacts: MaterialImpactsType;
@@ -11,7 +12,7 @@ export function MaterialImpacts({ impacts }: MaterialImpactsProps) {
   const { displayedImpact } = useStore();
 
   const formatNumber = (num: number) => {
-    return num.toString();
+    return formatImpactValue(num);
   };
 
   const getImpactValue = (type: 'main' | 'transformation') => {
