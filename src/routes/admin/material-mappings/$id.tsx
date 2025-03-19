@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
@@ -15,7 +14,6 @@ export const Route = createFileRoute('/admin/material-mappings/$id')({
 function EditMaterialMappingPage() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [mapping, setMapping] = useState<MaterialMappingListDto | null>(null);
 
@@ -31,11 +29,11 @@ function EditMaterialMappingPage() {
       console.log(data);
       setMapping(data);
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to load material mapping"
-      });
+      // toast({
+      //   variant: "destructive",
+      //   title: "Error",
+      //   description: "Failed to load material mapping"
+      // });
       console.error(error);
       navigate({ to: '/admin/material-mappings' });
     } finally {
@@ -70,17 +68,17 @@ function EditMaterialMappingPage() {
           onSubmit={async (data) => {
             try {
               await materialMappingsService.update(id, data);
-              toast({
-                title: "Success",
-                description: "Material mapping updated successfully"
-              });
+              // toast({
+              //   title: "Success",
+              //   description: "Material mapping updated successfully"
+              // });
               navigate({ to: '/admin/material-mappings' });
             } catch (error) {
-              toast({
-                variant: "destructive",
-                title: "Error",
-                description: "Failed to update material mapping"
-              });
+              // toast({
+              //   variant: "destructive",
+              //   title: "Error",
+              //   description: "Failed to update material mapping"
+              // });
               console.error(error);
             }
           }}

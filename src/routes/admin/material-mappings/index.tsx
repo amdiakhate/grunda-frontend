@@ -1,6 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
 import { useMaterialMappings } from '@/hooks/useMaterialMappings';
 import { MaterialMappingForm } from '@/components/materials/MaterialMappingForm';
 import { materialMappingsService } from '@/services/materialMappings';
@@ -30,7 +29,6 @@ export const Route = createFileRoute('/admin/material-mappings/')({
 });
 
 function MaterialMappingsPage() {
-  const { toast } = useToast();
   const {
     mappings,
     loading,
@@ -48,11 +46,11 @@ function MaterialMappingsPage() {
     try {
       refresh();
     } catch {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to load material mappings",
-      });
+      // toast({
+      //   variant: "destructive",
+      //   title: "Error",
+      //   description: "Failed to load material mappings",
+      // });
     }
   };
 
@@ -67,35 +65,35 @@ function MaterialMappingsPage() {
   const handleDelete = async (id: string) => {
     try {
       await materialMappingsService.delete(id);
-      toast({
-        title: "Success",
-        description: "Material mapping deleted successfully",
-      });
+      // toast({
+      //   title: "Success",
+      //   description: "Material mapping deleted successfully",
+      // });
       loadMappings();
     } catch {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to delete material mapping",
-      });
+        // toast({
+        //   variant: "destructive",
+        //   title: "Error",
+        //   description: "Failed to delete material mapping",
+        // });
     }
   };
 
   const handleCreateMapping = async (data: CreateMaterialMappingDto | UpdateMaterialMappingDto) => {
     try {
       await materialMappingsService.create(data as CreateMaterialMappingDto);
-      toast({
-        title: "Success",
-        description: "Material mapping created successfully",
-      });
+      // toast({
+      //   title: "Success",
+      //   description: "Material mapping created successfully",
+      // });
       setIsCreateDialogOpen(false);
       loadMappings();
     } catch {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to create material mapping",
-      });
+      // toast({
+      //   variant: "destructive",
+      //   title: "Error",
+      //   description: "Failed to create material mapping",
+      // });
     }
   };
 

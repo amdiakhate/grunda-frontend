@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useToast } from '@/hooks/use-toast'
 import { Button } from '@/components/ui/button'
 import { Loader2, ArrowLeft } from 'lucide-react'
 import { adminService } from '@/services/admin'
@@ -30,7 +29,6 @@ export const Route = createFileRoute('/admin/product-materials/$id')({
 function MaterialDetailsPage() {
   const { id } = Route.useParams()
   const navigate = useNavigate()
-  const { toast } = useToast()
   const [productMaterial, setProductMaterial] =
     useState<MaterialListItem | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -62,11 +60,11 @@ function MaterialDetailsPage() {
       setProductMaterial(data)
     } catch (error) {
       console.error('Failed to fetch material:', error)
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to load material details',
-      })
+      // toast({
+      //   variant: 'destructive',
+      //   title: 'Error',
+      //   description: 'Failed to load material details',
+      // })
       navigate({ to: '/admin/materials' })
     } finally {
       setIsLoading(false)
@@ -113,10 +111,10 @@ function MaterialDetailsPage() {
             : null,
         )
 
-        toast({
-          title: 'Success',
-          description: 'Activity mapping removed successfully',
-        })
+        // toast({
+        //   title: 'Success',
+        //   description: 'Activity mapping removed successfully',
+        // })
       } else {
         const result = await adminService.matchMaterial(
           productMaterial.id,
@@ -142,19 +140,19 @@ function MaterialDetailsPage() {
               : null,
           )
 
-          toast({
-            title: 'Success',
-            description: 'Activity mapping updated successfully',
-          })
+          // toast({
+          //   title: 'Success',
+          //   description: 'Activity mapping updated successfully',
+          // })
         }
       }
     } catch (error) {
       console.error('Error updating material mapping:', error)
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to update material mapping',
-      })
+      // toast({
+      //   variant: 'destructive',
+      //   title: 'Error',
+      //   description: 'Failed to update material mapping',
+      // })
     } finally {
       setProcessingId(null)
     }
@@ -259,20 +257,20 @@ function MaterialDetailsPage() {
                   await materialMappingsService.create(createData)
                 }
                 setIsCreateDialogOpen(false)
-                toast({
-                  title: 'Success',
-                  description: 'Material mapping created successfully',
-                })
+                // toast({
+                //   title: 'Success',
+                //   description: 'Material mapping created successfully',
+                // })
                 // Reload mappings
                 setCurrentPage(1)
                 setSearchQuery('')
               } catch (error) {
                 console.error('Error creating material mapping:', error)
-                toast({
-                  variant: 'destructive',
-                  title: 'Error',
-                  description: 'Failed to create material mapping',
-                })
+                // toast({
+                //   variant: 'destructive',
+                //   title: 'Error',
+                //   description: 'Failed to create material mapping',
+                // })
               }
             }}
           />

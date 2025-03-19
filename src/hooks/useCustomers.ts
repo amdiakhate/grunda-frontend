@@ -1,6 +1,5 @@
 import { useState, useCallback } from 'react';
 import { adminService } from '@/services/admin';
-import { useToast } from '@/hooks/use-toast';
 
 export interface Customer {
   id: string;
@@ -11,7 +10,6 @@ export interface Customer {
 export function useCustomers() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
 
   const fetchCustomers = useCallback(async () => {
     try {
@@ -28,15 +26,10 @@ export function useCustomers() {
       setCustomers(customersList);
     } catch (error) {
       console.error('Failed to fetch customers:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to load customers. Please try again.",
-      });
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, []);
 
   return {
     customers,

@@ -3,8 +3,6 @@ import { useCallback, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { Button } from '../../../components/ui/button'
 import { productsService } from '../../../services/products'
-import { useToast } from '../../../hooks/use-toast'
-import { Toaster } from '../../../components/ui/toaster'
 import { CheckCircle2, FileDown } from 'lucide-react'
 import { CSVValidationError } from '../../../components/ui/csv-validation-error'
 import { downloadCSVTemplate } from '../../../utils/download-helpers'
@@ -54,7 +52,6 @@ function SuccessPage({ onBackToDashboard }: { onBackToDashboard: () => void }) {
 
 function UploadFileRoute() {
   const navigate = useNavigate()
-  const { toast } = useToast()
   const [isUploading, setIsUploading] = useState(false)
   const [uploadSuccess, setUploadSuccess] = useState(false)
   const [validationError, setValidationError] = useState<{
@@ -103,18 +100,18 @@ function UploadFileRoute() {
           })
         }
       } catch (error) {
-        toast({
-          variant: 'destructive',
-          title: 'Upload failed',
-          description:
-            error instanceof Error
-              ? error.message
-              : 'An error occurred during upload',
-        })
+        // toast({
+        //   variant: 'destructive',
+        //   title: 'Upload failed',
+        //   description:
+        //     error instanceof Error
+        //       ? error.message
+        //       : 'An error occurred during upload',
+        // })
         setIsUploading(false)
       }
     },
-    [navigate, toast, setCurrentJob],
+    [navigate, setCurrentJob],
   )
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -145,7 +142,6 @@ function UploadFileRoute() {
 
   return (
     <div className="space-y-8">
-      <Toaster />
 
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Upload products</h1>

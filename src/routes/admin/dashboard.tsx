@@ -1,7 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 import { adminService, type DashboardStats } from '@/services/admin'
-import { useToast } from '@/hooks/use-toast'
 import { Loader2 } from 'lucide-react'
 import { StatCard } from '@/components/dashboard/StatCard'
 import { ActivityFeed } from '@/components/dashboard/ActivityFeed'
@@ -15,7 +14,6 @@ export const Route = createFileRoute('/admin/dashboard')({
 function RouteComponent() {
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [loading, setLoading] = useState(true)
-  const { toast } = useToast()
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -23,26 +21,26 @@ function RouteComponent() {
         const data = await adminService.getDashboardStats()
         setStats(data)
       } catch (error) {
-        if (error instanceof Error) {
-          toast({
-            title: 'Error',
-            description: error.message,
-            variant: 'destructive',
-          })
-        } else {
-          toast({
-            title: 'Error',
-            description: 'Failed to load dashboard statistics',
-            variant: 'destructive',
-          })
-        }
+        // if (error instanceof Error) {
+        //   toast({
+        //     title: 'Error',
+        //     description: error.message,
+        //     variant: 'destructive',
+        //   })
+        // } else {
+        //   toast({
+        //     title: 'Error',
+        //     description: 'Failed to load dashboard statistics',
+        //     variant: 'destructive',
+        //   })
+        // }
       } finally {
         setLoading(false)
       }
     }
 
     fetchStats()
-  }, [toast])
+  }, [])
 
   if (loading) {
     return (

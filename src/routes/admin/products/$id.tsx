@@ -31,7 +31,6 @@ import {
   Info,
   Calculator,
 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
 import { useProducts } from '@/hooks/useProducts';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
@@ -62,7 +61,6 @@ const importSourceLabels: Record<ImportSource, string> = {
 function ProductDetails() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const { getProductById, reviewProduct } = useProducts();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -82,11 +80,11 @@ function ProductDetails() {
         setLoading(true);
         const data = await getProductById(id);
         if (data === null) {
-          toast({
-            variant: "destructive",
-            title: "Error",
-            description: "Product not found",
-          });
+          // toast({
+          //   variant: "destructive",
+          //   title: "Error",
+          //   description: "Product not found",
+          // });
           navigate({ to: '/admin/products' });
           return;
         }
@@ -97,18 +95,18 @@ function ProductDetails() {
         }
       } catch (error) {
         console.error('Failed to fetch product:', error);
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to load product details",
-        });
+        // toast({
+        //   variant: "destructive",
+        //   title: "Error",
+        //   description: "Failed to load product details",
+        // });
       } finally {
         setLoading(false);
       }
     };
 
     fetchProduct();
-  }, [id, getProductById, toast, navigate]);
+  }, [id, getProductById, navigate]);
 
   const handleReview = async (action: 'approve' | 'reject') => {
     if (!product || !id || reviewing) return;
@@ -126,10 +124,10 @@ function ProductDetails() {
         review_status: action === 'approve' ? 'reviewed' : 'rejected',
       } : null);
 
-      toast({
-        title: "Success",
-        description: `Product ${action === 'approve' ? 'approved' : 'rejected'} successfully`,
-      });
+      // toast({
+      //   title: "Success",
+      //   description: `Product ${action === 'approve' ? 'approved' : 'rejected'} successfully`,
+      // });
 
       // Reload the product data instead of navigating away
       const updatedProduct = await getProductById(id);
@@ -139,11 +137,11 @@ function ProductDetails() {
 
     } catch (error) {
       console.error('Failed to review product:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to review product",
-      });
+      // toast({
+      //   variant: "destructive",
+      //   title: "Error",
+      //   description: error instanceof Error ? error.message : "Failed to review product",
+      // });
     } finally {
       setReviewing(false);
     }
@@ -163,10 +161,10 @@ function ProductDetails() {
           calculation_status: 'pending',
         } : null);
 
-        toast({
-          title: "Success",
-          description: result.message || "Impact calculation started successfully",
-        });
+        // toast({
+        //   title: "Success",
+        //   description: result.message || "Impact calculation started successfully",
+        // });
       }
 
       // Close modal and navigate back to products list
@@ -174,11 +172,11 @@ function ProductDetails() {
 
     } catch (error) {
       console.error('Failed to calculate product impact:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to start impact calculation",
-      });
+      // toast({
+      //   variant: "destructive",
+      //   title: "Error",
+      //   description: error instanceof Error ? error.message : "Failed to start impact calculation",
+      // });
     } finally {
       setCalculating(false);
     }
@@ -225,10 +223,10 @@ function ProductDetails() {
           };
         });
         
-        toast({
-          title: "Success",
-          description: "Activity mapping removed successfully",
-        });
+        // toast({
+        //   title: "Success",
+        //   description: "Activity mapping removed successfully",
+        // });
       } else {
         const result = await adminService.matchMaterial(materialId, mapping.id);
         
@@ -255,19 +253,19 @@ function ProductDetails() {
             };
           });
           
-          toast({
-            title: "Success",
-            description: "Activity mapping updated successfully",
-          });
+          // toast({
+          //   title: "Success",
+          //   description: "Activity mapping updated successfully",
+          // });
         }
       }
     } catch (error) {
       console.error('Error updating material mapping:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to update material mapping",
-      });
+      // toast({
+      //   variant: "destructive",
+      //   title: "Error",
+      //   description: "Failed to update material mapping",
+      // });
     } finally {
       setProcessingMaterialId(null);
     }

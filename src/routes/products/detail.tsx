@@ -4,7 +4,6 @@ import { Product } from '@/interfaces/product';
 import { productsService } from '@/services/products';
 import { ProductDetailView } from '@/components/products/ProductDetailView';
 import { Loader2 } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
 
 export const Route = createFileRoute('/products/detail')({
   component: RouteComponent,
@@ -34,11 +33,11 @@ function RouteComponent() {
         setProduct(fetchedProduct);
       } catch (error) {
         console.error('Error fetching product:', error);
-        toast({
-          variant: 'destructive',
-          title: 'Erreur',
-          description: 'Impossible de charger les détails du produit',
-        });
+        // toast({
+        //   variant: 'destructive',
+        //   title: 'Erreur',
+        //   description: 'Impossible de charger les détails du produit',
+        // });
         navigate({ to: '/products/list' });
       } finally {
         setLoading(false);

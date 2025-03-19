@@ -15,7 +15,6 @@ import { useMaterialMappings } from '@/hooks/useMaterialMappings';
 import { Link } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { materialMappingsService } from '@/services/materialMappings';
-import { useToast } from '@/hooks/use-toast';
 
 interface MaterialMappingPanelProps {
   materialId: string;
@@ -29,7 +28,6 @@ export function MaterialMappingPanel({
 }: MaterialMappingPanelProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'search' | 'create'>('search');
-  const { toast } = useToast();
   const {
     mappings,
     loading,
@@ -57,19 +55,10 @@ export function MaterialMappingPanel({
   const handleCreateMapping = async (data: CreateMaterialMappingDto | UpdateMaterialMappingDto) => {
     try {
       const newMapping = await materialMappingsService.create(data as CreateMaterialMappingDto);
-      toast({
-        title: "Success",
-        description: "Material mapping created successfully",
-      });
       await refresh();
       handleSelect(newMapping);
     } catch (error) {
       console.error('Failed to create mapping:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to create material mapping",
-      });
     }
   };
 

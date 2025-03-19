@@ -6,8 +6,6 @@ import { CheckCircle2, AlertCircle, Clock, ArrowRight, Trash2 } from 'lucide-rea
 import { format } from 'date-fns'
 import { enUS } from 'date-fns/locale'
 import { JobStatus } from '../../services/products'
-import { useToast } from '../../hooks/use-toast'
-import { Toaster } from '../../components/ui/toaster'
 
 export const Route = createFileRoute('/products/upload-history')({
   component: UploadHistoryRoute,
@@ -15,7 +13,6 @@ export const Route = createFileRoute('/products/upload-history')({
 
 function UploadHistoryRoute() {
   const { recentJobs, clearRecentJobs } = useUploadStore()
-  const { toast } = useToast()
   
   // Function to get icon and color based on status
   const getStatusInfo = (status: JobStatus) => {
@@ -73,15 +70,14 @@ function UploadHistoryRoute() {
   // Function to clear history
   const handleClearHistory = () => {
     clearRecentJobs()
-    toast({
-      title: 'History Cleared',
-      description: 'The processing history has been cleared.',
-    })
+    // toast({
+    //   title: 'History Cleared',
+    //   description: 'The processing history has been cleared.',
+    // })
   }
 
   return (
     <div className="space-y-8">
-      <Toaster />
       
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Processing History</h1>
