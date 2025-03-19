@@ -2,13 +2,11 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { authService } from '@/services/auth';
 import { usersService } from '@/services/users';
 import type { User, LoginDto, ImpersonateDto } from '@/interfaces/user';
-import { useToast } from '@/hooks/use-toast';
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(() => authService.getStoredUser());
   const [loading, setLoading] = useState(true);
   const [initialized, setInitialized] = useState(false);
-  const { toast } = useToast();
   const initializationInProgress = useRef(false);
 
   const fetchCurrentUser = useCallback(async () => {

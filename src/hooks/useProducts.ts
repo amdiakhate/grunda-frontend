@@ -6,7 +6,6 @@ import type {
   ProductsListQueryParams,
   ReviewStats,
 } from '@/interfaces/product';
-import { useToast } from '@/hooks/use-toast';
 import { ApiError } from '@/services/api';
 
 export function useProducts() {
@@ -14,7 +13,6 @@ export function useProducts() {
   const [loading, setLoading] = useState(false);
   const [total, setTotal] = useState(0);
   const [stats, setStats] = useState<ReviewStats | null>(null);
-  const { toast } = useToast();
 
   const fetchStats = useCallback(async () => {
     try {

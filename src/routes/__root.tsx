@@ -5,7 +5,6 @@ import { adminNavItems } from "@/components/common/AdminNav";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { ImpersonationBanner } from "@/components/common/ImpersonationBanner";
 import type { AuthContextType } from "@/contexts/AuthContext";
-import { Toaster } from "@/components/ui/toaster";
 import { useEffect } from "react";
 
 export const Route = createRootRoute({
@@ -82,7 +81,6 @@ function Layout() {
                     </SidebarProvider>
                 </div>
             )}
-            <Toaster />
         </>
     );
 }
