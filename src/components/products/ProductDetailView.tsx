@@ -35,6 +35,8 @@ interface MaterialItem {
   activityName: string;
   transformationActivityName: string;
   details?: MaterialItem[];
+  activityOrigin?: string;
+  transformationActivityOrigin?: string;
 }
 
 // Define available impact methods with icons
@@ -149,6 +151,8 @@ export function ProductDetailView({ product, onBack }: ProductDetailViewProps) {
           materialUnit: material.unit,
           activityName: material.activityName || '',
           transformationActivityName: material.transformationActivityName || '',
+          activityOrigin: material.activityOrigin || '',
+          transformationActivityOrigin: material.transformationActivityOrigin || '',
         };
       })
       .sort((a, b) => b.share - a.share);
@@ -174,14 +178,13 @@ export function ProductDetailView({ product, onBack }: ProductDetailViewProps) {
         materialUnit: '',
         activityName: '',
         transformationActivityName: '',
-        details: insignificantMaterials // Store the details for tooltip
+        activityOrigin: '',
+        transformationActivityOrigin: '',
+        details: insignificantMaterials,
       });
     }
-
-    // Sort by share in descending order
-    const sortedMaterials = significantMaterials.sort((a, b) => b.share - a.share);
     
-    return sortedMaterials;
+    return significantMaterials;
   };
 
   const chartData = getChartData();
@@ -433,7 +436,8 @@ export function ProductDetailView({ product, onBack }: ProductDetailViewProps) {
                           <th className="text-right py-2 px-4">Share (%)</th>
                           <th className="text-right py-2 px-4">Value</th>
                           <th className="text-right py-2 px-4">Quantity</th>
-                          <th className="text-left py-2 px-4">Activity</th>
+                          <th className="text-left py-2 px-4">Main Activity</th>
+                          <th className="text-left py-2 px-4">Transformation</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -441,17 +445,18 @@ export function ProductDetailView({ product, onBack }: ProductDetailViewProps) {
                           <tr key={index} className="border-b hover:bg-gray-50">
                             <td className="py-2 px-4">
                               <div className="flex items-center">
-                                {item.name}
-                                {item.name === 'Others' && item.details && (
+                                {item.name === 'Others' ? (
                                   <div 
-                                    className="ml-1 cursor-help relative"
+                                    className="cursor-help relative"
                                     onMouseEnter={handleOthersMouseEnter}
                                     onMouseLeave={handleOthersMouseLeave}
                                   >
-                                    <Info size={16} className="text-gray-500" />
-                                    
-                                    {showOthersTooltip && (
-                                      <div className="absolute bottom-full left-0 mb-2 p-3 bg-black text-white rounded-md shadow-lg z-50 w-64">
+                                    <div className="flex items-center">
+                                      <span>{item.name}</span>
+                                      <Info className="h-4 w-4 ml-1 text-gray-400" />
+                                    </div>
+                                    {showOthersTooltip && item.details && (
+                                      <div className="absolute bottom-full right-0 mb-2 p-3 bg-black text-white rounded-md shadow-lg z-50 w-64">
                                         <h4 className="font-bold mb-2">Other materials</h4>
                                         <div className="max-h-60 overflow-y-auto">
                                           {item.details.map((detail, i) => (
@@ -466,10 +471,12 @@ export function ProductDetailView({ product, onBack }: ProductDetailViewProps) {
                                             </div>
                                           ))}
                                         </div>
-                                        <div className="absolute left-4 -bottom-2 w-3 h-3 bg-black rotate-45"></div>
+                                        <div className="absolute right-4 -bottom-2 w-3 h-3 bg-black rotate-45"></div>
                                       </div>
                                     )}
                                   </div>
+                                ) : (
+                                  <span>{item.name}</span>
                                 )}
                               </div>
                             </td>
@@ -481,12 +488,24 @@ export function ProductDetailView({ product, onBack }: ProductDetailViewProps) {
                               {item.name !== 'Others' ? `${item.quantity} ${item.materialUnit}` : '-'}
                             </td>
                             <td className="py-2 px-4">
-                              {item.name !== 'Others' && (
+                              {item.name !== 'Others' && item.activityName && (
                                 <div className="text-sm">
-                                  {item.activityName}
-                                  {item.transformationActivityName && item.transformationActivityName !== "NA" && (
+                                  <div>{item.activityName}</div>
+                                  {item.activityOrigin && (
                                     <div className="text-xs text-gray-500 mt-1">
-                                      Transformation: {item.transformationActivityName}
+                                      Origin: {item.activityOrigin}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </td>
+                            <td className="py-2 px-4">
+                              {item.name !== 'Others' && item.transformationActivityName && (
+                                <div className="text-sm">
+                                  <div>{item.transformationActivityName}</div>
+                                  {item.transformationActivityOrigin && (
+                                    <div className="text-xs text-gray-500 mt-1">
+                                      Origin: {item.transformationActivityOrigin}
                                     </div>
                                   )}
                                 </div>
