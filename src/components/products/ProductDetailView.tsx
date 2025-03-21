@@ -3,7 +3,7 @@ import { Product, Impact } from '@/interfaces/product';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { formatImpactValue } from '@/utils/format';
+import { formatImpactValue, formatPercentage } from '@/utils/format';
 import { 
   ArrowLeft, 
   BarChart3, 
@@ -356,7 +356,7 @@ export function ProductDetailView({ product, onBack }: ProductDetailViewProps) {
                                           <div key={i} className="mb-2">
                                             <div className="flex justify-between">
                                               <span>{detail.name}</span>
-                                              <span>{detail.share}%</span>
+                                              <span>{formatPercentage(detail.share)}</span>
                                             </div>
                                             <div className="text-xs text-gray-300">
                                               {formatNumber(detail.value)} {detail.unit}
@@ -370,7 +370,7 @@ export function ProductDetailView({ product, onBack }: ProductDetailViewProps) {
                                 </div>
                               )}
                             </div>
-                            <div className="text-lg font-bold">{item.displayShare}%</div>
+                            <div className="text-lg font-bold">{formatPercentage(item.displayShare)}</div>
                           </div>
                         </div>
                       ))}
@@ -399,7 +399,7 @@ export function ProductDetailView({ product, onBack }: ProductDetailViewProps) {
                             >
                               {item.share >= 5 && (
                                 <div className="absolute inset-0 flex items-center justify-center text-white font-medium">
-                                  {item.displayShare}%
+                                  {formatPercentage(item.displayShare)}
                                 </div>
                               )}
                             </div>
@@ -463,7 +463,7 @@ export function ProductDetailView({ product, onBack }: ProductDetailViewProps) {
                                             <div key={i} className="mb-2">
                                               <div className="flex justify-between">
                                                 <span>{detail.name}</span>
-                                                <span>{detail.share}%</span>
+                                                <span>{formatPercentage(detail.share)}</span>
                                               </div>
                                               <div className="text-xs text-gray-300">
                                                 {formatNumber(detail.value)} {detail.unit}
@@ -480,7 +480,7 @@ export function ProductDetailView({ product, onBack }: ProductDetailViewProps) {
                                 )}
                               </div>
                             </td>
-                            <td className="text-right py-2 px-4">{item.share}%</td>
+                            <td className="text-right py-2 px-4">{formatPercentage(item.share)}</td>
                             <td className="text-right py-2 px-4">
                               {formatNumber(item.value)} {item.unit}
                             </td>
