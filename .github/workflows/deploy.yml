@@ -24,7 +24,7 @@ jobs:
             - name: Build Vite app
               run: npm run build
 
-            - name: Sync to Scaleway Bucket
+            - name: Sync to Scaleway Object Storage
               uses: jakejarvis/s3-sync-action@master
               with:
                   args: --acl public-read --delete
@@ -34,3 +34,4 @@ jobs:
                   AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_KEY }}
                   AWS_REGION: ${{ secrets.S3_REGION }}
                   SOURCE_DIR: 'dist'
+                  AWS_ENDPOINT_URL: ${{ secrets.S3_ENDPOINT }}
