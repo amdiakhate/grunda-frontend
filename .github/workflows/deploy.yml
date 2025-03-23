@@ -1,4 +1,4 @@
-name: Deploy Vite Frontend to Scaleway Bucket
+name: Deploy Vite Frontend to Scaleway via rclone
 
 on:
     push:
@@ -10,7 +10,7 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-            - name: Checkout repo
+            - name: Checkout repository
               uses: actions/checkout@v3
 
             - name: Setup Node.js
@@ -24,17 +24,26 @@ jobs:
             - name: Build Vite app
               run: npm run build
 
-            - name: Install AWS CLI
+            - name: Install rclone
               run: |
-                  sudo apt-get update
-                  sudo apt-get install -y awscli
+                  curl https://rclone.org/install.sh | sudo bash
 
-            - name: Sync to Scaleway Object Storage (S3-compatible)
-              env:
-                  AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY }}
-                  AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_KEY }}
+            - name: Configure rclone
               run: |
-                  aws s3 sync dist/ s3://${{ secrets.S3_BUCKET }}/ \
-                    --endpoint-url https://s3.fr-par.scw.cloud \
-                    --acl public-read \
-                    --delete
+                  mkdir -p ~/.config/rclone
+                  echo "[scaleway]" > ~/.config/rclone/rclone.conf
+                  echo "type = s3" >> ~/.config/rclone/rclone.conf
+                  echo "provider = Minio" >> ~/.config/rclone/rclone.conf
+                  echo "access_key_id = ${{ secrets.S3_ACCESS_KEY }}" >> ~/.config/rclone/rclone.conf
+                  echo "secret_access_key = ${{ secrets.S3_SECRET_KEY }}" >> ~/.config/rclone/rclone.conf
+                  echo "region = fr-par" >> ~/.config/rclone/rclone.conf
+                  echo "endpoint = https://s3.fr-par.scw.cloud" >> ~/.config/rclone/rclone.conf
+                  echo "location_constraint = fr-par" >> ~/.config/rclone/rclone.conf
+                  echo "acl = public-read" >> ~/.config/rclone/rclone.conf
+
+            - name: Sync to Scaleway bucket
+              run: |
+                  rclone sync dist scaleway:grunda-frontend-test \
+                    --s3-acl public-read \
+                    --ignore-times \
+                    --progress
