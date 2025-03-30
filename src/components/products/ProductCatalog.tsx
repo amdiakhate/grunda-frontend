@@ -193,7 +193,7 @@ export function ProductCatalog({ products, categories, isLoading }: ProductCatal
                       <span className="font-mono text-sm">{product.id.substring(0, 8)}</span>
                     </div>
                     
-                    {/* Bouton de détails */}
+                    {/* Details button */}
                     <Button 
                       asChild 
                       variant="outline" 

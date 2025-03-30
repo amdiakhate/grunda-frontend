@@ -58,7 +58,7 @@ async function handleResponse<T>(response: Response): Promise<T> {
       errorData = { message: errorText };
     }
     
-    // Si c'est une erreur de validation CSV, retourner les détails complets
+    // If it's a CSV validation error, return the complete details
     if (errorData.errors && Array.isArray(errorData.errors)) {
       return errorData as T;
     }

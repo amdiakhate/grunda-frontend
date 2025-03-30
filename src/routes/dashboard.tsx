@@ -1,11 +1,39 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
-import { Package, Factory, Atom, ArrowUpIcon, ArrowDownIcon, CheckCircle2 } from 'lucide-react'
+import { Package, Factory, CheckCircle2, ArrowRight } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { productsService } from '../services/products'
-import { Product } from '../interfaces/product'
-import { MaterialsTreemap } from '../components/products/materialsTreemap'
+import { api } from '../services/api'
 import { ProtectedRoute } from '@/components/common/ProtectedRoute'
+import { Button } from '@/components/ui/button'
+import { formatPercentage } from '@/utils/format'
+
+interface DashboardOverview {
+  totalProducts: {
+    count: number
+    categories: number
+    pending: number
+    reviewed: number
+  }
+  totalMaterials: {
+    count: number
+    description: string
+  }
+  completedProducts: {
+    percentage: number
+    pendingCalculations: number
+  }
+}
+
+interface RecentProduct {
+  id: string
+  name: string
+  category: string
+}
+
+interface DashboardData {
+  overview: DashboardOverview
+  recentProducts: RecentProduct[]
+}
 
 export const Route = createFileRoute('/dashboard')({
   component: DashboardPage,
@@ -20,55 +48,36 @@ function DashboardPage() {
 }
 
 function Dashboard() {
-  const [products, setProducts] = useState<Product[]>([])
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchDashboardData = async () => {
       try {
-        const data = await productsService.getAll()
-        setProducts(data)
+        const data = await api.get<DashboardData>('/customer/dashboard')
+        setDashboardData(data)
       } catch (error) {
-        console.error('Error fetching products:', error)
+        console.error('Error fetching dashboard data:', error)
       } finally {
         setIsLoading(false)
       }
     }
-    fetchProducts()
+    fetchDashboardData()
   }, [])
-
-  // Calculate statistics
-  const stats = {
-    totalProducts: products.length,
-    categories: new Set(products.map(p => p.category)).size,
-    completedProducts: products.filter(p => p.completionLevel === 100).length,
-    avgFootprint: products.reduce((acc, p) => acc + (p.unitFootprint || 0), 0) / products.length || 0,
-    pendingCalculations: products.filter(p => p.calculation_status === 'pending').length,
-    materialsCount: products.reduce((acc, p) => acc + (p.productMaterials?.length || 0), 0),
-  }
-
-  // Get top impacting categories
-  const categoryImpacts = products.reduce((acc, product) => {
-    if (!acc[product.category]) {
-      acc[product.category] = 0
-    }
-    acc[product.category] += product.totalFootprint || 0
-    return acc
-  }, {} as Record<string, number>)
-
-  const topCategories = Object.entries(categoryImpacts)
-    .sort(([, a], [, b]) => b - a)
-    .slice(0, 3)
 
   if (isLoading) {
     return <div className="flex items-center justify-center h-screen">Loading dashboard data...</div>
+  }
+
+  if (!dashboardData) {
+    return null
   }
 
   return (
     <div className="p-6 space-y-6">
       <h1 className="text-3xl font-bold">Dashboard</h1>
       
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {/* Total Products */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -76,10 +85,14 @@ function Dashboard() {
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalProducts}</div>
-            <p className="text-xs text-muted-foreground">
-              Across {stats.categories} categories
-            </p>
+            <div className="text-2xl font-bold">{dashboardData.overview.totalProducts.count}</div>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <span>{dashboardData.overview.totalProducts.categories} categories</span>
+              <span>•</span>
+              <span>{dashboardData.overview.totalProducts.pending} pending</span>
+              <span>•</span>
+              <span>{dashboardData.overview.totalProducts.reviewed} reviewed</span>
+            </div>
           </CardContent>
         </Card>
 
@@ -90,9 +103,9 @@ function Dashboard() {
             <Factory className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.materialsCount}</div>
+            <div className="text-2xl font-bold">{dashboardData.overview.totalMaterials.count}</div>
             <p className="text-xs text-muted-foreground">
-              Used across all products
+              {dashboardData.overview.totalMaterials.description}
             </p>
           </CardContent>
         </Card>
@@ -104,96 +117,42 @@ function Dashboard() {
             <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {((stats.completedProducts / stats.totalProducts) * 100)}%
-            </div>
+            <div className="text-2xl font-bold">{formatPercentage(dashboardData.overview.completedProducts.percentage)}</div>
             <p className="text-xs text-muted-foreground">
-              {stats.pendingCalculations} calculations pending
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Average Impact */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg. Product Impact</CardTitle>
-            <Atom className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.avgFootprint}</div>
-            <p className="text-xs text-muted-foreground">
-              kg CO₂e per unit
+              {dashboardData.overview.completedProducts.pendingCalculations} calculations pending
             </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Category Impact Analysis */}
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Top Impacting Categories</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {topCategories.map(([category, impact], index) => (
-                <div key={category} className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">{category}</p>
-                    <p className="text-2xl font-bold">{impact} kg CO₂e</p>
-                  </div>
-                  <div className={`h-4 w-4 rounded-full ${
-                    index === 0 ? 'bg-red-100' :
-                    index === 1 ? 'bg-yellow-100' :
-                    'bg-green-100'
-                  }`} />
+      {/* Recent Products */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent Products</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {dashboardData.recentProducts.map((product) => (
+              <div key={product.id} className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">{product.name}</p>
+                  <p className="text-xs text-muted-foreground">{product.category}</p>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Recent Products */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Products</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {products.slice(-3).map(product => (
-                <div key={product.id} className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">{product.name}</p>
-                    <p className="text-xs text-muted-foreground">{product.category}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">
-                      {product.unitFootprint || '...'} kg CO₂e
-                    </span>
-                    {product.unitFootprint && (product.unitFootprint > stats.avgFootprint ? (
-                      <ArrowUpIcon className="h-4 w-4 text-red-500" />
-                    ) : (
-                      <ArrowDownIcon className="h-4 w-4 text-green-500" />
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Materials Impact Overview */}
-      {products.length > 0 && products[0].productMaterials && products[0].productMaterials.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Materials Impact Distribution</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <MaterialsTreemap materials={products[0].productMaterials} threshold={1} />
-          </CardContent>
-        </Card>
-      )}
+                <Button
+                  asChild
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0"
+                >
+                  <Link to="/products/detail" search={{ id: product.id }}>
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

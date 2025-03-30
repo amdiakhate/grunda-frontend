@@ -46,17 +46,13 @@ export function formatImpactValue(value: number): string {
 }
 
 /**
- * Format a percentage with 3 significant figures
+ * Format a percentage with 2 decimal places
  * @param value The percentage value to format (e.g. 12.3456)
- * @returns Formatted percentage string (e.g. "12.3%")
+ * @returns Formatted percentage string (e.g. "12.35%")
  */
 export function formatPercentage(value: number): string {
-  if (value === 0) return '0%';
-  if (value === 100) return '100%';
+  if (value === 0) return '0.00%';
+  if (value === 100) return '100.00%';
   
-  // Use toPrecision to get 3 significant figures
-  const formatted = Number(value).toPrecision(3);
-  
-  // Remove trailing zeros after decimal point
-  return `${formatted.replace(/\.?0+$/, '')}%`;
+  return `${value.toFixed(2)}%`;
 } 

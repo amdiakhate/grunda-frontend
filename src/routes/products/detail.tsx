@@ -35,8 +35,8 @@ function RouteComponent() {
         console.error('Error fetching product:', error);
         // toast({
         //   variant: 'destructive',
-        //   title: 'Erreur',
-        //   description: 'Impossible de charger les détails du produit',
+        //   title: 'Error',
+        //   description: 'Unable to load product details',
         // });
         navigate({ to: '/products/list' });
       } finally {
@@ -55,7 +55,7 @@ function RouteComponent() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        <p className="text-sm text-muted-foreground">Chargement des détails du produit...</p>
+        <p className="text-sm text-muted-foreground">Loading product details...</p>
       </div>
     );
   }
@@ -63,7 +63,7 @@ function RouteComponent() {
   if (!product) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
-        <p className="text-sm text-muted-foreground">Produit non trouvé</p>
+        <p className="text-sm text-muted-foreground">Product not found</p>
       </div>
     );
   }

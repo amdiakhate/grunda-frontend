@@ -17,6 +17,12 @@ import {
   Leaf
 } from 'lucide-react';
 import { useStore } from '@/stores/useStore';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface ProductDetailViewProps {
   product: Product;
@@ -66,7 +72,6 @@ export function ProductDetailView({ product, onBack }: ProductDetailViewProps) {
   const { displayedImpact, setDisplayedImpact } = useStore();
   const [viewMode, setViewMode] = useState<'graph' | 'table'>('graph');
   const [showMethodDropdown, setShowMethodDropdown] = useState(false);
-  const [showOthersTooltip, setShowOthersTooltip] = useState(false);
   
   // Check if product has any material analysis data
   const hasMaterialAnalysis = useMemo(() => {
@@ -104,7 +109,7 @@ export function ProductDetailView({ product, onBack }: ProductDetailViewProps) {
   }, []);
 
   // Calculate chart data
-  const getChartData = (): MaterialItem[] => {
+  const getChartData = (forGraph: boolean = false): MaterialItem[] => {
     if (!displayedImpact || !product.productMaterials) return [];
 
     const rawData: MaterialItem[] = product.productMaterials
@@ -157,37 +162,43 @@ export function ProductDetailView({ product, onBack }: ProductDetailViewProps) {
       })
       .sort((a, b) => b.share - a.share);
 
-    // Separate significant materials from insignificant ones
-    const significantMaterials = rawData.filter(item => item.share >= OTHERS_THRESHOLD);
-    const insignificantMaterials = rawData.filter(item => item.share < OTHERS_THRESHOLD);
+    // Only group into "Others" if we're in graph view
+    if (forGraph) {
+      // Separate significant materials from insignificant ones
+      const significantMaterials = rawData.filter(item => item.share >= OTHERS_THRESHOLD);
+      const insignificantMaterials = rawData.filter(item => item.share < OTHERS_THRESHOLD);
 
-    // If there are insignificant materials, create an "Others" category
-    if (insignificantMaterials.length > 0) {
-      const othersShare = insignificantMaterials.reduce((sum, item) => sum + item.share, 0);
-      const othersValue = insignificantMaterials.reduce((sum, item) => sum + item.value, 0);
-      const unit = insignificantMaterials[0]?.unit || '';
+      // If there are insignificant materials, create an "Others" category
+      if (insignificantMaterials.length > 0) {
+        const othersShare = insignificantMaterials.reduce((sum, item) => sum + item.share, 0);
+        const othersValue = insignificantMaterials.reduce((sum, item) => sum + item.value, 0);
+        const unit = insignificantMaterials[0]?.unit || '';
 
-      // Add "Others" category to the significant materials
-      significantMaterials.push({
-        name: 'Others',
-        share: othersShare,
-        displayShare: othersShare,
-        value: othersValue,
-        unit,
-        quantity: 0,
-        materialUnit: '',
-        activityName: '',
-        transformationActivityName: '',
-        activityOrigin: '',
-        transformationActivityOrigin: '',
-        details: insignificantMaterials,
-      });
+        // Add "Others" category to the significant materials
+        significantMaterials.push({
+          name: 'Others',
+          share: othersShare,
+          displayShare: othersShare,
+          value: othersValue,
+          unit,
+          quantity: 0,
+          materialUnit: '',
+          activityName: '',
+          transformationActivityName: '',
+          activityOrigin: '',
+          transformationActivityOrigin: '',
+          details: insignificantMaterials,
+        });
+      }
+      
+      return significantMaterials;
     }
     
-    return significantMaterials;
+    // Return all materials for table view
+    return rawData;
   };
 
-  const chartData = getChartData();
+  const chartData = getChartData(viewMode === 'graph');
   
   // Find the currently selected impact in the product summary
   const currentImpactSummary = product.summary?.impacts.find(
@@ -200,15 +211,6 @@ export function ProductDetailView({ product, onBack }: ProductDetailViewProps) {
   );
   const currentMethodName = currentMethod?.name || 'Select a method';
   const currentMethodIcon = currentMethod?.icon;
-
-  // Handle mouse events for Others tooltip
-  const handleOthersMouseEnter = () => {
-    setShowOthersTooltip(true);
-  };
-
-  const handleOthersMouseLeave = () => {
-    setShowOthersTooltip(false);
-  };
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
@@ -341,15 +343,14 @@ export function ProductDetailView({ product, onBack }: ProductDetailViewProps) {
                             <div className="flex items-center mb-1">
                               <span className="text-sm font-medium truncate">{item.name}</span>
                               {item.name === 'Others' && item.details && (
-                                <div 
-                                  className="ml-1 cursor-help relative"
-                                  onMouseEnter={handleOthersMouseEnter}
-                                  onMouseLeave={handleOthersMouseLeave}
-                                >
-                                  <Info size={14} className="text-gray-500" />
-                                  
-                                  {showOthersTooltip && (
-                                    <div className="absolute bottom-full right-0 mb-2 p-3 bg-black text-white rounded-md shadow-lg z-50 w-64">
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <div className="ml-1 cursor-help">
+                                        <Info size={14} className="text-gray-500" />
+                                      </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent side="top" className="w-64 p-3 bg-black text-white">
                                       <h4 className="font-bold mb-2">Other materials</h4>
                                       <div className="max-h-60 overflow-y-auto">
                                         {item.details.map((detail, i) => (
@@ -364,10 +365,9 @@ export function ProductDetailView({ product, onBack }: ProductDetailViewProps) {
                                           </div>
                                         ))}
                                       </div>
-                                      <div className="absolute right-4 -bottom-2 w-3 h-3 bg-black rotate-45"></div>
-                                    </div>
-                                  )}
-                                </div>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
                               )}
                             </div>
                             <div className="text-lg font-bold">{formatPercentage(item.displayShare)}</div>
@@ -446,20 +446,18 @@ export function ProductDetailView({ product, onBack }: ProductDetailViewProps) {
                             <td className="py-2 px-4">
                               <div className="flex items-center">
                                 {item.name === 'Others' ? (
-                                  <div 
-                                    className="cursor-help relative"
-                                    onMouseEnter={handleOthersMouseEnter}
-                                    onMouseLeave={handleOthersMouseLeave}
-                                  >
-                                    <div className="flex items-center">
-                                      <span>{item.name}</span>
-                                      <Info className="h-4 w-4 ml-1 text-gray-400" />
-                                    </div>
-                                    {showOthersTooltip && item.details && (
-                                      <div className="absolute bottom-full right-0 mb-2 p-3 bg-black text-white rounded-md shadow-lg z-50 w-64">
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <div className="flex items-center cursor-help">
+                                          <span>{item.name}</span>
+                                          <Info className="h-4 w-4 ml-1 text-gray-400" />
+                                        </div>
+                                      </TooltipTrigger>
+                                      <TooltipContent side="top" className="w-64 p-3 bg-black text-white">
                                         <h4 className="font-bold mb-2">Other materials</h4>
                                         <div className="max-h-60 overflow-y-auto">
-                                          {item.details.map((detail, i) => (
+                                          {item.details?.map((detail, i) => (
                                             <div key={i} className="mb-2">
                                               <div className="flex justify-between">
                                                 <span>{detail.name}</span>
@@ -471,10 +469,9 @@ export function ProductDetailView({ product, onBack }: ProductDetailViewProps) {
                                             </div>
                                           ))}
                                         </div>
-                                        <div className="absolute right-4 -bottom-2 w-3 h-3 bg-black rotate-45"></div>
-                                      </div>
-                                    )}
-                                  </div>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
                                 ) : (
                                   <span>{item.name}</span>
                                 )}
@@ -485,31 +482,23 @@ export function ProductDetailView({ product, onBack }: ProductDetailViewProps) {
                               {formatNumber(item.value)} {item.unit}
                             </td>
                             <td className="text-right py-2 px-4">
-                              {item.name !== 'Others' ? `${item.quantity} ${item.materialUnit}` : '-'}
+                              {item.quantity} {item.materialUnit}
                             </td>
                             <td className="py-2 px-4">
-                              {item.name !== 'Others' && item.activityName && (
-                                <div className="text-sm">
-                                  <div>{item.activityName}</div>
-                                  {item.activityOrigin && (
-                                    <div className="text-xs text-gray-500 mt-1">
-                                      Origin: {item.activityOrigin}
-                                    </div>
-                                  )}
-                                </div>
-                              )}
+                              <div className="flex flex-col">
+                                <span>{item.activityName}</span>
+                                {item.activityOrigin && (
+                                  <span className="text-xs text-muted-foreground">{item.activityOrigin}</span>
+                                )}
+                              </div>
                             </td>
                             <td className="py-2 px-4">
-                              {item.name !== 'Others' && item.transformationActivityName && (
-                                <div className="text-sm">
-                                  <div>{item.transformationActivityName}</div>
-                                  {item.transformationActivityOrigin && (
-                                    <div className="text-xs text-gray-500 mt-1">
-                                      Origin: {item.transformationActivityOrigin}
-                                    </div>
-                                  )}
-                                </div>
-                              )}
+                              <div className="flex flex-col">
+                                <span>{item.transformationActivityName}</span>
+                                {item.transformationActivityOrigin && (
+                                  <span className="text-xs text-muted-foreground">{item.transformationActivityOrigin}</span>
+                                )}
+                              </div>
                             </td>
                           </tr>
                         ))}
